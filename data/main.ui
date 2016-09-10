@@ -33,12 +33,19 @@
               </object>
             </child>
             <child>
-              <object class="GtkStack" id="chatbox-stack">
+              <object class="GtkScrolledWindow">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="width-request">500</property>
                 <child>
-                  <placeholder/>
+                  <object class="GtkStack" id="chatbox-stack">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="width-request">500</property>
+                    <property name="height-request">1000</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                  </object>
                 </child>
               </object>
               <packing>
