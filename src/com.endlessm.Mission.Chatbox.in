@@ -1,0 +1,15 @@
+#!@GJS@
+/* com.endlessm.Mission.Chatbox
+ *
+ * Copyright (c) 2016 Endless Mobile Inc.
+ * All Rights Reserved.
+ *
+ * This file is the entrypoint to the "chatbox" element of the Mission
+ * project. It communicates with another service called "showmehow" to obtain
+ * lesson content and provides a chat-like experience for the user.
+ */
+imports.package.init({ name: "com.endlessm.Mission.Chatbox",
+                       version: "@PACKAGE_VERSION@",
+                       prefix: "@prefix@",
+                       libdir: "@libdir@" });
+imports.package.run(imports.main);
