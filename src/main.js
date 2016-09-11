@@ -305,20 +305,6 @@ const MissionChatboxChatBubbleContainer = new Lang.Class({
 });
 
 
-function generate_sample_content(n) {
-    let content = [];
-    for (let i = 0; i < n; ++i) {
-        let is_user = i % 2 == 1;
-        content.push({
-            label: "Hello, world",
-            user: is_user
-        });
-    }
-
-    return content;
-}
-
-
 let CONSTRUCT_PROPERTY_CHOICES = [
     [{
         text: 'Hello world, this is a sample chat bubble for the mission chatbox app'
@@ -367,17 +353,17 @@ const MissionChatboxMainWindow = new Lang.Class({
             chat_contents.get_style_context().add_class('chatbox-chats');
 
             /* On each chat add a few bubbles */
-            generate_sample_content(10).forEach(Lang.bind(this, function(content_spec, i) {
+            for(let i = 0; i < 10; ++i) {
                 let args = CONSTRUCT_PROPERTY_CHOICES[i % 3];
                 let content = new CLASS_CHOICES[i % 3](args[0], args[1]);
                 let container = new MissionChatboxChatBubbleContainer({
                     visible: true,
                     content: content.view(),
-                    by_user: content_spec.user
+                    by_user: i % 2 == 1
                 });
 
                 chat_contents.pack_start(container, false, false, 10);
-            }));
+            }
 
             this.chatbox_list_box.add(contact_row);
             this.chatbox_stack.add_named(chat_contents, actor);
