@@ -230,6 +230,7 @@ const MissionChatboxContactListItem = new Lang.Class({
             }
 
             cr.restore();
+            cr.$dispose();
         }));
     }
 });
