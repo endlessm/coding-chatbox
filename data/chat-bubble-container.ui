@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="Gjs_MissionChatboxChatBubbleContainer" parent="GtkBox">
+    <property name="hexpand">true</property>
+    <child>
+      <object class="GtkBox" id="bubble-box">
+        <property name="visible">true</property>
+        <property name="margin">10</property>
+        <child>
+          <object class="GtkBox" id="inner-box">
+            <property name="width_request">250</property>
+            <property name="visible">true</property>
+            <property name="margin">10</property>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

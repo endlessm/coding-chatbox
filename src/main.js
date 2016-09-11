@@ -111,6 +111,64 @@ const MissionChatboxContactListItem = new Lang.Class({
     }
 });
 
+const MissionChatboxChatBubbleContainer = new Lang.Class({
+    Name: 'MissionChatboxChatBubbleContainer',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/Mission/Chatbox/chat-bubble-container.ui',
+    Children: ['inner-box', 'bubble-box'],
+    Properties: {
+        'content': GObject.ParamSpec.object('content',
+                                            '',
+                                            '',
+                                            GObject.ParamFlags.READWRITE |
+                                            GObject.ParamFlags.CONSTRUCT_ONLY,
+                                            Gtk.Widget),
+        'by-user': GObject.ParamSpec.boolean('by-user',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             false)
+    },
+
+    _init: function(params) {
+        this.parent(params);
+
+        let [margin_prop, halign] = this.by_user ? ['margin-right', Gtk.Align.START] :
+                                                   ['margin-left', Gtk.Align.END];
+
+        this[margin_prop] = 10;
+        this.halign = halign;
+        this.bubble_box.connect('draw', Lang.bind(this, function(box, cr) {
+            let width = this.get_allocated_width();
+            let height = this.get_allocated_height();
+            cr.save();
+            cr.moveTo(0, 0);
+            cr.setSourceRGBA(1.0, 0.0, 0.0, 1.0);
+            cr.rectangle(0, 0, width, height);
+            cr.paint();
+            cr.restore();
+        }));
+
+        this.inner_box.pack_start(this.content, false, false, 0);
+    }
+});
+
+
+function generate_sample_content(n) {
+    let content = [];
+    for (let i = 0; i < n; ++i) {
+        let is_user = i % 2 == 0;
+        content.push({
+            label: "Hello, world",
+            user: is_user
+        });
+    }
+
+    return content;
+}
+
+
 const MissionChatboxMainWindow = new Lang.Class({
     Name: 'MissionChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
@@ -120,7 +178,6 @@ const MissionChatboxMainWindow = new Lang.Class({
     _init: function(params) {
         params.title = "";
         this.parent(params);
-        this.chatbox_stack.add(new Gtk.Label({ label: "Hello, world", visible: true }));
 
         ACTORS.forEach(Lang.bind(this, function(actor) {
             let contact_row = new MissionChatboxContactListItem({
@@ -128,7 +185,29 @@ const MissionChatboxMainWindow = new Lang.Class({
                 contact_name: actor,
                 contact_image: null
             });
+            let chat_contents = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                visible: true,
+            });
+            chat_contents.get_style_context().add_class('chatbox-chats');
+
+            /* On each chat add a few bubbles */
+            generate_sample_content(10).forEach(Lang.bind(this, function(content_spec) {
+                let content = new Gtk.Label({ label: content_spec.label, visible: true });
+                let container = new MissionChatboxChatBubbleContainer({
+                    visible: true,
+                    content: content,
+                    by_user: content_spec.user
+                });
+                chat_contents.pack_end(container, false, false, 10);
+            }));
+
             this.chatbox_list_box.add(contact_row);
+            this.chatbox_stack.add_named(chat_contents, actor);
+        }));
+
+        this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
+            this.chatbox_stack.set_visible_child_name(row.contact_name);
         }));
     }
 });
