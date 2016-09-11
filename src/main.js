@@ -18,6 +18,7 @@ pkg.require({
 });
 
 const GLib = imports.gi.GLib;
+const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
 const Pango = imports.gi.Pango;
 const PangoCairo = imports.gi.PangoCairo;
@@ -44,14 +45,28 @@ const MissionChatboxContactListItem = new Lang.Class({
     Name: 'MissionChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
     Template: 'resource:///com/endlessm/Mission/Chatbox/contact.ui',
-    Children: ['contact-image', 'contact-name', 'contact-message-snippit'],
+    Children: ['contact-image-circle', 'contact-name-label', 'contact-message-snippit-label'],
+    Properties: {
+        'contact-name': GObject.ParamSpec.string('contact-name',
+                                                 '',
+                                                 '',
+                                                 GObject.ParamFlags.READWRITE |
+                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                 ''),
+        'contact-image': GObject.param_spec_pointer('contact-image',
+                                                    '',
+                                                    '',
+                                                    GObject.ParamFlags.READWRITE |
+                                                    GObject.ParamFlags.CONSTRUCT_ONLY)
+    },
 
-    _init: function(params, contact_name, contact_image) {
+
+    _init: function(params) {
         this.parent(params);
 
-        this.contact_name.set_text(contact_name);
-        this.contact_message_snippit.set_markup('<i>Last seen</i>');
-        this.contact_image.connect('draw', Lang.bind(this, function(area, cr) {
+        this.contact_name_label.set_text(params.contact_name);
+        this.contact_message_snippit_label.set_markup('<i>Last seen</i>');
+        this.contact_image_circle.connect('draw', Lang.bind(this, function(area, cr) {
             let context = area.get_style_context();
             let width = area.get_allocated_width();
             let height = area.get_allocated_height();
@@ -63,9 +78,9 @@ const MissionChatboxContactListItem = new Lang.Class({
             cr.clip();
             cr.newPath();
 
-            if (!contact_image) {
+            if (!params.contact_image) {
                 let layout = PangoCairo.create_layout(cr);
-                layout.set_text(initials_from_name(contact_name), -1);
+                layout.set_text(initials_from_name(params.contact_name), -1);
                 layout.set_font_description(CONTACT_IMAGE_FONT_DESC);
                 cr.save();
                 cr.moveTo(0, 0);
@@ -81,12 +96,12 @@ const MissionChatboxContactListItem = new Lang.Class({
                 PangoCairo.show_layout(cr, layout);
                 cr.restore();
             } else {
-                let image_width = contact_image.getWidth();
-                let image_height = contact_image.getHeight();
+                let image_width = params.contact_image.getWidth();
+                let image_height = params.contact_image.getHeight();
 
                 cr.save();
                 cr.scale(width / image_width, height / image_height);
-                cr.setSourceSurface(contact_image);
+                cr.setSourceSurface(params.contact_image);
                 cr.restore();
                 cr.paint();
             }
@@ -108,7 +123,12 @@ const MissionChatboxMainWindow = new Lang.Class({
         this.chatbox_stack.add(new Gtk.Label({ label: "Hello, world", visible: true }));
 
         ACTORS.forEach(Lang.bind(this, function(actor) {
-            this.chatbox_list_box.add(new MissionChatboxContactListItem({ visible: true }, actor, null));
+            let contact_row = new MissionChatboxContactListItem({
+                visible: true,
+                contact_name: actor,
+                contact_image: null
+            });
+            this.chatbox_list_box.add(contact_row);
         }));
     }
 });

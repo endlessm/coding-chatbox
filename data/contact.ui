@@ -6,7 +6,7 @@
         <property name="visible">True</property>
         <property name="hexpand">True</property>
         <child>
-          <object class="GtkDrawingArea" id="contact-image">
+          <object class="GtkDrawingArea" id="contact-image-circle">
             <property name="width_request">48</property>
             <property name="height_request">48</property>
             <property name="visible">True</property>
@@ -26,13 +26,13 @@
                 <property name="margin-top">10</property>
                 <property name="margin-bottom">10</property>
                 <child>
-                  <object class="GtkLabel" id="contact-name">
+                  <object class="GtkLabel" id="contact-name-label">
                     <property name="visible">True</property>
                     <property name="xalign">0</property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="contact-message-snippit">
+                  <object class="GtkLabel" id="contact-message-snippit-label">
                     <property name="visible">True</property>
                     <property name="margin-top">3</property>
                     <property name="xalign">0</property>
