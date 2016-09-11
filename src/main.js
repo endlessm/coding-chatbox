@@ -199,7 +199,8 @@ const MissionChatboxMainWindow = new Lang.Class({
                     content: content,
                     by_user: content_spec.user
                 });
-                chat_contents.pack_end(container, false, false, 10);
+
+                chat_contents.pack_start(container, false, false, 10);
             }));
 
             this.chatbox_list_box.add(contact_row);
