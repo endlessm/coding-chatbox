@@ -158,7 +158,7 @@ const MissionChatboxChatBubbleContainer = new Lang.Class({
 function generate_sample_content(n) {
     let content = [];
     for (let i = 0; i < n; ++i) {
-        let is_user = i % 2 == 0;
+        let is_user = i % 2 == 1;
         content.push({
             label: "Hello, world",
             user: is_user
