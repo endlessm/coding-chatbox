@@ -258,8 +258,8 @@ const MissionChatboxChatBubbleContainer = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
-        let [margin_prop, halign] = this.by_user ? ['margin-right', Gtk.Align.START] :
-                                                   ['margin-left', Gtk.Align.END];
+        let [margin_prop, halign] = params.by_user ? ['margin-right', Gtk.Align.END] :
+                                                     ['margin-left', Gtk.Align.START];
 
         this[margin_prop] = 10;
         this.halign = halign;
