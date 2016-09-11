@@ -65,6 +65,7 @@ const MAX_WIDTH_CHARS = 30;
 
 const TextChatBubbleContent = new Lang.Class({
     Name: 'TextChatBubbleContent',
+    Implements: [ ChatBubbleContent ],
     Properties: {
         /**
          * 'text'
@@ -98,6 +99,7 @@ const TextChatBubbleContent = new Lang.Class({
 
 const ChoiceChatBubbleContent = new Lang.Class({
     Name: 'ChoiceChatBubbleContent',
+    Implements: [ ChatBubbleContent ],
 
     _init: function(params, choices) {
         this.parent(params);
@@ -124,6 +126,8 @@ const ChoiceChatBubbleContent = new Lang.Class({
 
 const InputChatBubbleContent = new Lang.Class({
     Name: 'InputChatBubbleContent',
+    Implements: [ ChatBubbleContent ],
+
     Properties: {
         /**
          * 'text'
