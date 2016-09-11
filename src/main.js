@@ -41,6 +41,129 @@ function initials_from_name(name) {
 
 const CONTACT_IMAGE_FONT_DESC = Pango.FontDescription.from_string("Sans Bold 27");
 
+const ChatBubbleContent = new Lang.Interface({
+    Name: 'ChatBubbleContent',
+
+    /**
+     * appendContent
+     *
+     * Append some new content to the bubble.
+     */
+    appendContent: function() {
+    },
+
+    /**
+     * view
+     *
+     * Return the internal view, used for rendering
+     */
+    view: Lang.UMIMPLEMENTED,
+});
+
+const MAX_WIDTH_CHARS = 30;
+
+
+const TextChatBubbleContent = new Lang.Class({
+    Name: 'TextChatBubbleContent',
+    Properties: {
+        /**
+         * 'text'
+         *
+         * Text to display in the bubble
+         */
+        'text': GObject.ParamSpec.string('text',
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.READWRITE |
+                                         GObject.ParamFlags.CONSTRUCT_ONLY,
+                                         '')
+    },
+
+    _init: function(params) {
+        this.parent(params);
+        this._view = new Gtk.Box({ name: 'text-chat-bubble', visible: true });
+        this._label = new Gtk.Label({
+            visible: true,
+            wrap: true,
+            max_width_chars: MAX_WIDTH_CHARS,
+            label: params.text
+        });
+        this._view.pack_start(this._label, false, false, 0);
+    },
+
+    view: function() {
+        return this._view;
+    }
+});
+
+const ChoiceChatBubbleContent = new Lang.Class({
+    Name: 'ChoiceChatBubbleContent',
+
+    _init: function(params, choices) {
+        this.parent(params);
+        this._view = new Gtk.Box({
+            name: 'choice-chat-bubble',
+            visible: true,
+            orientation: Gtk.Orientation.VERTICAL
+        });
+        this._buttons = choices.map(function(choice) {
+            return new Gtk.Button({
+                visible: true,
+                label: choice.text
+            });
+        });
+        this._buttons.forEach(Lang.bind(this, function(button) {
+            this._view.pack_end(button, true, true, 10);
+        }));
+    },
+
+    view: function() {
+        return this._view;
+    }
+});
+
+const InputChatBubbleContent = new Lang.Class({
+    Name: 'InputChatBubbleContent',
+    Properties: {
+        /**
+         * 'text'
+         *
+         * Text to display in the bubble before the input box.
+         */
+        'text': GObject.ParamSpec.string('text',
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.READWRITE |
+                                         GObject.ParamFlags.CONSTRUCT_ONLY,
+                                         '')
+    },
+
+    _init: function(params) {
+        this.parent(params);
+        this._view = new Gtk.Box({
+            name: 'input-chat-bubble',
+            visible: true,
+            orientation: Gtk.Orientation.VERTICAL
+        });
+        this._label = new Gtk.Label({
+            visible: true,
+            wrap: true,
+            max_width_chars: MAX_WIDTH_CHARS,
+            label: 'A question with potentially many answers'
+        });
+        this._input = new Gtk.Entry({
+            visible: true,
+            width_request: MAX_WIDTH_CHARS * 5
+        });
+        this._view.pack_start(this._label, true, true, 0);
+        this._view.pack_start(this._input, true, true, 10);
+    },
+
+    view: function() {
+        return this._view;
+    }
+});
+
 const MissionChatboxContactListItem = new Lang.Class({
     Name: 'MissionChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
@@ -169,6 +292,31 @@ function generate_sample_content(n) {
 }
 
 
+let CONSTRUCT_PROPERTY_CHOICES = [
+    [{
+        text: 'Hello world, this is a sample chat bubble for the mission chatbox app'
+    }],
+    [{
+        text: 'This is a question that might influence your entire career, let alone destiny'
+    }, null],
+    [{}, [
+        {
+            text: 'Stay in Wonderland'
+        },
+        {
+            text: 'See how deep the rabbithole goes'
+        }
+    ], null]
+];
+
+
+let CLASS_CHOICES = [
+    TextChatBubbleContent,
+    InputChatBubbleContent,
+    ChoiceChatBubbleContent
+];
+
+
 const MissionChatboxMainWindow = new Lang.Class({
     Name: 'MissionChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
@@ -192,11 +340,12 @@ const MissionChatboxMainWindow = new Lang.Class({
             chat_contents.get_style_context().add_class('chatbox-chats');
 
             /* On each chat add a few bubbles */
-            generate_sample_content(10).forEach(Lang.bind(this, function(content_spec) {
-                let content = new Gtk.Label({ label: content_spec.label, visible: true });
+            generate_sample_content(10).forEach(Lang.bind(this, function(content_spec, i) {
+                let args = CONSTRUCT_PROPERTY_CHOICES[i % 3];
+                let content = new CLASS_CHOICES[i % 3](args[0], args[1]);
                 let container = new MissionChatboxChatBubbleContainer({
                     visible: true,
-                    content: content,
+                    content: content.view(),
                     by_user: content_spec.user
                 });
 
