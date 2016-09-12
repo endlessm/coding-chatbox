@@ -30,6 +30,7 @@ const Pango = imports.gi.Pango;
 const PangoCairo = imports.gi.PangoCairo;
 
 const Lang = imports.lang;
+const Service = imports.service;
 
 function initials_from_name(name) {
     return String(name.split().map(function(word) {
@@ -344,29 +345,14 @@ const MissionChatboxChatBubbleContainer = new Lang.Class({
 });
 
 
-let CONSTRUCT_PROPERTY_CHOICES = [
-    [{
-        text: 'Hello world, this is a sample chat bubble for the mission chatbox app'
-    }],
-    [{
-        text: 'This is a question that might influence your entire career, let alone destiny'
-    }, null],
-    [{}, [
-        {
-            text: 'Stay in Wonderland'
-        },
-        {
-            text: 'See how deep the rabbithole goes'
-        }
-    ], null]
-];
-
-
-let CLASS_CHOICES = [
-    TextChatBubbleContent,
-    InputChatBubbleContent,
-    ChoiceChatBubbleContent
-];
+const ChatboxClasses = {
+    scrolled: TextChatBubbleContent,
+    scroll_wait: TextChatBubbleContent,
+    text: InputChatBubbleContent,
+    console: InputChatBubbleContent,
+    choice: ChoiceChatBubbleContent,
+    external_events: null
+};
 
 
 const MissionChatboxMainWindow = new Lang.Class({
@@ -374,6 +360,14 @@ const MissionChatboxMainWindow = new Lang.Class({
     Extends: Gtk.ApplicationWindow,
     Template: 'resource:///com/endlessm/Mission/Chatbox/main.ui',
     Children: ['chatbox-list-box', 'chatbox-stack', 'main-header'],
+    Properties: {
+        service: GObject.ParamSpec.object('service',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          Service.MissionChatboxTextService)
+    },
 
     _init: function(params) {
         let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Mission/Chatbox/chatbox-data.json');
@@ -403,7 +397,7 @@ const MissionChatboxMainWindow = new Lang.Class({
                 });
                 chat_contents.get_style_context().add_class('chatbox-chats');
 
-                /* On each chat add a few bubbles */
+                /* On each chat add a few bubbles
                 for(let i = 0; i < 10; ++i) {
                     let args = CONSTRUCT_PROPERTY_CHOICES[i % 3];
                     let content = new CLASS_CHOICES[i % 3](args[0], args[1]);
@@ -415,10 +409,57 @@ const MissionChatboxMainWindow = new Lang.Class({
 
                     chat_contents.pack_start(container, false, false, 10);
                 }
+                */
 
                 this.chatbox_list_box.add(contact_row);
                 this.chatbox_stack.add_named(chat_contents, actor.name);
             }));
+        }));
+
+        this.service.connect('chat-message', Lang.bind(this, function(service, message) {
+            let chat_contents = this.chatbox_stack.get_visible_child();
+            let chat_children = chat_contents.get_children();
+
+            if (chat_children.length) {
+                let last_child = chat_children[chat_children.length - 1];
+
+                /* If we can just append this content to the last bubble,
+                 * then we can return from here */
+                if (last_child.controller.appendContent(message)) {
+                    return;
+                }
+            }
+
+            let content = new ChatboxClasses[message.kind]({
+                text: message.text
+            });
+            let container = new MissionChatboxChatBubbleContainer({
+                visible: true,
+                content: content.view(),
+                by_user: false
+            });
+
+            chat_children.pack_end(container, false, false, 10);
+        }));
+
+        this.service.connect('user-input-bubble', Lang.bind(this, function(service, spec) {
+            let chat_contents = this.chatbox_stack.get_visible_child();
+            let chat_children = chat_contents.get_children();
+
+            /* It doesn't make much sense to append user input bubbles to
+             * each other, so just create a new bubble */
+            let content = new ChatboxClasses[spec.kind]({}, spec);
+            let container = new MissionChatboxChatBubbleContainer({
+                visible: true,
+                content: content.view(),
+                by_user: false
+            });
+
+            content.connect('response', Lang.bind(this, function(bubble, response) {
+                this.service.evaluate(response);
+            }));
+
+            chat_children.pack_end(container, false, false, 10);
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
@@ -438,10 +479,14 @@ const MissionChatboxApplication = new Lang.Class({
 
     vfunc_startup: function() {
         this.parent();
+        this._service = new Service.MissionChatboxTextService();
     },
 
     vfunc_activate: function() {
-        (new MissionChatboxMainWindow({ application: this })).show();
+        (new MissionChatboxMainWindow({
+            application: this,
+            service: this._service
+        })).show();
     },
 
     vfunc_shutdown: function() {

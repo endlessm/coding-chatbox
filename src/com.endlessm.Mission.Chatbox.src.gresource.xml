@@ -2,5 +2,6 @@
 <gresources>
   <gresource prefix="/com/endlessm/Mission/Chatbox/js">
     <file>main.js</file>
+    <file>service.js</file>
   </gresource>
 </gresources>
