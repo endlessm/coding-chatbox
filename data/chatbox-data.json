@@ -2,23 +2,28 @@
     "actor_details": [
         {
             "name": "MEME",
-            "img": "meme.png"
+            "img": "meme.png",
+            "location": "intro::hook"
         },
         {
             "name": "DANK",
-            "img": "dank.png"
+            "img": "dank.png",
+            "location": "intro::hook"
         },
         {
             "name": "FOOBAR",
-            "img": "foobar.png"
+            "img": "foobar.png",
+            "location": "intro::hook"
         },
         {
             "name": "GOOG",
-            "img": "goog.png"
+            "img": "goog.png",
+            "location": "intro::hook"
         },
         {
             "name": "FRUIT",
-            "img": "fruit.png"
+            "img": "fruit.png",
+            "location": "intro::hook"
         }
     ]
 }
