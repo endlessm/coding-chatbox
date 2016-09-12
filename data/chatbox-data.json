@@ -1,0 +1,24 @@
+{
+    "actor_details": [
+        {
+            "name": "MEME",
+            "img": "meme.png"
+        },
+        {
+            "name": "DANK",
+            "img": "dank.png"
+        },
+        {
+            "name": "FOOBAR",
+            "img": "foobar.png"
+        },
+        {
+            "name": "GOOG",
+            "img": "goog.png"
+        },
+        {
+            "name": "FRUIT",
+            "img": "fruit.png"
+        }
+    ]
+}

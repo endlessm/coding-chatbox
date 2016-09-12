@@ -6,5 +6,9 @@
     <file preprocess="xml-stripblanks">chat-bubble-container.ui</file>
     <file preprocess="xml-stripblanks">chat-bubble-text.ui</file>
     <file>application.css</file>
+    <file>chatbox-data.json</file>
+    <file>img/meme.png</file>
+    <file>img/goog.png</file>
+    <file>img/fruit.png</file>
   </gresource>
 </gresources>

@@ -11,6 +11,7 @@ pkg.initGettext();
 pkg.initFormat();
 pkg.require({
     Gdk: '3.0',
+    GdkPixbuf: '2.0',
     Gtk: '3.0',
     Gio: '2.0',
     GLib: '2.0',
@@ -19,6 +20,9 @@ pkg.require({
     PangoCairo: '1.0'
 });
 
+const Gdk = imports.gi.Gdk;
+const GdkPixbuf = imports.gi.GdkPixbuf;
+const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
@@ -26,14 +30,6 @@ const Pango = imports.gi.Pango;
 const PangoCairo = imports.gi.PangoCairo;
 
 const Lang = imports.lang;
-
-const ACTORS = [
-    "MEME",
-    "DANK",
-    "FOOBAR",
-    "GOOG",
-    "FRUIT"
-];
 
 function initials_from_name(name) {
     return String(name.split().map(function(word) {
@@ -170,6 +166,41 @@ const InputChatBubbleContent = new Lang.Class({
     }
 });
 
+
+/**
+ * loadImageFromFile
+ *
+ * Attempt to create a cairo_surface_t from the specified path
+ * by loading a png image. Once done, callback will be called
+ * with either null, or a cairo_surface_t containing the
+ * image.
+ */
+function loadImageFromResourceAsync(filename, callback) {
+    let file = Gio.file_new_for_uri('resource:///com/endlessm/Mission/Chatbox/img/' + filename);
+    file.load_contents_async(null, function(file, result) {
+        let contents;
+        try {
+            contents = file.load_contents_finish(result)[1];
+        } catch(e) {
+            log('Couldn\'t load contents from ' + filename + ': ' + String(e));
+            return callback(null);
+        }
+        let pixbufLoader = new GdkPixbuf.PixbufLoader();
+        let pixbuf = null;
+
+        try {
+            pixbufLoader.write_bytes(contents);
+            pixbufLoader.close();
+            pixbuf = pixbufLoader.get_pixbuf();
+        } catch (e) {
+            log("An error occurred whilst trying to load image from " + filename + " " + String(e));
+            return callback(null);
+        }
+
+        return callback(Gdk.cairo_surface_create_from_pixbuf(pixbuf, 1.0, null));
+    });
+}
+
 const MissionChatboxContactListItem = new Lang.Class({
     Name: 'MissionChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
@@ -182,17 +213,19 @@ const MissionChatboxContactListItem = new Lang.Class({
                                                  GObject.ParamFlags.READWRITE |
                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
                                                  ''),
-        'contact-image': GObject.param_spec_pointer('contact-image',
-                                                    '',
-                                                    '',
-                                                    GObject.ParamFlags.READWRITE |
-                                                    GObject.ParamFlags.CONSTRUCT_ONLY)
+        'contact-image': GObject.ParamSpec.string('contact-image',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  '')
     },
 
 
     _init: function(params) {
         this.parent(params);
 
+        this.contact_image_surface = null;
         this.contact_name_label.set_text(params.contact_name);
         this.contact_message_snippit_label.set_markup('<i>Last seen</i>');
         this.contact_image_circle.connect('draw', Lang.bind(this, function(area, cr) {
@@ -207,7 +240,7 @@ const MissionChatboxContactListItem = new Lang.Class({
             cr.clip();
             cr.newPath();
 
-            if (!params.contact_image) {
+            if (!this.contact_image_surface) {
                 let layout = PangoCairo.create_layout(cr);
                 layout.set_text(initials_from_name(params.contact_name), -1);
                 layout.set_font_description(CONTACT_IMAGE_FONT_DESC);
@@ -225,18 +258,22 @@ const MissionChatboxContactListItem = new Lang.Class({
                 PangoCairo.show_layout(cr, layout);
                 cr.restore();
             } else {
-                let image_width = params.contact_image.getWidth();
-                let image_height = params.contact_image.getHeight();
+                let image_width = this.contact_image_surface.getWidth();
+                let image_height = this.contact_image_surface.getHeight();
 
                 cr.save();
                 cr.scale(width / image_width, height / image_height);
-                cr.setSourceSurface(params.contact_image);
-                cr.restore();
+                cr.setSourceSurface(this.contact_image_surface, 0, 0);
                 cr.paint();
+                cr.restore();
             }
 
             cr.restore();
             cr.$dispose();
+        }));
+
+        loadImageFromResourceAsync(this.contact_image, Lang.bind(this, function(surface) {
+            this.contact_image_surface = surface;
         }));
     }
 });
@@ -339,36 +376,49 @@ const MissionChatboxMainWindow = new Lang.Class({
     Children: ['chatbox-list-box', 'chatbox-stack', 'main-header'],
 
     _init: function(params) {
+        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Mission/Chatbox/chatbox-data.json');
+
         params.title = "";
         this.parent(params);
 
-        ACTORS.forEach(Lang.bind(this, function(actor) {
-            let contact_row = new MissionChatboxContactListItem({
-                visible: true,
-                contact_name: actor,
-                contact_image: null
-            });
-            let chat_contents = new Gtk.Box({
-                orientation: Gtk.Orientation.VERTICAL,
-                visible: true,
-            });
-            chat_contents.get_style_context().add_class('chatbox-chats');
-
-            /* On each chat add a few bubbles */
-            for(let i = 0; i < 10; ++i) {
-                let args = CONSTRUCT_PROPERTY_CHOICES[i % 3];
-                let content = new CLASS_CHOICES[i % 3](args[0], args[1]);
-                let container = new MissionChatboxChatBubbleContainer({
-                    visible: true,
-                    content: content.view(),
-                    by_user: i % 2 == 1
-                });
-
-                chat_contents.pack_start(container, false, false, 10);
+        actorsFile.load_contents_async(null, Lang.bind(this, function(file, result) {
+            let contents;
+            try {
+                contents = file.load_contents_finish(result)[1];
+            } catch (e) {
+                log("Couldn't load chatbox data file from data resource: " + String(e));
+                return;
             }
 
-            this.chatbox_list_box.add(contact_row);
-            this.chatbox_stack.add_named(chat_contents, actor);
+            let actors = JSON.parse(String(contents)).actor_details;
+            actors.forEach(Lang.bind(this, function(actor) {
+                let contact_row = new MissionChatboxContactListItem({
+                    visible: true,
+                    contact_name: actor.name,
+                    contact_image: actor.img
+                });
+                let chat_contents = new Gtk.Box({
+                    orientation: Gtk.Orientation.VERTICAL,
+                    visible: true,
+                });
+                chat_contents.get_style_context().add_class('chatbox-chats');
+
+                /* On each chat add a few bubbles */
+                for(let i = 0; i < 10; ++i) {
+                    let args = CONSTRUCT_PROPERTY_CHOICES[i % 3];
+                    let content = new CLASS_CHOICES[i % 3](args[0], args[1]);
+                    let container = new MissionChatboxChatBubbleContainer({
+                        visible: true,
+                        content: content.view(),
+                        by_user: i % 2 == 1
+                    });
+
+                    chat_contents.pack_start(container, false, false, 10);
+                }
+
+                this.chatbox_list_box.add(contact_row);
+                this.chatbox_stack.add_named(chat_contents, actor.name);
+            }));
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
