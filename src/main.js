@@ -42,6 +42,19 @@ function initials_from_name(name) {
 
 const CONTACT_IMAGE_FONT_DESC = Pango.FontDescription.from_string('Sans Bold 27');
 
+const MISSION_CHATBOX_NAME = 'com.endlessm.Mission.Chatbox';
+const MISSION_CHATBOX_PATH = '/com/endlessm/Mission/Chatbox';
+const MISSION_CHATBOX_IFACE = 'com.endlessm.Mission.Chatbox';
+
+const MissionChatboxIface = '<node><interface name="' + MISSION_CHATBOX_NAME + '">' +
+  '<method name="show">' +
+    '<arg type="u" direction="in" name="timestamp"/>' +
+  '</method>' +
+  '<method name="hide">' +
+    '<arg type="u" direction="in" name="timestamp"/>' +
+  '</method>' +
+  '<property name="Visible" type="b" access="read"/>' +
+'</interface></node>';
 
 /**
  * loadImageFromFile
@@ -469,22 +482,7 @@ const MissionChatboxApplication = new Lang.Class({
     _init: function() {
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_("Mission Chatbox"));
-
-        let hide_action = new Gio.SimpleAction({
-            name: 'hide'
-        });
-        hide_action.connect('activate', Lang.bind(this, function() {
-            this._window.hide();
-        }));
-        this.add_action(hide_action);
-
-        let show_action = new Gio.SimpleAction({
-            name: 'show'
-        });
-        show_action.connect('activate', Lang.bind(this, function() {
-            this._window.show();
-        }));
-        this.add_action(show_action);
+        this.Visible = false;
     },
 
     vfunc_startup: function() {
@@ -494,10 +492,38 @@ const MissionChatboxApplication = new Lang.Class({
             application: this,
             service: this._service
         });
+        this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(MissionChatboxIface, this);
+        this._dbusImpl.export(Gio.DBus.session, MISSION_CHATBOX_PATH);
+        this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
     },
 
     vfunc_shutdown: function() {
         this.parent();
+    },
+
+    show: function(timestamp) {
+        this._window.show();
+        this._window.present_with_time(timestamp);
+    },
+
+    hide: function(timestamp) {
+        this._window.hide();
+    },
+
+    _onVisibilityChanged: function() {
+        this.Visible = this._window.is_visible();
+        let propChangedVariant = new GLib.Variant('(sa{sv}as)', [
+            MISSION_CHATBOX_IFACE, {
+                'Visible': new GLib.Variant('b', this.Visible)
+            },
+            []
+        ]);
+
+        Gio.DBus.session.emit_signal(null,
+                                     MISSION_CHATBOX_PATH,
+                                     'org.freedesktop.DBus.Properties',
+                                     'PropertiesChanged',
+                                     propChangedVariant);
     }
 });
 
