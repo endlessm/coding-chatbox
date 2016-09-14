@@ -516,7 +516,7 @@ const MissionChatboxApplication = new Lang.Class({
         this._window.present_with_time(timestamp);
     },
 
-    hide: function(timestamp) {
+    hide: function() {
         this._window.hide();
     },
 
