@@ -504,6 +504,10 @@ const MissionChatboxApplication = new Lang.Class({
         this.parent();
     },
 
+    vfunc_activate: function() {
+        /* This does nothing -we should only show when the shell asks us */
+    },
+
     show: function(timestamp) {
         this._window.show();
         this._window.present_with_time(timestamp);
