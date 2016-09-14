@@ -37,7 +37,7 @@ function initials_from_name(name) {
     })).toUpperCase();
 }
 
-const CONTACT_IMAGE_FONT_DESC = Pango.FontDescription.from_string("Sans Bold 27");
+const CONTACT_IMAGE_FONT_DESC = Pango.FontDescription.from_string('Sans Bold 27');
 
 const ChatBubbleContent = new Lang.Interface({
     Name: 'ChatBubbleContent',
