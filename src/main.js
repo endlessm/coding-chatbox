@@ -45,6 +45,7 @@ const CONTACT_IMAGE_FONT_DESC = Pango.FontDescription.from_string('Sans Bold 27'
 const MISSION_CHATBOX_NAME = 'com.endlessm.Mission.Chatbox';
 const MISSION_CHATBOX_PATH = '/com/endlessm/Mission/Chatbox';
 const MISSION_CHATBOX_IFACE = 'com.endlessm.Mission.Chatbox';
+const SIDE_COMPONENT_ROLE = 'eos-side-component';
 
 const MissionChatboxIface = '<node><interface name="' + MISSION_CHATBOX_NAME + '">' +
   '<method name="show">' +
@@ -490,7 +491,9 @@ const MissionChatboxApplication = new Lang.Class({
         this._service = new Service.MissionChatboxTextService();
         this._window = new MissionChatboxMainWindow({
             application: this,
-            service: this._service
+            service: this._service,
+            type_hint: Gdk.WindowTypeHint.DOCK,
+            role: SIDE_COMPONENT_ROLE
         });
         this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(MissionChatboxIface, this);
         this._dbusImpl.export(Gio.DBus.session, MISSION_CHATBOX_PATH);
