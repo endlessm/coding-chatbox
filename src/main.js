@@ -469,18 +469,31 @@ const MissionChatboxApplication = new Lang.Class({
     _init: function() {
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_("Mission Chatbox"));
+
+        let hide_action = new Gio.SimpleAction({
+            name: 'hide'
+        });
+        hide_action.connect('activate', Lang.bind(this, function() {
+            this._window.hide();
+        }));
+        this.add_action(hide_action);
+
+        let show_action = new Gio.SimpleAction({
+            name: 'show'
+        });
+        show_action.connect('activate', Lang.bind(this, function() {
+            this._window.show();
+        }));
+        this.add_action(show_action);
     },
 
     vfunc_startup: function() {
         this.parent();
         this._service = new Service.MissionChatboxTextService();
-    },
-
-    vfunc_activate: function() {
-        (new MissionChatboxMainWindow({
+        this._window = new MissionChatboxMainWindow({
             application: this,
             service: this._service
-        })).show();
+        });
     },
 
     vfunc_shutdown: function() {
