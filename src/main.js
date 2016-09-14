@@ -175,7 +175,7 @@ const InputChatBubbleContent = new Lang.Class({
  * with either null, or a cairo_surface_t containing the
  * image.
  */
-function loadImageFromResourceAsync(filename, callback) {
+function load_image_from_resource_async(filename, callback) {
     let file = Gio.file_new_for_uri('resource:///com/endlessm/Mission/Chatbox/img/' + filename);
     file.load_contents_async(null, function(file, result) {
         let contents;
@@ -272,7 +272,7 @@ const MissionChatboxContactListItem = new Lang.Class({
             cr.$dispose();
         }));
 
-        loadImageFromResourceAsync(this.contact_image, Lang.bind(this, function(surface) {
+        load_image_from_resource_async(this.contact_image, Lang.bind(this, function(surface) {
             this.contact_image_surface = surface;
         }));
     }
