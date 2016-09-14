@@ -11,6 +11,7 @@ pkg.initGettext();
 pkg.initFormat();
 pkg.require({
     Gdk: '3.0',
+    GdkX11: '3.0',
     GdkPixbuf: '2.0',
     Gtk: '3.0',
     Gio: '2.0',
@@ -28,6 +29,7 @@ const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
 const Pango = imports.gi.Pango;
 const PangoCairo = imports.gi.PangoCairo;
+const Wnck = imports.gi.Wnck;
 
 const Lang = imports.lang;
 const Service = imports.service;
@@ -497,7 +499,8 @@ const MissionChatboxApplication = new Lang.Class({
         });
         this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(MissionChatboxIface, this);
         this._dbusImpl.export(Gio.DBus.session, MISSION_CHATBOX_PATH);
-        this._window.connect('notify::visible', Lang.bind(this, this._onVisibilityChanged));
+        this._window.connect('notify::visible', Lang.bind(this, this._on_visibility_changed));
+        Wnck.Screen.get_default().connect('active-window-changed', Lang.bind(this, this._on_active_window_changed));
     },
 
     vfunc_shutdown: function() {
@@ -517,7 +520,7 @@ const MissionChatboxApplication = new Lang.Class({
         this._window.hide();
     },
 
-    _onVisibilityChanged: function() {
+    _on_visibility_changed: function() {
         this.Visible = this._window.is_visible();
         let propChangedVariant = new GLib.Variant('(sa{sv}as)', [
             MISSION_CHATBOX_IFACE, {
@@ -531,6 +534,17 @@ const MissionChatboxApplication = new Lang.Class({
                                      'org.freedesktop.DBus.Properties',
                                      'PropertiesChanged',
                                      propChangedVariant);
+    },
+
+    _on_active_window_changed: function() {
+        let active_window = Wnck.Screen.get_default().get_active_window();
+        let current_window = this._window.get_window();
+        let active_window_xid = active_window ? active_window.get_xid() : 0;
+        let current_window_xid = current_window ? current_window.get_xid() : 0;
+
+        if (active_window_xid !== current_window_xid) {
+            this.hide();
+        }
     }
 });
 
