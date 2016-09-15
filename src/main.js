@@ -264,7 +264,7 @@ const MissionChatboxChatBubbleContainer = new Lang.Class({
  * automatically updates when the underlying state changes.
  */
 function new_message_view_for_state(container, service, actor) {
-    let [name, position] = container.location.split("::");
+    let [name, position] = container.location.split('::');
     let view = container.render_view(Lang.bind(this, function(response) {
         service.evaluate(name, position, actor, response);
     }));
@@ -417,7 +417,7 @@ const MissionChatboxMainWindow = new Lang.Class({
                  * chat bubbles. We pass a callback here which is used
                  * to call into the service on a reponse */
                 if (this._state.conversation_position_for_actor(actor.name) === null) {
-                    let [name, position] = actor.location.split("::");
+                    let [name, position] = actor.location.split('::');
                     this._service.fetch_task_description_for(name, position, actor.name);
                 } else {
                     this._state.with_each_message_container(Lang.bind(this, function(container) {
