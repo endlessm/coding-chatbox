@@ -117,12 +117,6 @@ const InputChatboxMessageView = new Lang.Class({
         params.orientation = Gtk.Orientation.VERTICAL;
 
         this.parent(params);
-        this._label = new Gtk.Label({
-            visible: true,
-            wrap: true,
-            max_width_chars: MAX_WIDTH_CHARS,
-            label: 'A question with potentially many answers'
-        });
         this._input = new Gtk.Entry({
             visible: true,
             width_request: MAX_WIDTH_CHARS * 5
@@ -130,7 +124,6 @@ const InputChatboxMessageView = new Lang.Class({
         this._input.connect('activate', Lang.bind(this, function(input) {
             this.emit('activate', input.get_text());
         }));
-        this.pack_start(this._label, true, true, 0);
         this.pack_start(this._input, true, true, 10);
     },
 });
