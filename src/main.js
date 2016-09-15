@@ -497,9 +497,24 @@ const MissionChatboxApplication = new Lang.Class({
             type_hint: Gdk.WindowTypeHint.DOCK,
             role: SIDE_COMPONENT_ROLE
         });
+
         this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(MissionChatboxIface, this);
         this._dbusImpl.export(Gio.DBus.session, MISSION_CHATBOX_PATH);
+
+        this._update_geometry();
+
         this._window.connect('notify::visible', Lang.bind(this, this._on_visibility_changed));
+
+        /* NOTE: At least on VMWare, I'm noticing some bugs here where
+         * monitors-changed is being fired when the work-area for the monitor
+         * is still the old value and not then new value. We're racing with
+         * the shell here because it also needs to update _NET_WORKAREA in
+         * response to the monitor layout changing.
+         *
+         * I'm not sure what to do with this at the moment, so I've filed
+         * https://bugzilla.gnome.org/show_bug.cgi?id=773195 . Perhaps the
+         * best place to deal with this is in the window manager itself. */
+        Gdk.Screen.get_default().connect('monitors-changed', Lang.bind(this, this._update_geometry));
         Wnck.Screen.get_default().connect('active-window-changed', Lang.bind(this, this._on_active_window_changed));
     },
 
@@ -545,6 +560,22 @@ const MissionChatboxApplication = new Lang.Class({
         if (active_window_xid !== current_window_xid) {
             this.hide();
         }
+    },
+
+    _update_geometry: function() {
+        let screen = Gdk.Screen.get_default();
+        let monitor = Gdk.Screen.get_default().get_primary_monitor();
+        let workarea = screen.get_monitor_workarea(monitor);
+
+        let geometry = {
+            width: this._window.get_size()[0],
+            height: workarea.height,
+            y: workarea.y
+        };
+
+        geometry.x = workarea.width - geometry.width;
+        this._window.move(geometry.x, geometry.y);
+        this._window.resize(geometry.width, geometry.height);
     }
 });
 
