@@ -12,6 +12,7 @@
           <class name="manager-container"/>
         </style>
         <child>
+          <!-- We may need to use GtkStack here if GtkNotebook is too inflexible -->
           <object class="GtkNotebook" id="tabs">
             <property name="visible">True</property>
             <child>
