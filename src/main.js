@@ -373,7 +373,7 @@ const MissionChatboxMainWindow = new Lang.Class({
     Name: 'MissionChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
     Template: 'resource:///com/endlessm/Mission/Chatbox/main.ui',
-    Children: ['chatbox-list-box', 'chatbox-stack', 'main-header'],
+    Children: ['chatbox-list-box', 'chatbox-stack'],
     Properties: {
         service: GObject.ParamSpec.object('service',
                                           '',
