@@ -11,7 +11,6 @@ pkg.initGettext();
 pkg.initFormat();
 pkg.require({
     Gdk: '3.0',
-    GdkX11: '3.0',
     GdkPixbuf: '2.0',
     Gtk: '3.0',
     Gio: '2.0',
@@ -29,7 +28,6 @@ const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
 const Pango = imports.gi.Pango;
 const PangoCairo = imports.gi.PangoCairo;
-const Wnck = imports.gi.Wnck;
 
 const Lang = imports.lang;
 const Service = imports.service;
@@ -44,20 +42,6 @@ function initials_from_name(name) {
 
 const CONTACT_IMAGE_FONT_DESC = Pango.FontDescription.from_string('Sans Bold 27');
 
-const MISSION_CHATBOX_NAME = 'com.endlessm.Mission.Chatbox';
-const MISSION_CHATBOX_PATH = '/com/endlessm/Mission/Chatbox';
-const MISSION_CHATBOX_IFACE = 'com.endlessm.Mission.Chatbox';
-const SIDE_COMPONENT_ROLE = 'eos-side-component';
-
-const MissionChatboxIface = '<node><interface name="' + MISSION_CHATBOX_NAME + '">' +
-  '<method name="show">' +
-    '<arg type="u" direction="in" name="timestamp"/>' +
-  '</method>' +
-  '<method name="hide">' +
-    '<arg type="u" direction="in" name="timestamp"/>' +
-  '</method>' +
-  '<property name="Visible" type="b" access="read"/>' +
-'</interface></node>';
 
 /**
  * loadImageFromFile
@@ -373,7 +357,7 @@ const MissionChatboxMainWindow = new Lang.Class({
     Name: 'MissionChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
     Template: 'resource:///com/endlessm/Mission/Chatbox/main.ui',
-    Children: ['chatbox-list-box', 'chatbox-stack'],
+    Children: ['chatbox-list-box', 'chatbox-stack', 'main-header'],
     Properties: {
         service: GObject.ParamSpec.object('service',
                                           '',
@@ -493,7 +477,6 @@ const MissionChatboxApplication = new Lang.Class({
     _init: function() {
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_("Mission Chatbox"));
-        this.Visible = false;
     },
 
     vfunc_startup: function() {
@@ -502,91 +485,17 @@ const MissionChatboxApplication = new Lang.Class({
         load_style_sheet('/com/endlessm/Mission/Chatbox/application.css');
 
         this._service = new Service.MissionChatboxTextService();
-        this._window = new MissionChatboxMainWindow({
+    },
+
+    vfunc_activate: function() {
+        (new MissionChatboxMainWindow({
             application: this,
-            service: this._service,
-            type_hint: Gdk.WindowTypeHint.DOCK,
-            role: SIDE_COMPONENT_ROLE
-        });
-
-        this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(MissionChatboxIface, this);
-        this._dbusImpl.export(Gio.DBus.session, MISSION_CHATBOX_PATH);
-
-        this._update_geometry();
-
-        this._window.connect('notify::visible', Lang.bind(this, this._on_visibility_changed));
-
-        /* NOTE: At least on VMWare, I'm noticing some bugs here where
-         * monitors-changed is being fired when the work-area for the monitor
-         * is still the old value and not then new value. We're racing with
-         * the shell here because it also needs to update _NET_WORKAREA in
-         * response to the monitor layout changing.
-         *
-         * I'm not sure what to do with this at the moment, so I've filed
-         * https://bugzilla.gnome.org/show_bug.cgi?id=773195 . Perhaps the
-         * best place to deal with this is in the window manager itself. */
-        Gdk.Screen.get_default().connect('monitors-changed', Lang.bind(this, this._update_geometry));
-        Wnck.Screen.get_default().connect('active-window-changed', Lang.bind(this, this._on_active_window_changed));
+            service: this._service
+        })).show();
     },
 
     vfunc_shutdown: function() {
         this.parent();
-    },
-
-    vfunc_activate: function() {
-        /* This does nothing -we should only show when the shell asks us */
-    },
-
-    show: function(timestamp) {
-        this._window.show();
-        this._window.present_with_time(timestamp);
-    },
-
-    hide: function() {
-        this._window.hide();
-    },
-
-    _on_visibility_changed: function() {
-        this.Visible = this._window.is_visible();
-        let propChangedVariant = new GLib.Variant('(sa{sv}as)', [
-            MISSION_CHATBOX_IFACE, {
-                'Visible': new GLib.Variant('b', this.Visible)
-            },
-            []
-        ]);
-
-        Gio.DBus.session.emit_signal(null,
-                                     MISSION_CHATBOX_PATH,
-                                     'org.freedesktop.DBus.Properties',
-                                     'PropertiesChanged',
-                                     propChangedVariant);
-    },
-
-    _on_active_window_changed: function() {
-        let active_window = Wnck.Screen.get_default().get_active_window();
-        let current_window = this._window.get_window();
-        let active_window_xid = active_window ? active_window.get_xid() : 0;
-        let current_window_xid = current_window ? current_window.get_xid() : 0;
-
-        if (active_window_xid !== current_window_xid) {
-            this.hide();
-        }
-    },
-
-    _update_geometry: function() {
-        let screen = Gdk.Screen.get_default();
-        let monitor = Gdk.Screen.get_default().get_primary_monitor();
-        let workarea = screen.get_monitor_workarea(monitor);
-
-        let geometry = {
-            width: this._window.get_size()[0],
-            height: workarea.height,
-            y: workarea.y
-        };
-
-        geometry.x = workarea.width - geometry.width;
-        this._window.move(geometry.x, geometry.y);
-        this._window.resize(geometry.width, geometry.height);
     }
 });
 
