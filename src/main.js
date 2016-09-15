@@ -478,6 +478,14 @@ const MissionChatboxMainWindow = new Lang.Class({
     }
 });
 
+function load_style_sheet(name) {
+    let provider = new Gtk.CssProvider();
+    provider.load_from_file(Gio.File.new_for_uri('resource://' + name));
+    Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
+                                             provider,
+                                             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+}
+
 const MissionChatboxApplication = new Lang.Class({
     Name: 'MissionChatboxApplication',
     Extends: Gtk.Application,
@@ -490,6 +498,9 @@ const MissionChatboxApplication = new Lang.Class({
 
     vfunc_startup: function() {
         this.parent();
+
+        load_style_sheet('/com/endlessm/Mission/Chatbox/application.css');
+
         this._service = new Service.MissionChatboxTextService();
         this._window = new MissionChatboxMainWindow({
             application: this,
