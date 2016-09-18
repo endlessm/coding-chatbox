@@ -86,7 +86,6 @@ const ChatboxReceiverService = new Lang.Class({
 
     vfunc_handle_receive_message: function(method, message) {
         try {
-            log("Received message: " + message);
             let decodedMessage = JSON.parse(message);
             decodedMessage.message.type = 'scrolled'; // Obviously needs to be fixed service-side
 
@@ -217,7 +216,6 @@ const CodingChatboxTextService = new Lang.Class({
     },
 
     evaluate: function(name, position, actor, text, callback) {
-        log(JSON.stringify([name, position, text]));
         this._service.call_attempt_lesson_remote(name, position, text, null,
                                                  Lang.bind(this, function(source, result) {
             let success, returnValue;
