@@ -55,12 +55,16 @@ const CodingGameService = new Lang.Class({
         }));
     },
 
-    respond_to_message: function(location, contents, response) {
-        this._service.call_chat_response(location, contents, response, null, Lang.bind(this, function(source, result) {
+    respond_to_message: function(location, response_contents, response_name) {
+        this._service.call_chat_response(location,
+                                         response_contents,
+                                         response_name,
+                                         null,
+                                         Lang.bind(this, function(source, result) {
             try {
                 [success, returnValue] = this._service.call_chat_response_finish(result);
             } catch(e) {
-                logError(e, "Failed to repond to message " + location + " with response " + response);
+                logError(e, "Failed to repond to message " + location + " with response " + response_name);
             }
         }));
     }
