@@ -1,0 +1,7 @@
+<node>
+  <interface name="com.endlessm.Coding.Chatbox">
+    <method name="ReceiveMessage">
+      <arg name="message" direction="in" type="s"/>
+    </method>
+  </interface>
+<node>

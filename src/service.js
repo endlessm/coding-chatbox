@@ -8,12 +8,101 @@
  */
 
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Showmehow = imports.gi.Showmehow;
+const CodingGameDBUSService = imports.gi.CodingGameService
+const ChatboxService = imports.gi.ChatboxService;
 
 const Lang = imports.lang;
 const Signals = imports.signals;
 
+
+const CodingGameService = new Lang.Class({
+    Name: 'CodingGameService',
+    Extends: GObject.Object,
+
+    _init: function() {
+        this.parent();
+
+        /* Initialise this service straight away, we need it for the chatbox
+         * to function */
+
+        let name = 'com.endlessm.CodingGameService.Service';
+        let path = '/com/endlessm/CodingGameService/Service';
+
+        this._service = CodingGameDBUSService.CodingGameServiceProxy
+                                             .new_for_bus_sync(Gio.BusType.SESSION,
+                                                               0,
+                                                               name,
+                                                               path,
+                                                               null);
+    },
+
+    chatboxLogForActor: function(actor, callback) {
+        this._service.call_chat_history(actor, null, Lang.bind(this, function(source, result) {
+            try {
+                [success, returnValue] = this._service.call_chat_history_finish(result);
+            } catch (e) {
+                logError(e, "Failed to get chat service history for " + actor);
+                return;
+            }
+
+            let history = returnValue.deep_unpack();
+            callback(history.map(function(h) {
+                return JSON.parse(h);
+            }));
+        }));
+    },
+
+    respond_to_message: function(location, contents, response) {
+        this._service.call_chat_response(location, contents, response, null, Lang.bind(this, function(source, result) {
+            try {
+                [success, returnValue] = this._service.call_chat_response_finish(result);
+            } catch(e) {
+                logError(e, "Failed to repond to message " + location + " with response " + response);
+            }
+        }));
+    }
+});
+
+const ChatboxReceiverErrorDomain = GLib.quark_from_string('chatbox-receiver-error');
+const ChatboxReceiverErrors = {
+    INTERNAL_ERROR: 0
+};
+
+
+const ChatboxReceiverService = new Lang.Class({
+    Name: 'ChatboxReceiverService',
+    Extends: ChatboxService.CodingChatboxSkeleton,
+
+    _init: function(params) {
+        this.parent(params);
+    },
+
+    vfunc_handle_receive_message: function(method, message) {
+        try {
+            log("Received message: " + message);
+            let decodedMessage = JSON.parse(message);
+            decodedMessage.message.type = 'scrolled'; // Obviously needs to be fixed service-side
+
+            this.emit('chat-message', decodedMessage.actor, decodedMessage.message);
+            if (decodedMessage.input) {
+                this.emit('user-input-bubble',
+                          decodedMessage.actor,
+                          decodedMessage.input,
+                          decodedMessage.name);
+            }
+
+            this.complete_receive_message(method);
+        } catch (e) {
+            method.return_error_literal(ChatboxReceiverErrorDomain,
+                                        ChatboxReceiverErrors.INTERNAL_ERROR,
+                                        String(e));
+        }
+    }
+});
+Signals.addSignalMethods(ChatboxReceiverService.prototype);
 
 const CodingChatboxTextService = new Lang.Class({
     Name: 'CodingChatboxTextService',
@@ -123,9 +212,27 @@ const CodingChatboxTextService = new Lang.Class({
 
     },
 
-    evaluate: function(name, position, actor, text) {
+    evaluate: function(name, position, actor, text, callback) {
+        log(JSON.stringify([name, position, text]));
         this._service.call_attempt_lesson_remote(name, position, text, null,
-                                                 Lang.bind(this, this._on_lesson_response, name, position, actor));
+                                                 Lang.bind(this, function(source, result) {
+            let success, returnValue;
+            try {
+                [success, returnValue] = this._service.call_attempt_lesson_remote_finish(result);
+            } catch (e) {
+                logError(e, 'Failed to get showmehow response for ' +
+                         [name, position].join('::') + ' with response ' +
+                         text);
+                return;
+            }
+
+            /* Now that we have the response, unpack it and call callback with
+             * the discrete result */
+            let [response, move_to] = returnValue.deep_unpack();
+
+            /* Send that result back to the game service */
+            callback(response);
+        }));
     },
 });
 Signals.addSignalMethods(CodingChatboxTextService.prototype);

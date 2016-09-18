@@ -198,11 +198,16 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
  * Creates a new message view container for a message state container, which
  * automatically updates when the underlying state changes.
  */
-function new_message_view_for_state(container, service, actor) {
-    let [name, position] = container.location.split('::');
-    let view = container.render_view(function(response) {
-        service.evaluate(name, position, actor, response);
-    });
+function new_message_view_for_state(container, content_service, game_service, actor) {
+    let responseFunc = function(response) {
+        let [name, position] = container.location.split("::").slice(0, 2)
+        content_service.evaluate(name, position, actor, response, function(discrete) {
+            id = ['chat', actor.toLowerCase(), container.location].join('::');
+            game_service.respond_to_message(id, actor, response);
+        });
+    };
+
+    let view = container.render_view(responseFunc);
     let view_container = new CodingChatboxChatBubbleContainer({
         /* We only want to display the container if the underlying view
          * itself is visible. The assumption here is that the visibility
@@ -214,11 +219,8 @@ function new_message_view_for_state(container, service, actor) {
 
     /* Re-render the view in case something changes */
     container.connect('message-changed', function() {
-        view_container.content = container.render_view(function(response) {
-            service.evaluate(name, position, actor, response);
-        });
+        view_container.content = container.render_view(responseFunc);
     });
-
     return view_container;
 }
 
@@ -315,7 +317,19 @@ const CodingChatboxMainWindow = new Lang.Class({
                                           '',
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          Service.CodingChatboxTextService)
+                                          Service.CodingChatboxTextService),
+        chatbox_service: GObject.ParamSpec.object('chatbox-service',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  Service.ChatboxReceiverService),
+        game_service: GObject.ParamSpec.object('game-service',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT_ONLY,
+                                               Service.CodingGameService)
     },
 
     _init: function(params) {
@@ -323,7 +337,6 @@ const CodingChatboxMainWindow = new Lang.Class({
         this.parent(params);
 
         this._state = new State.CodingChatboxState(MessageClasses);
-        this._service = new Service.CodingChatboxTextService();
 
         let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
         actorsFile.load_contents_async(null, Lang.bind(this, function(file, result) {
@@ -348,27 +361,33 @@ const CodingChatboxMainWindow = new Lang.Class({
                 });
                 chat_contents.get_style_context().add_class('chatbox-chats');
 
-                /* Get the conversation for each actor and render all the
-                 * chat bubbles. We pass a callback here which is used
-                 * to call into the service on a reponse */
-                if (this._state.conversation_position_for_actor(actor.name) === null) {
-                    let [name, position] = actor.location.split('::');
-                    this._service.fetch_task_description_for(name, position, actor.name);
-                } else {
-                    this._state.with_each_message_container(Lang.bind(this, function(container) {
+                /* Get the history for this actor, asynchronously */
+                this.game_service.chatboxLogForActor(actor.name, Lang.bind(this, function(history) {
+                    history.filter(function(item) {
+                        return item.type.indexOf("chat") == 0;
+                    }).forEach(Lang.bind(this, function(item) {
+                        let container = this._state.add_message_for_actor(actor.name,
+                                                                          item.type === 'chat-actor' ? State.SentBy.ACTOR :
+                                                                                                       State.SentBy.USER,
+                                                                          {
+                                                                              type: 'scrolled',
+                                                                              text: item.message
+                                                                          },
+                                                                          'none::none');
                         chat_contents.pack_start(new_message_view_for_state(container,
-                                                                            this._service,
+                                                                            this.service,
+                                                                            this.game_service,
                                                                             actor.name),
                                                  false, false, 10);
                     }));
-                }
+                }));
 
                 this.chatbox_list_box.add(contact_row);
                 this.chatbox_stack.add_named(chat_contents, actor.name);
             }));
         }));
 
-        this._service.connect('chat-message', Lang.bind(this, function(service, actor, message) {
+        this.chatbox_service.connect('chat-message', Lang.bind(this, function(service, actor, message) {
             let chat_contents = this.chatbox_stack.get_child_by_name(actor);
 
             /* If we can amend the last message, great.
@@ -383,24 +402,29 @@ const CodingChatboxMainWindow = new Lang.Class({
             /* Otherwise create a state container and use that */
             let container = this._state.add_message_for_actor(actor,
                                                               State.SentBy.ACTOR,
-                                                              message,
+                                                              {
+                                                                  type: 'scrolled',
+                                                                  text: message
+                                                              },
                                                               'none::none');
             chat_contents.pack_start(new_message_view_for_state(container,
-                                                                this._service,
+                                                                this.service,
+                                                                this.game_service,
                                                                 actor),
                                      false, false, 10);
         }));
 
-        this._service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, name, position) {
+        this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, name) {
             /* Doesn't make sense to append a new bubble, so just
              * create a new one now */
             let chat_contents = this.chatbox_stack.get_child_by_name(actor);
             let container = this._state.add_message_for_actor(actor,
                                                               State.SentBy.USER,
                                                               spec,
-                                                              [name, position].join('::'));
+                                                              name);
             chat_contents.pack_start(new_message_view_for_state(container,
-                                                                this._service,
+                                                                this.service,
+                                                                this.game_service,
                                                                 actor),
                                      false, false, 10);
         }));
@@ -442,14 +466,32 @@ const CodingChatboxApplication = new Lang.Class({
         load_style_sheet('/com/endlessm/Coding/Chatbox/application.css');
 
         this._service = new Service.CodingChatboxTextService();
+        this._gameService = new Service.CodingGameService();
     },
 
     vfunc_activate: function() {
         if (!this._mainWindow)
             this._mainWindow = new CodingChatboxMainWindow({ application: this,
-                                                             service: this._service });
+                                                             service: this._service,
+                                                             chatbox_service: this._skeleton,
+                                                             game_service: this._gameService });
 
         this._mainWindow.present();
+    },
+
+    vfunc_dbus_register: function(conn, object_path) {
+        this.parent(conn, object_path);
+        this._skeleton = new Service.ChatboxReceiverService({});
+        this._skeleton.export(conn, object_path);
+        return true;
+    },
+
+    vfunc_dbus_unregister: function(conn, object_path) {
+        if (this._skeleton) {
+            this._skeleton.unexport();
+        }
+
+        this.parent(conn, object_path);
     }
 });
 
