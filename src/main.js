@@ -201,9 +201,10 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 function new_message_view_for_state(container, content_service, game_service, actor) {
     let responseFunc = function(response) {
         let [name, position] = container.location.split("::").slice(0, 2)
-        content_service.evaluate(name, position, actor, response, function(discrete) {
-            id = ['chat', actor.toLowerCase(), container.location].join('::');
-            game_service.respond_to_message(id, actor, response);
+
+        content_service.evaluate(name, position, actor, response.evaluate, function(discrete) {
+            let id = ['chat', actor.toLowerCase(), container.location].join('::');
+            game_service.respond_to_message(id, response.text, discrete);
         });
     };
 
@@ -247,7 +248,10 @@ const RenderableChoiceChatboxMessage = new Lang.Class({
         });
         view.connect('clicked', Lang.bind(this, function(view, button_id, button_text) {
             listener({
-                response: button_id,
+                response: {
+                    evaluate: button_id,
+                    text: button_text
+                },
                 amendment: {
                     type: 'scrolled',
                     text: button_text
@@ -269,7 +273,10 @@ const RenderableInputChatboxMessage = new Lang.Class({
         });
         view.connect('activate', Lang.bind(this, function(view, msg) {
             listener({
-                response: msg,
+                response: {
+                    evaluate: msg,
+                    text: msg
+                },
                 amendment: {
                     type: 'scrolled',
                     text: msg
@@ -288,7 +295,10 @@ const RenderableExternalEventsChatboxMessage = new Lang.Class({
         let view = new Views.ExternalEventsChatboxMessageView();
         view.connect('check-events', Lang.bind(this, function() {
             listener({
-                response: '',
+                response: {
+                    evaluate: '',
+                    text: ''
+                },
                 amendment: null
             });
         }));
