@@ -348,6 +348,32 @@ const CodingChatboxMainWindow = new Lang.Class({
 
         this._state = new State.CodingChatboxState(MessageClasses);
 
+        let add_new_bubble = Lang.bind(this, function(item, actor, location, chat_contents) {
+            let content = null;
+
+            /* Sometimes we'll just get text back from the game service so we
+             * need to wrap up the answer */
+            if (typeof(item.message) === 'string') {
+                content = {
+                    type: 'scrolled',
+                    text: item.message
+                };
+            } else {
+                content = item;
+            }
+
+            let container = this._state.add_message_for_actor(actor,
+                                                              item.type === 'chat-actor' ? State.SentBy.ACTOR :
+                                                                                           State.SentBy.USER,
+                                                              content,
+                                                              location);
+            chat_contents.pack_start(new_message_view_for_state(container,
+                                                                this.service,
+                                                                this.game_service,
+                                                                actor),
+                                     false, false, 10);
+        });
+
         let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
         actorsFile.load_contents_async(null, Lang.bind(this, function(file, result) {
             let contents;
@@ -372,25 +398,25 @@ const CodingChatboxMainWindow = new Lang.Class({
                 chat_contents.get_style_context().add_class('chatbox-chats');
 
                 /* Get the history for this actor, asynchronously */
-                this.game_service.chatboxLogForActor(actor.name, Lang.bind(this, function(history) {
+                this.game_service.chatboxLogForActor(actor.name, function(history) {
                     history.filter(function(item) {
                         return item.type.indexOf("chat") == 0;
-                    }).forEach(Lang.bind(this, function(item) {
-                        let container = this._state.add_message_for_actor(actor.name,
-                                                                          item.type === 'chat-actor' ? State.SentBy.ACTOR :
-                                                                                                       State.SentBy.USER,
-                                                                          {
-                                                                              type: 'scrolled',
-                                                                              text: item.message
-                                                                          },
-                                                                          'none::none');
-                        chat_contents.pack_start(new_message_view_for_state(container,
-                                                                            this.service,
-                                                                            this.game_service,
-                                                                            actor.name),
-                                                 false, false, 10);
-                    }));
-                }));
+                    }).forEach(function(item) {
+                        add_new_bubble(item, actor.name, 'none::none', chat_contents);
+                    });
+
+                    /* Get the very last item in the history and check if it is
+                     * a user input bubble. If so, display it. */
+                    if (history.length &&
+                        history[history.length - 1].type == 'chat-actor' &&
+                        history[history.length - 1].input) {
+                        let lastMessage = history[history.length - 1];
+                        add_new_bubble(lastMessage.input,
+                                       lastMessage.actor,
+                                       lastMessage.name,
+                                       chat_contents);
+                    }
+                });
 
                 this.chatbox_list_box.add(contact_row);
                 this.chatbox_stack.add_named(chat_contents, actor.name);
@@ -410,33 +436,14 @@ const CodingChatboxMainWindow = new Lang.Class({
             }
 
             /* Otherwise create a state container and use that */
-            let container = this._state.add_message_for_actor(actor,
-                                                              State.SentBy.ACTOR,
-                                                              {
-                                                                  type: 'scrolled',
-                                                                  text: message
-                                                              },
-                                                              'none::none');
-            chat_contents.pack_start(new_message_view_for_state(container,
-                                                                this.service,
-                                                                this.game_service,
-                                                                actor),
-                                     false, false, 10);
+            add_new_bubble(message, { type: 'chat-user', message: message }, 'none::none', chat_contents);
         }));
 
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, name) {
             /* Doesn't make sense to append a new bubble, so just
              * create a new one now */
             let chat_contents = this.chatbox_stack.get_child_by_name(actor);
-            let container = this._state.add_message_for_actor(actor,
-                                                              State.SentBy.USER,
-                                                              spec,
-                                                              name);
-            chat_contents.pack_start(new_message_view_for_state(container,
-                                                                this.service,
-                                                                this.game_service,
-                                                                actor),
-                                     false, false, 10);
+            add_new_bubble(spec, actor, name, chat_contents);
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
