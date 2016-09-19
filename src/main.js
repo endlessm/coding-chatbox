@@ -452,7 +452,9 @@ const CodingChatboxMainWindow = new Lang.Class({
 
             this.chatbox_stack.set_visible_child_name(row.contact_name);
             let children = this.chatbox_stack.get_visible_child().get_children();
-            children[children.length - 1].focused();
+            if (children.length) {
+                children[children.length - 1].focused();
+            }
         }));
     }
 });
