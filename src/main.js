@@ -436,7 +436,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             }
 
             /* Otherwise create a state container and use that */
-            add_new_bubble(message, { type: 'chat-user', message: message }, 'none::none', chat_contents);
+            add_new_bubble({ type: 'chat-actor', message: message }, actor, 'none::none', chat_contents);
         }));
 
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, name) {
