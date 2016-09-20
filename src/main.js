@@ -352,24 +352,20 @@ const CodingChatboxMainWindow = new Lang.Class({
 
         this._state = new State.CodingChatboxState(MessageClasses);
 
-        let add_new_bubble = Lang.bind(this, function(item, actor, location, chat_contents) {
-            let content = null;
-
-            /* Sometimes we'll just get text back from the game service so we
-             * need to wrap up the answer */
-            if (typeof(item.message) === 'string') {
-                content = {
-                    type: 'scrolled',
-                    text: item.message
-                };
-            } else {
-                content = item;
+        let add_new_bubble = Lang.bind(this, function(item, actor, location, chat_contents, sent_by) {
+            /* If we can amend the last message, great.
+             * Though I'm not really sure if we want this. "amend" currently
+             * means 'amend-or-replace'. */
+            if (item.type === 'scrolled' &&
+                this._state.amend_last_message_for_actor(actor,
+                                                         sent_by,
+                                                         item)) {
+                return;
             }
 
             let container = this._state.add_message_for_actor(actor,
-                                                              item.type === 'chat-actor' ? State.SentBy.ACTOR :
-                                                                                           State.SentBy.USER,
-                                                              content,
+                                                              sent_by,
+                                                              item,
                                                               location);
             chat_contents.pack_start(new_message_view_for_state(container,
                                                                 this.service,
@@ -406,7 +402,12 @@ const CodingChatboxMainWindow = new Lang.Class({
                     history.filter(function(item) {
                         return item.type.indexOf("chat") == 0;
                     }).forEach(function(item) {
-                        add_new_bubble(item, actor.name, 'none::none', chat_contents);
+                        add_new_bubble({ type: 'scrolled', text: item.message },
+                                       actor.name,
+                                       'none::none',
+                                       chat_contents,
+                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
+                                                                    State.SentBy.USER);
                     });
 
                     /* Get the very last item in the history and check if it is
@@ -418,7 +419,8 @@ const CodingChatboxMainWindow = new Lang.Class({
                         add_new_bubble(lastMessage.input,
                                        lastMessage.actor,
                                        lastMessage.name,
-                                       chat_contents);
+                                       chat_contents,
+                                       State.SentBy.USER);
                     }
                 });
 
@@ -427,27 +429,20 @@ const CodingChatboxMainWindow = new Lang.Class({
             }));
         }));
 
-        this.chatbox_service.connect('chat-message', Lang.bind(this, function(service, actor, message) {
+        this.chatbox_service.connect('chat-message', Lang.bind(this, function(service, actor, message, location) {
             let chat_contents = this.chatbox_stack.get_child_by_name(actor);
-
-            /* If we can amend the last message, great.
-             * Though I'm not really sure if we want this. "amend" currently
-             * means 'amend-or-replace'. */
-            if (this._state.amend_last_message_for_actor(actor,
-                                                         State.SentBy.ACTOR,
-                                                         message)) {
-                return;
-            }
-
-            /* Otherwise create a state container and use that */
-            add_new_bubble({ type: 'chat-actor', message: message }, actor, 'none::none', chat_contents);
+            add_new_bubble({ type: 'scrolled', text: message },
+                           actor,
+                           location,
+                           chat_contents,
+                           State.SentBy.ACTOR);
         }));
 
-        this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, name) {
+        this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
             /* Doesn't make sense to append a new bubble, so just
              * create a new one now */
             let chat_contents = this.chatbox_stack.get_child_by_name(actor);
-            add_new_bubble(spec, actor, name, chat_contents);
+            add_new_bubble(spec, actor, location, chat_contents, State.SentBy.USER);
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {

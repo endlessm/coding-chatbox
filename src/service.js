@@ -87,16 +87,12 @@ const ChatboxReceiverService = new Lang.Class({
     vfunc_handle_receive_message: function(method, message) {
         try {
             let decodedMessage = JSON.parse(message);
-            decodedMessage.message.type = 'scrolled'; // Obviously needs to be fixed service-side
 
-            this.emit('chat-message', decodedMessage.actor, decodedMessage.message);
-            if (decodedMessage.input) {
-                this.emit('user-input-bubble',
-                          decodedMessage.actor,
-                          decodedMessage.input,
-                          decodedMessage.name);
+            if (decodedMessage.message) {
+                this.emit('chat-message', decodedMessage.actor, decodedMessage.message, decodedMessage.name);
+            } else if (decodedMessage.input) {
+                this.emit('user-input-bubble', decodedMessage.actor, decodedMessage.input, decodedMessage.name);
             }
-
             this.complete_receive_message(method);
         } catch (e) {
             method.return_error_literal(ChatboxReceiverErrorDomain,
