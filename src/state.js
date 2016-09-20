@@ -110,16 +110,16 @@ const InputChatboxMessage = new Lang.Class({
     Name: 'InputChatboxMessage',
     Extends: CodingChatboxMessageBase,
     Properties: {
-        text: GObject.ParamSpec.string('text',
-                                '',
-                                '',
-                                GObject.ParamFlags.READABLE,
-                                '')
+        showmehow_id: GObject.ParamSpec.string('showmehow-id',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE,
+                                               '')
     },
 
     _init: function(params, spec) {
         this.parent(params);
-        this.text = spec.text;
+        this.showmehow_id = spec.settings.showmehow_id;
     },
 
     amend: function() {

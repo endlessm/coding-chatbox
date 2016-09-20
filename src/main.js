@@ -200,12 +200,16 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
  */
 function new_message_view_for_state(container, content_service, game_service, actor) {
     let responseFunc = function(response) {
-        let [name, position] = container.location.split("::").slice(0, 2)
-
-        content_service.evaluate(name, position, actor, response.evaluate, function(discrete) {
-            let id = ['chat', actor.toLowerCase(), container.location].join('::');
-            game_service.respond_to_message(id, response.text, discrete);
-        });
+        if (response.showmehow_id) {
+            /* We evaluate the text of the response here in order to get an 'evaluated'
+             * piece of text to send back to the game service. */
+            content_service.evaluate(response.showmehow_id, response.text, function(evaluated) {
+                game_service.respond_to_message(container.location, response.text, evaluated);
+            });
+        } else {
+            /* Nothing to evaluate, just send back the pre-determined evaluated response */
+            game_service.respond_to_message(container.location, response.text, response.evaluate);
+        }
     };
 
     let view = container.render_view(responseFunc);
@@ -274,7 +278,7 @@ const RenderableInputChatboxMessage = new Lang.Class({
         view.connect('activate', Lang.bind(this, function(view, msg) {
             listener({
                 response: {
-                    evaluate: msg,
+                    showmehow_id: this.showmehow_id,
                     text: msg
                 },
                 amendment: {
