@@ -135,12 +135,10 @@ const CodingChatboxTextService = new Lang.Class({
                 return;
             }
 
-            /* Now that we have the response, unpack it and call callback with
-             * the discrete result */
-            let [response, move_to] = returnValue.deep_unpack();
+            let decodedReturnValue = JSON.parse(returnValue);
 
             /* Send that result back to the game service */
-            callback(response);
+            callback(decodedReturnValue.result);
         }));
     },
 });
