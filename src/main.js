@@ -413,7 +413,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     /* Get the very last item in the history and check if it is
                      * a user input bubble. If so, display it. */
                     if (history.length &&
-                        history[history.length - 1].type == 'chat-actor' &&
+                        history[history.length - 1].type == 'input-user' &&
                         history[history.length - 1].input) {
                         let lastMessage = history[history.length - 1];
                         add_new_bubble(lastMessage.input,
