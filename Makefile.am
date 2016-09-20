@@ -9,6 +9,12 @@ resource_DATA = data/com.endlessm.Coding.Chatbox.data.gresource \
 		src/com.endlessm.Coding.Chatbox.src.gresource \
 		$(NULL)
 
+servicedir = $(datadir)/dbus-1/services
+service_DATA = $(service_in_files:.service.in=.service)
+service_in_files = \
+	data/com.endlessm.Coding.Chatbox.service.in \
+	$(NULL)
+
 # Set EXTRA_DIST and CLEANFILES initially
 EXTRA_DIST = \
 	$(resource_files) \
@@ -18,6 +24,9 @@ EXTRA_DIST = \
 	data/com.endlessm.Coding.Chatbox.data.gresource.xml \
 	$(NULL)
 
+data/com.endlessm.Coding.Chatbox.service: $(srcdir)/data/com.endlessm.Coding.Chatbox.service.in
+	$(AM_V_GEN) mkdir -p data
+	$(AM_V_GEN) sed -e "s|\@bindir\@|$(bindir)|" $< > $@
 
 data/com.endlessm.Coding.Chatbox.data.gresource: $(srcdir)/data/com.endlessm.Coding.Chatbox.data.gresource.xml $(app_resource_files)
 	$(AM_V_GEN) mkdir -p data
