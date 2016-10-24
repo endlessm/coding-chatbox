@@ -3,7 +3,7 @@
  * Copyright (c) 2016 Endless Mobile Inc.
  * All Rights Reserved.
  *
- * This file is the file first run by the entrypoint to the mission-chatbox
+ * This file is the file first run by the entrypoint to the coding-chatbox
  * package.
  */
 pkg.initGettext();
@@ -65,10 +65,10 @@ const RoundedImage = new Lang.Class({
     }
 });
 
-const MissionChatboxContactListItem = new Lang.Class({
-    Name: 'MissionChatboxContactListItem',
+const CodingChatboxContactListItem = new Lang.Class({
+    Name: 'CodingChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
-    Template: 'resource:///com/endlessm/Mission/Chatbox/contact.ui',
+    Template: 'resource:///com/endlessm/Coding/Chatbox/contact.ui',
     Children: ['content-grid', 'contact-name-label', 'contact-message-snippit-label'],
     Properties: {
         'contact-name': GObject.ParamSpec.string('contact-name',
@@ -99,7 +99,7 @@ const MissionChatboxContactListItem = new Lang.Class({
 
         let useContactImage = this.contact_image;
         if (useContactImage) {
-            let resourcePath = '/com/endlessm/Mission/Chatbox/img/' + this.contact_image;
+            let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.contact_image;
             try {
                 let pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
                     resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
@@ -134,10 +134,10 @@ const MissionChatboxContactListItem = new Lang.Class({
     }
 });
 
-const MissionChatboxChatBubbleContainer = new Lang.Class({
-    Name: 'MissionChatboxChatBubbleContainer',
+const CodingChatboxChatBubbleContainer = new Lang.Class({
+    Name: 'CodingChatboxChatBubbleContainer',
     Extends: Gtk.Box,
-    Template: 'resource:///com/endlessm/Mission/Chatbox/chat-bubble-container.ui',
+    Template: 'resource:///com/endlessm/Coding/Chatbox/chat-bubble-container.ui',
     Children: ['inner-box', 'bubble-box'],
     Properties: {
         'content': GObject.ParamSpec.object('content',
@@ -203,7 +203,7 @@ function new_message_view_for_state(container, service, actor) {
     let view = container.render_view(function(response) {
         service.evaluate(name, position, actor, response);
     });
-    let view_container = new MissionChatboxChatBubbleContainer({
+    let view_container = new CodingChatboxChatBubbleContainer({
         /* We only want to display the container if the underlying view
          * itself is visible. The assumption here is that the visibility
          * state never changes between renders. */
@@ -280,7 +280,7 @@ const RenderableInputChatboxMessage = new Lang.Class({
 
 const RenderableExternalEventsChatboxMessage = new Lang.Class({
     Name: 'RenderableExternalEventsChatboxMessage',
-    Extends: State.MissionChatboxMessageBase,
+    Extends: State.CodingChatboxMessageBase,
 
     render_view: function(listener) {
         let view = new Views.ExternalEventsChatboxMessageView();
@@ -304,10 +304,10 @@ const MessageClasses = {
 };
 
 
-const MissionChatboxMainWindow = new Lang.Class({
-    Name: 'MissionChatboxMainWindow',
+const CodingChatboxMainWindow = new Lang.Class({
+    Name: 'CodingChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
-    Template: 'resource:///com/endlessm/Mission/Chatbox/main.ui',
+    Template: 'resource:///com/endlessm/Coding/Chatbox/main.ui',
     Children: ['chatbox-list-box', 'chatbox-stack', 'main-header'],
     Properties: {
         service: GObject.ParamSpec.object('service',
@@ -315,17 +315,17 @@ const MissionChatboxMainWindow = new Lang.Class({
                                           '',
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          Service.MissionChatboxTextService)
+                                          Service.CodingChatboxTextService)
     },
 
     _init: function(params) {
         params.title = '';
         this.parent(params);
 
-        this._state = new State.MissionChatboxState(MessageClasses);
-        this._service = new Service.MissionChatboxTextService();
+        this._state = new State.CodingChatboxState(MessageClasses);
+        this._service = new Service.CodingChatboxTextService();
 
-        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Mission/Chatbox/chatbox-data.json');
+        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
         actorsFile.load_contents_async(null, Lang.bind(this, function(file, result) {
             let contents;
             try {
@@ -337,7 +337,7 @@ const MissionChatboxMainWindow = new Lang.Class({
 
             let actors = JSON.parse(String(contents)).actor_details;
             actors.forEach(Lang.bind(this, function(actor) {
-                let contact_row = new MissionChatboxContactListItem({
+                let contact_row = new CodingChatboxContactListItem({
                     visible: true,
                     contact_name: actor.name,
                     contact_image: actor.img
@@ -424,34 +424,34 @@ function load_style_sheet(resourcePath) {
                                              Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
-const MissionChatboxApplication = new Lang.Class({
-    Name: 'MissionChatboxApplication',
+const CodingChatboxApplication = new Lang.Class({
+    Name: 'CodingChatboxApplication',
     Extends: Gtk.Application,
 
     _init: function() {
         this._mainWindow = null;
 
         this.parent({ application_id: pkg.name });
-        GLib.set_application_name(_("Mission Chatbox"));
+        GLib.set_application_name(_("Coding Chatbox"));
     },
 
     vfunc_startup: function() {
         this.parent();
 
-        load_style_sheet('/com/endlessm/Mission/Chatbox/application.css');
+        load_style_sheet('/com/endlessm/Coding/Chatbox/application.css');
 
-        this._service = new Service.MissionChatboxTextService();
+        this._service = new Service.CodingChatboxTextService();
     },
 
     vfunc_activate: function() {
         if (!this._mainWindow)
-            this._mainWindow = new MissionChatboxMainWindow({ application: this,
-                                                              service: this._service });
+            this._mainWindow = new CodingChatboxMainWindow({ application: this,
+                                                             service: this._service });
 
         this._mainWindow.present();
     }
 });
 
 function main(argv) { // eslint-disable-line no-unused-vars
-    return (new MissionChatboxApplication()).run(argv);
+    return (new CodingChatboxApplication()).run(argv);
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <template class="Gjs_MissionChatboxContactListItem" parent="GtkListBoxRow">
+  <template class="Gjs_CodingChatboxContactListItem" parent="GtkListBoxRow">
     <child>
       <object class="GtkGrid" id="content-grid">
         <property name="visible">True</property>

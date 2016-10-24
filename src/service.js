@@ -15,8 +15,8 @@ const Lang = imports.lang;
 const Signals = imports.signals;
 
 
-const MissionChatboxTextService = new Lang.Class({
-    Name: 'MissionChatboxTextService',
+const CodingChatboxTextService = new Lang.Class({
+    Name: 'CodingChatboxTextService',
     Extends: GObject.Object,
 
     _init: function() {
@@ -128,4 +128,4 @@ const MissionChatboxTextService = new Lang.Class({
                                                  Lang.bind(this, this._on_lesson_response, name, position, actor));
     },
 });
-Signals.addSignalMethods(MissionChatboxTextService.prototype);
+Signals.addSignalMethods(CodingChatboxTextService.prototype);

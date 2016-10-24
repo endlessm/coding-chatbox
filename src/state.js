@@ -11,9 +11,9 @@ const GObject = imports.gi.GObject;
 
 const Lang = imports.lang;
 
-const MissionChatboxMessage = new Lang.Interface({
-    Name: 'MissionChatboxMessage',
-    GTypeName: 'MissionChatboxMessageType',
+const CodingChatboxMessage = new Lang.Interface({
+    Name: 'CodingChatboxMessage',
+    GTypeName: 'CodingChatboxMessageType',
     Requires: [ GObject.Object ],
 
     /**
@@ -51,10 +51,10 @@ const SentBy = {
     ACTOR: 1
 };
 
-const MissionChatboxMessageBase = new Lang.Class({
-    Name: 'MissionChatboxMessageBase',
+const CodingChatboxMessageBase = new Lang.Class({
+    Name: 'CodingChatboxMessageBase',
     Extends: GObject.Object,
-    Implements: [ MissionChatboxMessage ],
+    Implements: [ CodingChatboxMessage ],
 
     _init: function(params) {
         this.parent(params);
@@ -63,7 +63,7 @@ const MissionChatboxMessageBase = new Lang.Class({
 
 const TextChatboxMessage = new Lang.Class({
     Name: 'TextChatboxMessage',
-    Extends: MissionChatboxMessageBase,
+    Extends: CodingChatboxMessageBase,
     Properties: {
         text: GObject.ParamSpec.string('text',
                                 '',
@@ -89,7 +89,7 @@ const TextChatboxMessage = new Lang.Class({
 
 const ChoiceChatboxMessage = new Lang.Class({
     Name: 'ChoiceChatboxMessage',
-    Extends: MissionChatboxMessageBase,
+    Extends: CodingChatboxMessageBase,
 
     _init: function(params, spec) {
         this.parent(params);
@@ -108,7 +108,7 @@ const ChoiceChatboxMessage = new Lang.Class({
 
 const InputChatboxMessage = new Lang.Class({
     Name: 'InputChatboxMessage',
-    Extends: MissionChatboxMessageBase,
+    Extends: CodingChatboxMessageBase,
     Properties: {
         text: GObject.ParamSpec.string('text',
                                 '',
@@ -128,13 +128,13 @@ const InputChatboxMessage = new Lang.Class({
 });
 
 /**
- * MissionChatboxMessageContainer
+ * CodingChatboxMessageContainer
  *
- * A container for a MissionChatboxMessage, which emits a signal when the underlying
+ * A container for a CodingChatboxMessage, which emits a signal when the underlying
  * message is changed. It has a constant sender.
  */
-const MissionChatboxMessageContainer = new Lang.Class({
-    Name: 'MissionChatboxMessageContainer',
+const CodingChatboxMessageContainer = new Lang.Class({
+    Name: 'CodingChatboxMessageContainer',
     Extends: GObject.Object,
     Properties: {
         'message': GObject.ParamSpec.object('message',
@@ -142,7 +142,7 @@ const MissionChatboxMessageContainer = new Lang.Class({
                                             '',
                                             GObject.ParamFlags.WRITABLE |
                                             GObject.ParamFlags.CONSTRUCT_ONLY,
-                                            MissionChatboxMessage),
+                                            CodingChatboxMessage),
         'location': GObject.ParamSpec.string('location',
                                              '',
                                              '',
@@ -221,15 +221,15 @@ const MissionChatboxMessageContainer = new Lang.Class({
 });
 
 /**
- * MissionChatboxConversationState
+ * CodingChatboxConversationState
  *
  * The state of a particular conversation. Each conversation has a series of messages
  * and also a respond-to property, which is the current narrative arc that we should
  * request a response to on the next user input.
  *
  */
-const MissionChatboxConversationState = new Lang.Class({
-    Name: 'MissionChatboxConversationState',
+const CodingChatboxConversationState = new Lang.Class({
+    Name: 'CodingChatboxConversationState',
 
     _init: function(message_factories) {
         this.parent();
@@ -251,11 +251,11 @@ const MissionChatboxConversationState = new Lang.Class({
      * add_from_service
      *
      * Add a new response or user input bubble from the service using the specification
-     * in message. Internally a new MissionChatboxMessage will be created, which represents
+     * in message. Internally a new CodingChatboxMessage will be created, which represents
      * the internal state of the message.
      */
     add_from_service: function(sender, message, location) {
-        let container = new MissionChatboxMessageContainer({
+        let container = new CodingChatboxMessageContainer({
             sender: sender,
             location: location,
             message: new this._message_factories[message.type]({}, message)
@@ -300,12 +300,12 @@ const MissionChatboxConversationState = new Lang.Class({
 });
 
 /**
- * MissionChatboxState
+ * CodingChatboxState
  *
  * The overall "state" of the chatbox, which includes the individual converation
  */
-const MissionChatboxState = new Lang.Class({
-    Name: 'MissionChatboxState',
+const CodingChatboxState = new Lang.Class({
+    Name: 'CodingChatboxState',
 
     _init: function(message_factories) {
         this.parent();
@@ -318,7 +318,7 @@ const MissionChatboxState = new Lang.Class({
             return;
         }
 
-        this.conversations[actor] = new MissionChatboxConversationState(this._message_factories);
+        this.conversations[actor] = new CodingChatboxConversationState(this._message_factories);
     },
 
     conversation_position_for_actor: function(actor) {

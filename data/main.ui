@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="3.10"/>
-  <template class="Gjs_MissionChatboxMainWindow" parent="GtkApplicationWindow">
+  <template class="Gjs_CodingChatboxMainWindow" parent="GtkApplicationWindow">
     <property name="can_focus">False</property>
     <property name="height-request">800</property>
     <child>
