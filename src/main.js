@@ -474,6 +474,8 @@ const MissionChatboxApplication = new Lang.Class({
     Extends: Gtk.Application,
 
     _init: function() {
+        this._mainWindow = null;
+
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_("Mission Chatbox"));
     },
@@ -487,10 +489,11 @@ const MissionChatboxApplication = new Lang.Class({
     },
 
     vfunc_activate: function() {
-        (new MissionChatboxMainWindow({
-            application: this,
-            service: this._service
-        })).show();
+        if (!this._mainWindow)
+            this._mainWindow = new MissionChatboxMainWindow({ application: this,
+                                                              service: this._service });
+
+        this._mainWindow.present();
     }
 });
 
