@@ -45,13 +45,8 @@ const TextChatboxMessageView = new Lang.Class({
             label: this.state.text
         });
         this.pack_start(this._label, false, false, 0);
-        this.state_binding = new GObject.Binding({
-            flags: GObject.BindingFlags.DEFAULT,
-            source: this.state,
-            source_property: 'text',
-            target: this._label,
-            target_property: 'label'
-        });
+        this.state.bind_property('text', this._label, 'label',
+                                 GObject.BindingFlags.DEFAULT);
     }
 });
 
