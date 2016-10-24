@@ -161,37 +161,9 @@ const MissionChatboxChatBubbleContainer = new Lang.Class({
 
         this[margin_prop] = 10;
         this.halign = halign;
-        let bubble_color = {
-            red: params.by_user ? 0.33 :  0.94,
-            green: params.by_user ? 0.56 : 0.94,
-            blue: params.by_user ? 0.83 : 0.94,
-            alpha: 1
-        };
 
-        this.bubble_box.connect('draw', Lang.bind(this, function(box, cr) {
-            let width = this.get_allocated_width() - 20;
-            let height = this.get_allocated_height() - 20;
-            let curvature = 20;
-            let radius = curvature / 2;
-            let [x1, y1] = [radius, radius];
-            let [x2, y2] = [width - radius, height - radius];
-
-            cr.save();
-            cr.setLineWidth(4.0);
-            cr.setSourceRGBA(bubble_color.red, bubble_color.green, bubble_color.alpha, bubble_color.alpha);
-            cr.moveTo(x1, 0);
-            cr.lineTo(x2, 0);
-            cr.arc(x2, y1, radius, -Math.PI / 2, 0);
-            cr.lineTo(width, y2);
-            cr.arc(x2, y2, radius, 0, Math.PI / 2);
-            cr.lineTo(x1, height);
-            cr.arc(x1, y2, radius, Math.PI / 2, Math.PI);
-            cr.lineTo(0, y1);
-            cr.arc(x1, y1, radius, Math.PI, Math.PI  * 1.5);
-            cr.fill();
-            cr.restore();
-            cr.$dispose();
-        }));
+        if (this.by_user)
+            this.bubble_box.get_style_context().add_class('by-user');
 
         this.inner_box.margin = 20;
         this.inner_box.pack_start(this.content, false, false, 0);

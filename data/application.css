@@ -9,3 +9,12 @@
     font-weight: bold;
     color: white;
 }
+
+.chatbox-bubble {
+    background-color: #f0f0f0;
+    border-radius: 20px;
+}
+
+.chatbox-bubble.by-user {
+    background-color: #548fd4;
+}
