@@ -1,4 +1,3 @@
-#!/usr/bin/env gjs
 /* src/views.js
  *
  * Copyright (c) 2016 Endless Mobile Inc.
