@@ -68,7 +68,7 @@ function load_image_from_resource_async(filename, callback) {
             pixbufLoader.close();
             pixbuf = pixbufLoader.get_pixbuf();
         } catch (e) {
-            log("An error occurred whilst trying to load image from " + filename + " " + String(e));
+            logError(e, 'An error occurred whilst trying to load image from ' + filename);
             return callback(null);
         }
 
@@ -367,19 +367,19 @@ const MissionChatboxMainWindow = new Lang.Class({
     },
 
     _init: function(params) {
-        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Mission/Chatbox/chatbox-data.json');
-
-        params.title = "";
+        params.title = '';
         this.parent(params);
+
         this._state = new State.MissionChatboxState(MessageClasses);
         this._service = new Service.MissionChatboxTextService();
 
+        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Mission/Chatbox/chatbox-data.json');
         actorsFile.load_contents_async(null, Lang.bind(this, function(file, result) {
             let contents;
             try {
                 contents = file.load_contents_finish(result)[1];
             } catch (e) {
-                log("Couldn't load chatbox data file from data resource: " + String(e));
+                logError(e, 'Couldn\'t load chatbox data file from data resource');
                 return;
             }
 
