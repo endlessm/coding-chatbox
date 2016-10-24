@@ -229,9 +229,9 @@ const MissionChatboxChatBubbleContainer = new Lang.Class({
  */
 function new_message_view_for_state(container, service, actor) {
     let [name, position] = container.location.split('::');
-    let view = container.render_view(Lang.bind(this, function(response) {
+    let view = container.render_view(function(response) {
         service.evaluate(name, position, actor, response);
-    }));
+    });
     let view_container = new MissionChatboxChatBubbleContainer({
         /* We only want to display the container if the underlying view
          * itself is visible. The assumption here is that the visibility
@@ -242,11 +242,11 @@ function new_message_view_for_state(container, service, actor) {
     });
 
     /* Re-render the view in case something changes */
-    container.connect('message-changed', Lang.bind(this, function() {
-        view_container.content = container.render_view(Lang.bind(this, function(response) {
-            this._service.evaluate(name, position, actor, response);
-        }));
-    }));
+    container.connect('message-changed', function() {
+        view_container.content = container.render_view(function(response) {
+            service.evaluate(name, position, actor, response);
+        });
+    });
 
     return view_container;
 }
