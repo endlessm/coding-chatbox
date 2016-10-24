@@ -19,6 +19,7 @@ pkg.require({
     PangoCairo: '1.0'
 });
 
+const Cairo = imports.cairo;
 const Gdk = imports.gi.Gdk;
 const GdkPixbuf = imports.gi.GdkPixbuf;
 const Gio = imports.gi.Gio;
@@ -39,48 +40,36 @@ function initials_from_name(name) {
     })).toUpperCase();
 }
 
-const CONTACT_IMAGE_FONT_DESC = Pango.FontDescription.from_string('Sans Bold 27');
+const CONTACT_IMAGE_SIZE = 48;
 
+const RoundedImage = new Lang.Class({
+    Name: 'RoundedImage',
+    Extends: Gtk.Image,
 
-/**
- * loadImageFromFile
- *
- * Attempt to create a cairo_surface_t from the specified path
- * by loading a png image. Once done, callback will be called
- * with either null, or a cairo_surface_t containing the
- * image.
- */
-function load_image_from_resource_async(filename, callback) {
-    let file = Gio.file_new_for_uri('resource:///com/endlessm/Mission/Chatbox/img/' + filename);
-    file.load_contents_async(null, function(file, result) {
-        let contents;
-        try {
-            contents = file.load_contents_finish(result)[1];
-        } catch(e) {
-            log('Couldn\'t load contents from ' + filename + ': ' + String(e));
-            return callback(null);
-        }
-        let pixbufLoader = new GdkPixbuf.PixbufLoader();
-        let pixbuf = null;
+    vfunc_draw: function(cr) {
+        let width = this.get_allocated_width();
+        let height = this.get_allocated_height();
 
-        try {
-            pixbufLoader.write_bytes(contents);
-            pixbufLoader.close();
-            pixbuf = pixbufLoader.get_pixbuf();
-        } catch (e) {
-            logError(e, 'An error occurred whilst trying to load image from ' + filename);
-            return callback(null);
-        }
+        /* Clip drawing to contact circle */
+        cr.save();
+        cr.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
+        cr.clip();
+        cr.newPath();
 
-        return callback(Gdk.cairo_surface_create_from_pixbuf(pixbuf, 1.0, null));
-    });
-}
+        this.parent(cr);
+
+        cr.restore();
+        cr.$dispose();
+
+        return false;
+    }
+});
 
 const MissionChatboxContactListItem = new Lang.Class({
     Name: 'MissionChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
     Template: 'resource:///com/endlessm/Mission/Chatbox/contact.ui',
-    Children: ['contact-image-circle', 'contact-name-label', 'contact-message-snippit-label'],
+    Children: ['content-grid', 'contact-name-label', 'contact-message-snippit-label'],
     Properties: {
         'contact-name': GObject.ParamSpec.string('contact-name',
                                                  '',
@@ -96,60 +85,52 @@ const MissionChatboxContactListItem = new Lang.Class({
                                                   '')
     },
 
-
     _init: function(params) {
         this.parent(params);
 
         this.contact_image_surface = null;
         this.contact_name_label.set_text(params.contact_name);
         this.contact_message_snippit_label.set_markup('<i>Last seen</i>');
-        this.contact_image_circle.connect('draw', Lang.bind(this, function(area, cr) {
-            let context = area.get_style_context();
-            let width = area.get_allocated_width();
-            let height = area.get_allocated_height();
+        this._contact_image_widget = new RoundedImage({ visible: true,
+                                                        margin: 8 });
+        this._contact_image_widget.get_style_context().add_class('contact-image');
+        this.content_grid.attach_next_to(this._contact_image_widget, null, Gtk.PositionType.LEFT,
+                                         1, 1);
 
-            /* Clip drawing to contact circle */
-            cr.save();
-            Gtk.render_background(context, cr, 0, 0, width, height);
-            cr.arc(width / 2, width / 2, width / 2, 0, Math.PI * 2);
-            cr.clip();
-            cr.newPath();
-
-            if (!this.contact_image_surface) {
-                let layout = PangoCairo.create_layout(cr);
-                layout.set_text(initials_from_name(params.contact_name), -1);
-                layout.set_font_description(CONTACT_IMAGE_FONT_DESC);
-                cr.save();
-                cr.moveTo(0, 0);
-                cr.setSourceRGBA(0.74, 0.74, 0.74, 1.0);
-                cr.paint();
-                cr.restore();
-
-                let [text_width, text_height] = layout.get_pixel_size();
-                cr.save();
-                cr.moveTo(width / 2 - (text_width / 2),
-                          height / 2 - (text_height / 2));
-                cr.setSourceRGBA(1.0, 1.0, 1.0, 1.0);
-                PangoCairo.show_layout(cr, layout);
-                cr.restore();
-            } else {
-                let image_width = this.contact_image_surface.getWidth();
-                let image_height = this.contact_image_surface.getHeight();
-
-                cr.save();
-                cr.scale(width / image_width, height / image_height);
-                cr.setSourceSurface(this.contact_image_surface, 0, 0);
-                cr.paint();
-                cr.restore();
+        let useContactImage = this.contact_image;
+        if (useContactImage) {
+            let resourcePath = '/com/endlessm/Mission/Chatbox/img/' + this.contact_image;
+            try {
+                let pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+                    resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
+                this._contact_image_widget.pixbuf = pixbuf;
+            } catch(e) {
+                logError(e, 'Can\'t load resource at ' + resourcePath);
+                useContactImage = false;
             }
+        }
 
-            cr.restore();
+        if (!useContactImage) {
+            let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
+                                                 CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+            let cr = new Cairo.Context(surface);
+            cr.setSourceRGBA(0.74, 0.74, 0.74, 1.0);
+            cr.paint();
+
+            let text = initials_from_name(params.contact_name);
+            let layout = this._contact_image_widget.create_pango_layout(text);
+            let [text_width, text_height] = layout.get_pixel_size();
+
+            let context = this._contact_image_widget.get_style_context();
+            Gtk.render_layout(context, cr,
+                              (CONTACT_IMAGE_SIZE - text_width) / 2,
+                              (CONTACT_IMAGE_SIZE - text_height) / 2,
+                              layout);
+
             cr.$dispose();
-        }));
 
-        load_image_from_resource_async(this.contact_image, Lang.bind(this, function(surface) {
-            this.contact_image_surface = surface;
-        }));
+            this._contact_image_widget.surface = surface;
+        }
     }
 });
 
