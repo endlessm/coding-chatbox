@@ -165,7 +165,6 @@ const MissionChatboxChatBubbleContainer = new Lang.Class({
         if (this.by_user)
             this.bubble_box.get_style_context().add_class('by-user');
 
-        this.inner_box.margin = 20;
         this.inner_box.pack_start(this.content, false, false, 0);
     },
 
