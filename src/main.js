@@ -238,7 +238,7 @@ function new_message_view_for_state(container, service, actor) {
          * state never changes between renders. */
         visible: view.visible,
         content: view,
-        by_user: container.sender
+        by_user: (container.sender == State.SentBy.USER)
     });
 
     /* Re-render the view in case something changes */
