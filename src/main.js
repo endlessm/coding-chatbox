@@ -491,10 +491,6 @@ const MissionChatboxApplication = new Lang.Class({
             application: this,
             service: this._service
         })).show();
-    },
-
-    vfunc_shutdown: function() {
-        this.parent();
     }
 });
 
