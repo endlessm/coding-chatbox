@@ -7,12 +7,12 @@
         },
         {
             "name": "DANK",
-            "img": "dank.png",
+            "img": "",
             "location": "intro::hook"
         },
         {
             "name": "FOOBAR",
-            "img": "foobar.png",
+            "img": "",
             "location": "intro::hook"
         },
         {

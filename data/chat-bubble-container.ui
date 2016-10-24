@@ -6,11 +6,14 @@
       <object class="GtkBox" id="bubble-box">
         <property name="visible">true</property>
         <property name="margin">10</property>
+        <style>
+          <class name="chatbox-bubble"/>
+        </style>
         <child>
           <object class="GtkBox" id="inner-box">
             <property name="width_request">250</property>
             <property name="visible">true</property>
-            <property name="margin">10</property>
+            <property name="margin">20</property>
             <child>
               <placeholder/>
             </child>

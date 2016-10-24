@@ -1,14 +1,20 @@
-.notebook-content {
-    border-bottom-left-radius: 10px;
-    border-top-left-radius: 10px;
-    border-bottom-right-radius: 10px;
+.big-label {
+    font-size: 4em;
+    font-weight: bold;
 }
 
-.game-content {
-    background-color: #818286;
+.contact-image {
+    font-family: 'Sans';
+    font-size: 27px;
+    font-weight: bold;
+    color: white;
 }
 
-.manager-container {
-    padding: 40px;
-    background-color: #717274;
+.chatbox-bubble {
+    background-color: #f0f0f0;
+    border-radius: 20px;
+}
+
+.chatbox-bubble.by-user {
+    background-color: #548fd4;
 }

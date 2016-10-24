@@ -1,4 +1,3 @@
-#!/usr/bin/env gjs
 /* src/views.js
  *
  * Copyright (c) 2016 Endless Mobile Inc.
@@ -12,7 +11,6 @@ const Gtk = imports.gi.Gtk;
 
 const Lang = imports.lang;
 const State = imports.state;
-const Signals = imports.signals;
 
 const MAX_WIDTH_CHARS = 30;
 
@@ -47,13 +45,8 @@ const TextChatboxMessageView = new Lang.Class({
             label: this.state.text
         });
         this.pack_start(this._label, false, false, 0);
-        this.state_binding = new GObject.Binding({
-            flags: GObject.BindingFlags.DEFAULT,
-            source: this.state,
-            source_property: 'text',
-            target: this._label,
-            target_property: 'label'
-        });
+        this.state.bind_property('text', this._label, 'label',
+                                 GObject.BindingFlags.DEFAULT);
     }
 });
 
@@ -117,12 +110,6 @@ const InputChatboxMessageView = new Lang.Class({
         params.orientation = Gtk.Orientation.VERTICAL;
 
         this.parent(params);
-        this._label = new Gtk.Label({
-            visible: true,
-            wrap: true,
-            max_width_chars: MAX_WIDTH_CHARS,
-            label: 'A question with potentially many answers'
-        });
         this._input = new Gtk.Entry({
             visible: true,
             width_request: MAX_WIDTH_CHARS * 5
@@ -130,7 +117,6 @@ const InputChatboxMessageView = new Lang.Class({
         this._input.connect('activate', Lang.bind(this, function(input) {
             this.emit('activate', input.get_text());
         }));
-        this.pack_start(this._label, true, true, 0);
         this.pack_start(this._input, true, true, 10);
     },
 });
@@ -139,9 +125,11 @@ const ExternalEventsChatboxMessageView = new Lang.Class({
     Name: 'ExternalEventsChatboxMessageView',
     Extends: Gtk.Widget,
     Implements: [ ChatboxMessageView ],
+    Signals: {
+        'check-events': { }
+    },
 
     focused: function() {
         this.emit('check-events');
     }
 });
-Signals.addSignalMethods(ExternalEventsChatboxMessageView.prototype);

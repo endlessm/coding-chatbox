@@ -1,4 +1,3 @@
-#!/usr/bin/env gjs
 /* src/main.js
  *
  * Copyright (c) 2016 Endless Mobile Inc.
@@ -11,7 +10,6 @@ pkg.initGettext();
 pkg.initFormat();
 pkg.require({
     Gdk: '3.0',
-    GdkX11: '3.0',
     GdkPixbuf: '2.0',
     Gtk: '3.0',
     Gio: '2.0',
@@ -21,6 +19,7 @@ pkg.require({
     PangoCairo: '1.0'
 });
 
+const Cairo = imports.cairo;
 const Gdk = imports.gi.Gdk;
 const GdkPixbuf = imports.gi.GdkPixbuf;
 const Gio = imports.gi.Gio;
@@ -29,7 +28,6 @@ const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
 const Pango = imports.gi.Pango;
 const PangoCairo = imports.gi.PangoCairo;
-const Wnck = imports.gi.Wnck;
 
 const Lang = imports.lang;
 const Service = imports.service;
@@ -42,62 +40,36 @@ function initials_from_name(name) {
     })).toUpperCase();
 }
 
-const CONTACT_IMAGE_FONT_DESC = Pango.FontDescription.from_string('Sans Bold 27');
+const CONTACT_IMAGE_SIZE = 48;
 
-const MISSION_CHATBOX_NAME = 'com.endlessm.Mission.Chatbox';
-const MISSION_CHATBOX_PATH = '/com/endlessm/Mission/Chatbox';
-const MISSION_CHATBOX_IFACE = 'com.endlessm.Mission.Chatbox';
-const SIDE_COMPONENT_ROLE = 'eos-side-component';
+const RoundedImage = new Lang.Class({
+    Name: 'RoundedImage',
+    Extends: Gtk.Image,
 
-const MissionChatboxIface = '<node><interface name="' + MISSION_CHATBOX_NAME + '">' +
-  '<method name="show">' +
-    '<arg type="u" direction="in" name="timestamp"/>' +
-  '</method>' +
-  '<method name="hide">' +
-    '<arg type="u" direction="in" name="timestamp"/>' +
-  '</method>' +
-  '<property name="Visible" type="b" access="read"/>' +
-'</interface></node>';
+    vfunc_draw: function(cr) {
+        let width = this.get_allocated_width();
+        let height = this.get_allocated_height();
 
-/**
- * loadImageFromFile
- *
- * Attempt to create a cairo_surface_t from the specified path
- * by loading a png image. Once done, callback will be called
- * with either null, or a cairo_surface_t containing the
- * image.
- */
-function load_image_from_resource_async(filename, callback) {
-    let file = Gio.file_new_for_uri('resource:///com/endlessm/Mission/Chatbox/img/' + filename);
-    file.load_contents_async(null, function(file, result) {
-        let contents;
-        try {
-            contents = file.load_contents_finish(result)[1];
-        } catch(e) {
-            log('Couldn\'t load contents from ' + filename + ': ' + String(e));
-            return callback(null);
-        }
-        let pixbufLoader = new GdkPixbuf.PixbufLoader();
-        let pixbuf = null;
+        /* Clip drawing to contact circle */
+        cr.save();
+        cr.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
+        cr.clip();
+        cr.newPath();
 
-        try {
-            pixbufLoader.write_bytes(contents);
-            pixbufLoader.close();
-            pixbuf = pixbufLoader.get_pixbuf();
-        } catch (e) {
-            log("An error occurred whilst trying to load image from " + filename + " " + String(e));
-            return callback(null);
-        }
+        this.parent(cr);
 
-        return callback(Gdk.cairo_surface_create_from_pixbuf(pixbuf, 1.0, null));
-    });
-}
+        cr.restore();
+        cr.$dispose();
+
+        return false;
+    }
+});
 
 const MissionChatboxContactListItem = new Lang.Class({
     Name: 'MissionChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
     Template: 'resource:///com/endlessm/Mission/Chatbox/contact.ui',
-    Children: ['contact-image-circle', 'contact-name-label', 'contact-message-snippit-label'],
+    Children: ['content-grid', 'contact-name-label', 'contact-message-snippit-label'],
     Properties: {
         'contact-name': GObject.ParamSpec.string('contact-name',
                                                  '',
@@ -113,60 +85,52 @@ const MissionChatboxContactListItem = new Lang.Class({
                                                   '')
     },
 
-
     _init: function(params) {
         this.parent(params);
 
         this.contact_image_surface = null;
         this.contact_name_label.set_text(params.contact_name);
         this.contact_message_snippit_label.set_markup('<i>Last seen</i>');
-        this.contact_image_circle.connect('draw', Lang.bind(this, function(area, cr) {
-            let context = area.get_style_context();
-            let width = area.get_allocated_width();
-            let height = area.get_allocated_height();
+        this._contact_image_widget = new RoundedImage({ visible: true,
+                                                        margin: 8 });
+        this._contact_image_widget.get_style_context().add_class('contact-image');
+        this.content_grid.attach_next_to(this._contact_image_widget, null, Gtk.PositionType.LEFT,
+                                         1, 1);
 
-            /* Clip drawing to contact circle */
-            cr.save();
-            Gtk.render_background(context, cr, 0, 0, width, height);
-            cr.arc(width / 2, width / 2, width / 2, 0, Math.PI * 2);
-            cr.clip();
-            cr.newPath();
-
-            if (!this.contact_image_surface) {
-                let layout = PangoCairo.create_layout(cr);
-                layout.set_text(initials_from_name(params.contact_name), -1);
-                layout.set_font_description(CONTACT_IMAGE_FONT_DESC);
-                cr.save();
-                cr.moveTo(0, 0);
-                cr.setSourceRGBA(0.74, 0.74, 0.74, 1.0);
-                cr.paint();
-                cr.restore();
-
-                let [text_width, text_height] = layout.get_pixel_size();
-                cr.save();
-                cr.moveTo(width / 2 - (text_width / 2),
-                          height / 2 - (text_height / 2));
-                cr.setSourceRGBA(1.0, 1.0, 1.0, 1.0);
-                PangoCairo.show_layout(cr, layout);
-                cr.restore();
-            } else {
-                let image_width = this.contact_image_surface.getWidth();
-                let image_height = this.contact_image_surface.getHeight();
-
-                cr.save();
-                cr.scale(width / image_width, height / image_height);
-                cr.setSourceSurface(this.contact_image_surface, 0, 0);
-                cr.paint();
-                cr.restore();
+        let useContactImage = this.contact_image;
+        if (useContactImage) {
+            let resourcePath = '/com/endlessm/Mission/Chatbox/img/' + this.contact_image;
+            try {
+                let pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+                    resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
+                this._contact_image_widget.pixbuf = pixbuf;
+            } catch(e) {
+                logError(e, 'Can\'t load resource at ' + resourcePath);
+                useContactImage = false;
             }
+        }
 
-            cr.restore();
+        if (!useContactImage) {
+            let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
+                                                 CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+            let cr = new Cairo.Context(surface);
+            cr.setSourceRGBA(0.74, 0.74, 0.74, 1.0);
+            cr.paint();
+
+            let text = initials_from_name(params.contact_name);
+            let layout = this._contact_image_widget.create_pango_layout(text);
+            let [text_width, text_height] = layout.get_pixel_size();
+
+            let context = this._contact_image_widget.get_style_context();
+            Gtk.render_layout(context, cr,
+                              (CONTACT_IMAGE_SIZE - text_width) / 2,
+                              (CONTACT_IMAGE_SIZE - text_height) / 2,
+                              layout);
+
             cr.$dispose();
-        }));
 
-        load_image_from_resource_async(this.contact_image, Lang.bind(this, function(surface) {
-            this.contact_image_surface = surface;
-        }));
+            this._contact_image_widget.surface = surface;
+        }
     }
 });
 
@@ -197,39 +161,10 @@ const MissionChatboxChatBubbleContainer = new Lang.Class({
 
         this[margin_prop] = 10;
         this.halign = halign;
-        let bubble_color = {
-            red: params.by_user ? 0.33 :  0.94,
-            green: params.by_user ? 0.56 : 0.94,
-            blue: params.by_user ? 0.83 : 0.94,
-            alpha: 1
-        };
 
-        this.bubble_box.connect('draw', Lang.bind(this, function(box, cr) {
-            let width = this.get_allocated_width() - 20;
-            let height = this.get_allocated_height() - 20;
-            let curvature = 20;
-            let radius = curvature / 2;
-            let [x1, y1] = [radius, radius];
-            let [x2, y2] = [width - radius, height - radius];
+        if (this.by_user)
+            this.bubble_box.get_style_context().add_class('by-user');
 
-            cr.save();
-            cr.setLineWidth(4.0);
-            cr.setSourceRGBA(bubble_color.red, bubble_color.green, bubble_color.alpha, bubble_color.alpha);
-            cr.moveTo(x1, 0);
-            cr.lineTo(x2, 0);
-            cr.arc(x2, y1, radius, -Math.PI / 2, 0);
-            cr.lineTo(width, y2);
-            cr.arc(x2, y2, radius, 0, Math.PI / 2);
-            cr.lineTo(x1, height);
-            cr.arc(x1, y2, radius, Math.PI / 2, Math.PI);
-            cr.lineTo(0, y1);
-            cr.arc(x1, y1, radius, Math.PI, Math.PI  * 1.5);
-            cr.fill();
-            cr.restore();
-            cr.$dispose();
-        }));
-
-        this.inner_box.margin = 20;
         this.inner_box.pack_start(this.content, false, false, 0);
     },
 
@@ -265,24 +200,24 @@ const MissionChatboxChatBubbleContainer = new Lang.Class({
  */
 function new_message_view_for_state(container, service, actor) {
     let [name, position] = container.location.split('::');
-    let view = container.render_view(Lang.bind(this, function(response) {
+    let view = container.render_view(function(response) {
         service.evaluate(name, position, actor, response);
-    }));
+    });
     let view_container = new MissionChatboxChatBubbleContainer({
         /* We only want to display the container if the underlying view
          * itself is visible. The assumption here is that the visibility
          * state never changes between renders. */
         visible: view.visible,
         content: view,
-        by_user: container.sender
+        by_user: (container.sender == State.SentBy.USER)
     });
 
     /* Re-render the view in case something changes */
-    container.connect('message-changed', Lang.bind(this, function() {
-        view_container.content = container.render_view(Lang.bind(this, function(response) {
-            this._service.evaluate(name, position, actor, response);
-        }));
-    }));
+    container.connect('message-changed', function() {
+        view_container.content = container.render_view(function(response) {
+            service.evaluate(name, position, actor, response);
+        });
+    });
 
     return view_container;
 }
@@ -348,7 +283,7 @@ const RenderableExternalEventsChatboxMessage = new Lang.Class({
     Extends: State.MissionChatboxMessageBase,
 
     render_view: function(listener) {
-        let view = new Views.ExternalEventsChatboxMessageView({});
+        let view = new Views.ExternalEventsChatboxMessageView();
         view.connect('check-events', Lang.bind(this, function() {
             listener({
                 response: '',
@@ -373,7 +308,7 @@ const MissionChatboxMainWindow = new Lang.Class({
     Name: 'MissionChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
     Template: 'resource:///com/endlessm/Mission/Chatbox/main.ui',
-    Children: ['chatbox-list-box', 'chatbox-stack'],
+    Children: ['chatbox-list-box', 'chatbox-stack', 'main-header'],
     Properties: {
         service: GObject.ParamSpec.object('service',
                                           '',
@@ -384,19 +319,19 @@ const MissionChatboxMainWindow = new Lang.Class({
     },
 
     _init: function(params) {
-        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Mission/Chatbox/chatbox-data.json');
-
-        params.title = "";
+        params.title = '';
         this.parent(params);
+
         this._state = new State.MissionChatboxState(MessageClasses);
         this._service = new Service.MissionChatboxTextService();
 
+        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Mission/Chatbox/chatbox-data.json');
         actorsFile.load_contents_async(null, Lang.bind(this, function(file, result) {
             let contents;
             try {
                 contents = file.load_contents_finish(result)[1];
             } catch (e) {
-                log("Couldn't load chatbox data file from data resource: " + String(e));
+                logError(e, 'Couldn\'t load chatbox data file from data resource');
                 return;
             }
 
@@ -471,6 +406,9 @@ const MissionChatboxMainWindow = new Lang.Class({
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
+            if (!row)
+                return;
+
             this.chatbox_stack.set_visible_child_name(row.contact_name);
             let children = this.chatbox_stack.get_visible_child().get_children();
             children[children.length - 1].focused();
@@ -478,9 +416,9 @@ const MissionChatboxMainWindow = new Lang.Class({
     }
 });
 
-function load_style_sheet(name) {
+function load_style_sheet(resourcePath) {
     let provider = new Gtk.CssProvider();
-    provider.load_from_file(Gio.File.new_for_uri('resource://' + name));
+    provider.load_from_resource(resourcePath);
     Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
                                              provider,
                                              Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
@@ -491,9 +429,10 @@ const MissionChatboxApplication = new Lang.Class({
     Extends: Gtk.Application,
 
     _init: function() {
+        this._mainWindow = null;
+
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_("Mission Chatbox"));
-        this.Visible = false;
     },
 
     vfunc_startup: function() {
@@ -502,91 +441,14 @@ const MissionChatboxApplication = new Lang.Class({
         load_style_sheet('/com/endlessm/Mission/Chatbox/application.css');
 
         this._service = new Service.MissionChatboxTextService();
-        this._window = new MissionChatboxMainWindow({
-            application: this,
-            service: this._service,
-            type_hint: Gdk.WindowTypeHint.DOCK,
-            role: SIDE_COMPONENT_ROLE
-        });
-
-        this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(MissionChatboxIface, this);
-        this._dbusImpl.export(Gio.DBus.session, MISSION_CHATBOX_PATH);
-
-        this._update_geometry();
-
-        this._window.connect('notify::visible', Lang.bind(this, this._on_visibility_changed));
-
-        /* NOTE: At least on VMWare, I'm noticing some bugs here where
-         * monitors-changed is being fired when the work-area for the monitor
-         * is still the old value and not then new value. We're racing with
-         * the shell here because it also needs to update _NET_WORKAREA in
-         * response to the monitor layout changing.
-         *
-         * I'm not sure what to do with this at the moment, so I've filed
-         * https://bugzilla.gnome.org/show_bug.cgi?id=773195 . Perhaps the
-         * best place to deal with this is in the window manager itself. */
-        Gdk.Screen.get_default().connect('monitors-changed', Lang.bind(this, this._update_geometry));
-        Wnck.Screen.get_default().connect('active-window-changed', Lang.bind(this, this._on_active_window_changed));
-    },
-
-    vfunc_shutdown: function() {
-        this.parent();
     },
 
     vfunc_activate: function() {
-        /* This does nothing -we should only show when the shell asks us */
-    },
+        if (!this._mainWindow)
+            this._mainWindow = new MissionChatboxMainWindow({ application: this,
+                                                              service: this._service });
 
-    show: function(timestamp) {
-        this._window.show();
-        this._window.present_with_time(timestamp);
-    },
-
-    hide: function() {
-        this._window.hide();
-    },
-
-    _on_visibility_changed: function() {
-        this.Visible = this._window.is_visible();
-        let propChangedVariant = new GLib.Variant('(sa{sv}as)', [
-            MISSION_CHATBOX_IFACE, {
-                'Visible': new GLib.Variant('b', this.Visible)
-            },
-            []
-        ]);
-
-        Gio.DBus.session.emit_signal(null,
-                                     MISSION_CHATBOX_PATH,
-                                     'org.freedesktop.DBus.Properties',
-                                     'PropertiesChanged',
-                                     propChangedVariant);
-    },
-
-    _on_active_window_changed: function() {
-        let active_window = Wnck.Screen.get_default().get_active_window();
-        let current_window = this._window.get_window();
-        let active_window_xid = active_window ? active_window.get_xid() : 0;
-        let current_window_xid = current_window ? current_window.get_xid() : 0;
-
-        if (active_window_xid !== current_window_xid) {
-            this.hide();
-        }
-    },
-
-    _update_geometry: function() {
-        let screen = Gdk.Screen.get_default();
-        let monitor = Gdk.Screen.get_default().get_primary_monitor();
-        let workarea = screen.get_monitor_workarea(monitor);
-
-        let geometry = {
-            width: this._window.get_size()[0],
-            height: workarea.height,
-            y: workarea.y
-        };
-
-        geometry.x = workarea.width - geometry.width;
-        this._window.move(geometry.x, geometry.y);
-        this._window.resize(geometry.width, geometry.height);
+        this._mainWindow.present();
     }
 });
 
