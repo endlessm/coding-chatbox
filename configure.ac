@@ -17,7 +17,7 @@ GLIB_COMPILE_RESOURCES=`$PKG_CONFIG --variable glib_compile_resources gio-2.0`
 AC_PATH_PROG([GJS],[gjs])
 
 # Checks for libraries.
-PKG_CHECK_MODULES(SYLVESTER, [glib-2.0 gio-2.0 gobject-2.0 gio-unix-2.0 gtk+-3.0])
+PKG_CHECK_MODULES(MISSION_CHATBOX, [glib-2.0 gio-2.0 gobject-2.0 gio-unix-2.0 gtk+-3.0])
 
 # Checks for header files.
 
@@ -27,8 +27,5 @@ PKG_CHECK_MODULES(SYLVESTER, [glib-2.0 gio-2.0 gobject-2.0 gio-unix-2.0 gtk+-3.0
 
 # Substitute variables
 AC_SUBST(GLIB_COMPILE_RESOURCES)
-AC_SUBST(GLIB_COMPILE_RESOURCES)
-AC_SUBST([MISSION_CHATBOX_CFLAGS])
-AC_SUBST([MISSION_CHATBOX_LDFLAGS])
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
