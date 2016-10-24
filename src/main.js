@@ -331,7 +331,7 @@ const RenderableExternalEventsChatboxMessage = new Lang.Class({
     Extends: State.MissionChatboxMessageBase,
 
     render_view: function(listener) {
-        let view = new Views.ExternalEventsChatboxMessageView({});
+        let view = new Views.ExternalEventsChatboxMessageView();
         view.connect('check-events', Lang.bind(this, function() {
             listener({
                 response: '',

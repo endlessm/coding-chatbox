@@ -11,7 +11,6 @@ const Gtk = imports.gi.Gtk;
 
 const Lang = imports.lang;
 const State = imports.state;
-const Signals = imports.signals;
 
 const MAX_WIDTH_CHARS = 30;
 
@@ -131,9 +130,11 @@ const ExternalEventsChatboxMessageView = new Lang.Class({
     Name: 'ExternalEventsChatboxMessageView',
     Extends: Gtk.Widget,
     Implements: [ ChatboxMessageView ],
+    Signals: {
+        'check-events': { }
+    },
 
     focused: function() {
         this.emit('check-events');
     }
 });
-Signals.addSignalMethods(ExternalEventsChatboxMessageView.prototype);
