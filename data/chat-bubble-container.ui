@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <template class="Gjs_MissionChatboxChatBubbleContainer" parent="GtkBox">
+  <template class="Gjs_CodingChatboxChatBubbleContainer" parent="GtkBox">
     <property name="hexpand">true</property>
     <child>
       <object class="GtkBox" id="bubble-box">

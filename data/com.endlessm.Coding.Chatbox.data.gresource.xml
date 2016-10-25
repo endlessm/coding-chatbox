@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/com/endlessm/Mission/Chatbox">
+  <gresource prefix="/com/endlessm/Coding/Chatbox">
     <file preprocess="xml-stripblanks">main.ui</file>
     <file preprocess="xml-stripblanks">contact.ui</file>
     <file preprocess="xml-stripblanks">chat-bubble-container.ui</file>
