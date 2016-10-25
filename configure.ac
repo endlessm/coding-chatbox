@@ -2,8 +2,12 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([coding-chatbox], [0.0.0], [http://www.endlessm.com])
-AM_INIT_AUTOMAKE([foreign subdir-objects])
+AC_INIT([com.endlessm.Coding.Chatbox],
+        [0.0.0],
+        [bugs@endlessm.com],
+        [com.endlessm.Coding.Chatbox],
+        [http://www.endlessm.com])
+AM_INIT_AUTOMAKE([1.12 dist-xz no-dist-gzip foreign tar-ustar no-define serial-tests -Wno-portability])
 AM_SILENT_RULES([yes])
 
 # Set up libtool
