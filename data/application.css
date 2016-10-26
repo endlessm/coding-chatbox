@@ -11,10 +11,10 @@
 }
 
 .chatbox-bubble {
-    background-color: #f0f0f0;
+    background-color: #737478;
     border-radius: 20px;
 }
 
 .chatbox-bubble.by-user {
-    background-color: #548fd4;
+    background-color: #82c3ea;
 }

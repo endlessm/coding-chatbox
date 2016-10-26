@@ -438,6 +438,7 @@ const CodingChatboxApplication = new Lang.Class({
     vfunc_startup: function() {
         this.parent();
 
+        Gtk.Settings.get_default().gtk_application_prefer_dark_theme = true;
         load_style_sheet('/com/endlessm/Coding/Chatbox/application.css');
 
         this._service = new Service.CodingChatboxTextService();
