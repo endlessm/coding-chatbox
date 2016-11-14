@@ -106,9 +106,6 @@ const CodingChatboxTextService = new Lang.Class({
     _init: function() {
         this.parent();
 
-        /* Null-initialise service for now, but we'll set it later */
-        this._service = null;
-
         let name = 'com.endlessm.Showmehow.Service';
         let path = '/com/endlessm/Showmehow/Service';
 
