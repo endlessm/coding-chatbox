@@ -49,11 +49,6 @@ src/com.endlessm.Coding.Chatbox: $(srcdir)/src/com.endlessm.Coding.Chatbox.in $(
 	chmod +x $@
 	echo $(app_resource_files)
 
-com.endlessm.Coding.Chatbox.service: com.endlessm.Coding.Chatbox.service.in
-	$(AM_V_GEN) sed \
-		-e "s|[@]bindir@|$(bindir)|g" \
-		$< > $@
-
 # GDBus-Codegen for Chatbox
 ChatboxService.c: $(abs_top_srcdir)/com.endlessm.Coding.Chatbox.xml
 	gdbus-codegen --generate-c-code ChatboxService --c-namespace ChatboxService --c-generate-object-manager --interface-prefix com.endlessm. $<

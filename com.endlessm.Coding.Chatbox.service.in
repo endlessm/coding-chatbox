@@ -1,3 +1,0 @@
-[D-DBUS Service]
-Name=com.endlessm.Mission.Chatbox
-Exec=@bindir@/com.endlessm.Mission.Chatbox --gapplication-service
