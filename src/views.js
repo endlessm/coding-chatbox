@@ -1,10 +1,10 @@
-/* src/views.js
- *
- * Copyright (c) 2016 Endless Mobile Inc.
- * All Rights Reserved.
- *
- * The views for chatbox content.
- */
+// src/views.js
+//
+// Copyright (c) 2016 Endless Mobile Inc.
+// All Rights Reserved.
+//
+// The views for chatbox content.
+//
 
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
@@ -112,7 +112,7 @@ const InputChatboxMessageView = new Lang.Class({
         this.parent(params);
         this._input = new Gtk.Entry({
             visible: true,
-            width_request: MAX_WIDTH_CHARS * 5
+            width_request: MAX_WIDTH_CHARS // 5
         });
         this._input.connect('activate', Lang.bind(this, function(input) {
             this.emit('activate', input.get_text());

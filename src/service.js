@@ -1,11 +1,11 @@
-/* src/service.js
- *
- * Copyright (c) 2016 Endless Mobile Inc.
- * All Rights Reserved.
- *
- * Contains the "service" backend, which drives the chatbox interaction with
- * the rest of the game.
- */
+// src/service.js
+//
+// Copyright (c) 2016 Endless Mobile Inc.
+// All Rights Reserved.
+//
+// Contains the "service" backend, which drives the chatbox interaction with
+// the rest of the game.
+//
 
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
@@ -25,9 +25,8 @@ const CodingGameService = new Lang.Class({
     _init: function() {
         this.parent();
 
-        /* Initialise this service straight away, we need it for the chatbox
-         * to function */
-
+       // Initialise this service straight away, we need it for the chatbox
+       // to function
         let name = 'com.endlessm.CodingGameService.Service';
         let path = '/com/endlessm/CodingGameService/Service';
 
@@ -109,7 +108,7 @@ const CodingChatboxTextService = new Lang.Class({
         let name = 'com.endlessm.Showmehow.Service';
         let path = '/com/endlessm/Showmehow/Service';
 
-        /* Connect to the service and refresh the content once we have a connection */
+       // Connect to the service and refresh the content once we have a connection 
         this._service = Showmehow.ServiceProxy.new_for_bus_sync(Gio.BusType.SESSION, 0, name, path, null);
     },
 
@@ -130,7 +129,7 @@ const CodingChatboxTextService = new Lang.Class({
 
             let decodedReturnValue = JSON.parse(returnValue);
 
-            /* Send that result back to the game service */
+           // Send that result back to the game service 
             callback(decodedReturnValue.result);
         }));
     },

@@ -1,11 +1,11 @@
-/* src/main.js
- *
- * Copyright (c) 2016 Endless Mobile Inc.
- * All Rights Reserved.
- *
- * This file is the file first run by the entrypoint to the coding-chatbox
- * package.
- */
+// src/main.js
+//
+// Copyright (c) 2016 Endless Mobile Inc.
+// All Rights Reserved.
+//
+// This file is the file first run by the entrypoint to the coding-chatbox
+// package.
+//
 pkg.initGettext();
 pkg.initFormat();
 pkg.require({
@@ -50,9 +50,9 @@ const RoundedImage = new Lang.Class({
         let width = this.get_allocated_width();
         let height = this.get_allocated_height();
 
-        /* Clip drawing to contact circle */
+        // Clip drawing to contact circle
         cr.save();
-        cr.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
+        cr.arc(width / 2, height / 2, width / 2, 0, Math.PI// 2);
         cr.clip();
         cr.newPath();
 
@@ -171,7 +171,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     set content(val) {
         this._content = val;
 
-        /* Can't run this setter if we don't have an inner_box yet */
+        // Can't run this setter if we don't have an inner_box yet
         if (!this.inner_box) {
             return;
         }
@@ -192,37 +192,37 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 });
 
 
-/**
- * new_message_view_for_state
- *
- * Creates a new message view container for a message state container, which
- * automatically updates when the underlying state changes.
- */
+//
+// new_message_view_for_state
+//
+// Creates a new message view container for a message state container, which
+// automatically updates when the underlying state changes.
+//
 function new_message_view_for_state(container, content_service, game_service, actor) {
     let responseFunc = function(response) {
         if (response.showmehow_id) {
-            /* We evaluate the text of the response here in order to get an 'evaluated'
-             * piece of text to send back to the game service. */
+            // We evaluate the text of the response here in order to get an 'evaluated'
+            // piece of text to send back to the game service. */
             content_service.evaluate(response.showmehow_id, response.text, function(evaluated) {
                 game_service.respond_to_message(container.location, response.text, evaluated);
             });
         } else {
-            /* Nothing to evaluate, just send back the pre-determined evaluated response */
+           /// Nothing to evaluate, just send back the pre-determined evaluated response */
             game_service.respond_to_message(container.location, response.text, response.evaluate);
         }
     };
 
     let view = container.render_view(responseFunc);
     let view_container = new CodingChatboxChatBubbleContainer({
-        /* We only want to display the container if the underlying view
-         * itself is visible. The assumption here is that the visibility
-         * state never changes between renders. */
+        // We only want to display the container if the underlying view
+        // itself is visible. The assumption here is that the visibility
+        // state never changes between renders.
         visible: view.visible,
         content: view,
         by_user: (container.sender == State.SentBy.USER)
     });
 
-    /* Re-render the view in case something changes */
+    // Re-render the view in case something changes
     container.connect('message-changed', function() {
         view_container.content = container.render_view(responseFunc);
     });
@@ -353,9 +353,9 @@ const CodingChatboxMainWindow = new Lang.Class({
         this._state = new State.CodingChatboxState(MessageClasses);
 
         let add_new_bubble = Lang.bind(this, function(item, actor, location, chat_contents, sent_by) {
-            /* If we can amend the last message, great.
-             * Though I'm not really sure if we want this. "amend" currently
-             * means 'amend-or-replace'. */
+            // If we can amend the last message, great.
+            // Though I'm not really sure if we want this. "amend" currently
+            // means 'amend-or-replace'.
             if (item.type === 'scrolled' &&
                 this._state.amend_last_message_for_actor(actor,
                                                          sent_by,
@@ -397,7 +397,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                 });
                 chat_contents.get_style_context().add_class('chatbox-chats');
 
-                /* Get the history for this actor, asynchronously */
+                // Get the history for this actor, asynchronously
                 this.game_service.chatboxLogForActor(actor.name, function(history) {
                     history.filter(function(item) {
                         return item.type.indexOf("chat") == 0;
@@ -410,8 +410,8 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                                     State.SentBy.USER);
                     });
 
-                    /* Get the very last item in the history and check if it is
-                     * a user input bubble. If so, display it. */
+                    // Get the very last item in the history and check if it is
+                    // a user input bubble. If so, display it.
                     if (history.length &&
                         history[history.length - 1].type == 'input-user' &&
                         history[history.length - 1].input) {
@@ -439,8 +439,8 @@ const CodingChatboxMainWindow = new Lang.Class({
         }));
 
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
-            /* Doesn't make sense to append a new bubble, so just
-             * create a new one now */
+            // Doesn't make sense to append a new bubble, so just
+            // create a new one now
             let chat_contents = this.chatbox_stack.get_child_by_name(actor);
             add_new_bubble(spec, actor, location, chat_contents, State.SentBy.USER);
         }));
