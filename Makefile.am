@@ -81,6 +81,7 @@ dbusservice_DATA = com.endlessm.Coding.Chatbox.service
 # Distclean
 CLEANFILES = \
 	$(resource_DATA) \
+	$(service_DATA) \
 	src/com.endlessm.Coding.Chatbox \
 	$(NULL)
 
