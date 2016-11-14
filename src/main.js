@@ -400,7 +400,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                 // Get the history for this actor, asynchronously
                 this.game_service.chatboxLogForActor(actor.name, function(history) {
                     history.filter(function(item) {
-                        return item.type.indexOf("chat") == 0;
+                        return item.type.indexOf('chat') == 0;
                     }).forEach(function(item) {
                         add_new_bubble({ type: 'scrolled', text: item.message },
                                        actor.name,
