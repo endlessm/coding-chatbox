@@ -499,7 +499,7 @@ const CodingChatboxApplication = new Lang.Class({
 
     vfunc_dbus_register: function(conn, object_path) {
         this.parent(conn, object_path);
-        this._skeleton = new Service.ChatboxReceiverService({});
+        this._skeleton = new Service.ChatboxReceiverService();
         this._skeleton.export(conn, object_path);
         return true;
     },
