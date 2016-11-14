@@ -50,7 +50,7 @@ src/com.endlessm.Coding.Chatbox: $(srcdir)/src/com.endlessm.Coding.Chatbox.in $(
 	echo $(app_resource_files)
 
 # GDBus-Codegen for Chatbox
-ChatboxService.c: $(abs_top_srcdir)/com.endlessm.Coding.Chatbox.xml
+ChatboxService.c: $(srcdir)/com.endlessm.Coding.Chatbox.xml
 	gdbus-codegen --generate-c-code ChatboxService --c-namespace ChatboxService --c-generate-object-manager --interface-prefix com.endlessm. $<
 
 ChatboxService.h: ChatboxService.c
