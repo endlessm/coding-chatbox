@@ -11,8 +11,8 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Showmehow = imports.gi.Showmehow;
-const CodingGameDBUSService = imports.gi.CodingGameService
 const ChatboxService = imports.gi.ChatboxService;
+const CodingGameDBUSService = imports.gi.CodingGameService
 
 const Lang = imports.lang;
 const Signals = imports.signals;
