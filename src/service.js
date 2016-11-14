@@ -80,10 +80,6 @@ const ChatboxReceiverService = new Lang.Class({
     Name: 'ChatboxReceiverService',
     Extends: ChatboxService.CodingChatboxSkeleton,
 
-    _init: function(params) {
-        this.parent(params);
-    },
-
     vfunc_handle_receive_message: function(method, message) {
         try {
             let decodedMessage = JSON.parse(message);
