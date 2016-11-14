@@ -19,6 +19,7 @@ service_in_files = \
 EXTRA_DIST = \
 	$(resource_files) \
 	$(app_resource_files) \
+	$(service_in_files) \
 	src/com.endlessm.Coding.Chatbox.in \
 	src/com.endlessm.Coding.Chatbox.src.gresource.xml \
 	data/com.endlessm.Coding.Chatbox.data.gresource.xml \
