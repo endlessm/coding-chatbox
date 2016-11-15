@@ -202,7 +202,7 @@ function new_message_view_for_state(container, content_service, game_service, ac
     let responseFunc = function(response) {
         if (response.showmehow_id) {
             // We evaluate the text of the response here in order to get an 'evaluated'
-            // piece of text to send back to the game service. */
+            // piece of text to send back to the game service.
             content_service.evaluate(response.showmehow_id, response.text, function(evaluated) {
                 game_service.respond_to_message(container.location, response.text, evaluated);
             });
