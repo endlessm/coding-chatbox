@@ -60,7 +60,6 @@ libcoding_chatbox_1_0_la_SOURCES = $(resources_built_sources) \
 			        $(gdbus_codegen_built_sources) \
 					$(NULL)
 libcoding_chatbox_1_0_la_CFLAGS = $(CODING_CHATBOX_CFLAGS)
-libcoding_chatbox_1_0_la_LDFLAGS = $(CODING_CHATBOX_LDFLAGS)
 libcoding_chatbox_1_0_la_LIBADD = $(CODING_CHATBOX_LIBS)
 
 # All libraries
