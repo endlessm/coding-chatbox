@@ -52,7 +52,7 @@ const RoundedImage = new Lang.Class({
 
         // Clip drawing to contact circle
         cr.save();
-        cr.arc(width / 2, height / 2, width / 2, 0, Math.PI// 2);
+        cr.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
         cr.clip();
         cr.newPath();
 
