@@ -63,7 +63,7 @@ const CodingGameService = new Lang.Class({
             try {
                 [success, returnValue] = this._service.call_chat_response_finish(result);
             } catch(e) {
-                logError(e, "Failed to repond to message " + location + " with response " + response_name);
+                logError(e, 'Failed to repond to message ' + location + ' with response ' + response_name);
             }
         }));
     }
