@@ -207,7 +207,7 @@ function new_message_view_for_state(container, content_service, game_service, ac
                 game_service.respond_to_message(container.location, response.text, evaluated);
             });
         } else {
-           /// Nothing to evaluate, just send back the pre-determined evaluated response */
+            // Nothing to evaluate, just send back the pre-determined evaluated response
             game_service.respond_to_message(container.location, response.text, response.evaluate);
         }
     };
