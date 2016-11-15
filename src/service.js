@@ -43,7 +43,7 @@ const CodingGameService = new Lang.Class({
             try {
                 [success, returnValue] = this._service.call_chat_history_finish(result);
             } catch (e) {
-                logError(e, "Failed to get chat service history for " + actor);
+                logError(e, 'Failed to get chat service history for ' + actor);
                 return;
             }
 
