@@ -73,10 +73,6 @@ nobase_coding_chatboxinclude_HEADERS = \
 # Scripts to install
 bin_SCRIPTS = src/com.endlessm.Coding.Chatbox
 
-# D-BUS Services
-dbusservicedir = $(datadir)/dbus-1/services
-dbusservice_DATA = com.endlessm.Coding.Chatbox.service
-
 # Distclean
 CLEANFILES = \
 	$(resource_DATA) \
