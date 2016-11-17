@@ -5,9 +5,10 @@ app_resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/dat
 gdbus_codegen_built_sources = ChatboxService.c ChatboxService.h
 
 resourcedir = $(pkgdatadir)
-resource_DATA = data/com.endlessm.Coding.Chatbox.data.gresource \
-		src/com.endlessm.Coding.Chatbox.src.gresource \
-		$(NULL)
+resource_DATA = \
+	data/com.endlessm.Coding.Chatbox.data.gresource \
+	src/com.endlessm.Coding.Chatbox.src.gresource \
+	$(NULL)
 
 servicedir = $(datadir)/dbus-1/services
 service_DATA = $(service_in_files:.service.in=.service)
@@ -56,9 +57,10 @@ ChatboxService.c: $(srcdir)/com.endlessm.Coding.Chatbox.xml
 ChatboxService.h: ChatboxService.c
 
 # Generate the ChatboxService GDBus Skeleton library
-libcoding_chatbox_1_0_la_SOURCES = $(resources_built_sources) \
-			        $(gdbus_codegen_built_sources) \
-					$(NULL)
+libcoding_chatbox_1_0_la_SOURCES = \
+	$(resources_built_sources) \
+	$(gdbus_codegen_built_sources) \
+	$(NULL)
 libcoding_chatbox_1_0_la_CFLAGS = $(CODING_CHATBOX_CFLAGS)
 libcoding_chatbox_1_0_la_LIBADD = $(CODING_CHATBOX_LIBS)
 
