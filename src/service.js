@@ -90,6 +90,8 @@ const ChatboxReceiverService = new Lang.Class({
                                         ChatboxReceiverErrors.INTERNAL_ERROR,
                                         String(e));
         }
+
+        return true;
     }
 });
 Signals.addSignalMethods(ChatboxReceiverService.prototype);
