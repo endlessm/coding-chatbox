@@ -1,10 +1,10 @@
-/* src/views.js
- *
- * Copyright (c) 2016 Endless Mobile Inc.
- * All Rights Reserved.
- *
- * The views for chatbox content.
- */
+// src/views.js
+//
+// Copyright (c) 2016 Endless Mobile Inc.
+// All Rights Reserved.
+//
+// The views for chatbox content.
+//
 
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
