@@ -25,17 +25,13 @@ const CodingGameService = new Lang.Class({
     _init: function() {
         this.parent();
 
-       // Initialise this service straight away, we need it for the chatbox
-       // to function
-        let name = 'com.endlessm.CodingGameService.Service';
-        let path = '/com/endlessm/CodingGameService/Service';
-
-        this._service = CodingGameDBUSService.CodingGameServiceProxy
-                                             .new_for_bus_sync(Gio.BusType.SESSION,
-                                                               0,
-                                                               name,
-                                                               path,
-                                                               null);
+        // Initialise this service straight away, we need it for the chatbox
+        // to function
+        this._service = CodingGameDBUSService.CodingGameServiceProxy.new_for_bus_sync(
+            Gio.BusType.SESSION, 0,
+            'com.endlessm.CodingGameService.Service',
+            '/com/endlessm/CodingGameService/Service',
+            null);
     },
 
     chatboxLogForActor: function(actor, callback) {
