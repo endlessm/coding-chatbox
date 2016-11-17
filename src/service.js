@@ -7,12 +7,12 @@
 // the rest of the game.
 //
 
-const Gio = imports.gi.Gio;
-const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
-const Showmehow = imports.gi.Showmehow;
 const ChatboxService = imports.gi.ChatboxService;
 const CodingGameDBUSService = imports.gi.CodingGameService
+const GLib = imports.gi.GLib;
+const GObject = imports.gi.GObject;
+const Gio = imports.gi.Gio;
+const Showmehow = imports.gi.Showmehow;
 
 const Lang = imports.lang;
 const Signals = imports.signals;
