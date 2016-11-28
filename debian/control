@@ -2,6 +2,7 @@ Source: coding-chatbox
 Priority: standard
 Maintainer: Sam Spilsbury <sam@endlessm.com>
 Build-Depends: debhelper (>= 9),
+               autotools-dev,
                dh-autoreconf,
                gjs,
                gobject-introspection,
@@ -14,14 +15,46 @@ Standards-Version: 3.9.4
 Section: non-free/libs
 Homepage: http://www.endlessm.com
 
+Package: libcoding-chatbox-0-dev
+Section: non-free/libs
+Architecture: any
+Depends: gir1.2-coding-chatbox-0 (= ${binary:Version}),
+         libcoding-chatbox-0 (= ${binary:Version}),
+         libglib2.0-dev,
+         gjs,
+         ${misc:Depends}
+Description: Coding Chatbox
+ A service to manage the Endless Coding chatbox, library files.
+
+Package: libcoding-chatbox-0
+Section: non-free/libs
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: coding-chatbox
+Description: Coding Chatbox
+ A service to manage the Endless Coding chatbox, library.
+
+Package: gir1.2-coding-chatbox-0
+Section: non-free/libs
+Architecture: any
+Depends: ${gir:Depends},
+         ${misc:Depends},
+         ${shlibs:Depends}
+Description: Coding Chatbox
+ A service to manage the Endless Coding chatbox, GObject Introspection files.
+
 Package: coding-chatbox
 Section: non-free/libs
 Architecture: any
 Depends: ${misc:Depends},
+         gir1.2-coding-chatbox-0 (= ${binary:Version}),
+         gir1.2-coding-game-service-0,
          gir1.2-gdkpixbuf-2.0,
          gir1.2-glib-2.0,
          gir1.2-gtk-3.0,
          gir1.2-pango-1.0,
-         gir1.2-showmehow-service-0
+         gir1.2-showmehow-service-0,
+         gjs
 Description: Coding Chatbox
  The chatbox view for the coding game.

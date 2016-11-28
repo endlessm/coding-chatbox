@@ -1,0 +1,2 @@
+debian/tmp/usr/lib/*/libcoding_chatbox-1.0*.so*
+debian/tmp/usr/share/dbus-1/services/*
