@@ -28,7 +28,8 @@ const CodingGameService = new Lang.Class({
         // Initialise this service straight away, we need it for the chatbox
         // to function
         this._service = CodingGameDBUSService.CodingGameServiceProxy.new_for_bus_sync(
-            Gio.BusType.SESSION, 0,
+            Gio.BusType.SESSION,
+            Gio.DBusProxyFlags.DO_NOT_AUTO_START_AT_CONSTRUCTION,
             'com.endlessm.CodingGameService.Service',
             '/com/endlessm/CodingGameService/Service',
             null);
