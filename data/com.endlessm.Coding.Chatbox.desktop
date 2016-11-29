@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Coding Chatbox
+Comment=Chat app
+Type=Application
+Exec=com.endlessm.Coding.Chatbox
+Icon=face-smile
+Categories=Utility;
+DBusActivatable=true
+StartupNotify=true
