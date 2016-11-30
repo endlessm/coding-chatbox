@@ -41,6 +41,7 @@ function initials_from_name(name) {
 }
 
 const CONTACT_IMAGE_SIZE = 48;
+const CHAT_WITH_ACTION = 'chat-with';
 
 const RoundedImage = new Lang.Class({
     Name: 'RoundedImage',
@@ -88,9 +89,9 @@ const CodingChatboxContactListItem = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
-        this.contact_image_surface = null;
         this.contact_name_label.set_text(params.contact_name);
         this.contact_message_snippit_label.set_markup('<i>Last seen</i>');
+        this._contact_image_pixbuf = null;
         this._contact_image_widget = new RoundedImage({ visible: true,
                                                         margin: 8 });
         this._contact_image_widget.get_style_context().add_class('contact-image');
@@ -101,9 +102,8 @@ const CodingChatboxContactListItem = new Lang.Class({
         if (useContactImage) {
             let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.contact_image;
             try {
-                let pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+                this._contact_image_pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
                     resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
-                this._contact_image_widget.pixbuf = pixbuf;
             } catch(e) {
                 logError(e, 'Can\'t load resource at ' + resourcePath);
                 useContactImage = false;
@@ -129,8 +129,14 @@ const CodingChatboxContactListItem = new Lang.Class({
 
             cr.$dispose();
 
-            this._contact_image_widget.surface = surface;
+            this._contact_image_pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0,
+                                                                     CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
         }
+        this._contact_image_widget.pixbuf = this._contact_image_pixbuf;
+    },
+
+    get avatar() {
+        return this._contact_image_pixbuf;
     }
 });
 
@@ -319,6 +325,9 @@ const MessageClasses = {
     external_events: RenderableExternalEventsChatboxMessage
 };
 
+function notificationId(actor) {
+    return actor + '-message';
+}
 
 const CodingChatboxMainWindow = new Lang.Class({
     Name: 'CodingChatboxMainWindow',
@@ -436,6 +445,17 @@ const CodingChatboxMainWindow = new Lang.Class({
                            location,
                            chat_contents,
                            State.SentBy.ACTOR);
+            if (!this.is_active) {
+                let row = this._actorRow(actor);
+                let notification = new Gio.Notification();
+                // TODO: make it translatable
+                notification.set_title('Message from ' + actor);
+                notification.set_body(message);
+                if (row)
+                    notification.set_icon(row.avatar);
+                notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
+                this.application.send_notification(notificationId(actor), notification);
+            }
         }));
 
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
@@ -454,7 +474,24 @@ const CodingChatboxMainWindow = new Lang.Class({
             if (children.length) {
                 children[children.length - 1].focused();
             }
+            this.application.withdraw_notification(notificationId(row.contact_name));
         }));
+    },
+
+    _actorRow: function(actor) {
+        let children = this.chatbox_list_box.get_children();
+        for (let index in children) {
+            let row = children[index];
+            if (row.contact_name == actor)
+                return row;
+        }
+        return null;
+    },
+
+    switchToChatWith: function(actor) {
+        let row = this._actorRow(actor);
+        if (row)
+            this.chatbox_list_box.select_row(row);
     }
 });
 
@@ -475,6 +512,17 @@ const CodingChatboxApplication = new Lang.Class({
 
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_("Coding Chatbox"));
+
+        let chatWithAction = new Gio.SimpleAction({ name: CHAT_WITH_ACTION,
+                                                    parameter_type: new GLib.VariantType('s') });
+        chatWithAction.connect('activate', Lang.bind(this, function(action, parameter) {
+            if (this._mainWindow === null)
+                return;
+
+            let actor = parameter.unpack();
+            this._mainWindow.switchToChatWith(actor);
+        }));
+        this.add_action(chatWithAction);
     },
 
     vfunc_startup: function() {

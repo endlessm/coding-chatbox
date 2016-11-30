@@ -10,6 +10,9 @@ resource_DATA = \
 	src/com.endlessm.Coding.Chatbox.src.gresource \
 	$(NULL)
 
+applicationsdir = $(datadir)/applications
+applications_DATA = data/com.endlessm.Coding.Chatbox.desktop
+
 servicedir = $(datadir)/dbus-1/services
 service_DATA = $(service_in_files:.service.in=.service)
 service_in_files = \
@@ -25,6 +28,7 @@ EXTRA_DIST = \
 	src/com.endlessm.Coding.Chatbox.in \
 	src/com.endlessm.Coding.Chatbox.src.gresource.xml \
 	data/com.endlessm.Coding.Chatbox.data.gresource.xml \
+	data/com.endlessm.Coding.Chatbox.desktop \
 	$(NULL)
 
 data/com.endlessm.Coding.Chatbox.service: $(srcdir)/data/com.endlessm.Coding.Chatbox.service.in
