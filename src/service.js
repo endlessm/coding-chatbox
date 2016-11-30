@@ -114,7 +114,7 @@ const CodingChatboxTextService = new Lang.Class({
     evaluate: function(showmehow_id, text, callback) {
         let [name, position] = showmehow_id.split('::');
 
-        this._service.call_attempt_lesson_remote(name, position, text, null,
+        this._service.call_attempt_lesson_remote(-1, name, position, text, null,
                                                  Lang.bind(this, function(source, result) {
             let success, returnValue;
             try {
