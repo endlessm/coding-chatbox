@@ -523,7 +523,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             let notification = new Gio.Notification();
             // TODO: make it translatable
             notification.set_title(title);
-            notification.set_body(message);
+            notification.set_body(body);
             if (row)
                 notification.set_icon(row.avatar);
             notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
