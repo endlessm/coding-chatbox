@@ -193,7 +193,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     },
 
     focused: function() {
-        this.content.focused();
+        this._content.focused();
     }
 });
 
