@@ -490,7 +490,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                            location,
                            chat_contents,
                            State.SentBy.ACTOR);
-            this._showNotification('Attachment from ' + actor, message, actor);
+            this._showNotification('Attachment from ' + actor, spec.attachment.desc, actor);
         }));
 
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
