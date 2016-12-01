@@ -445,17 +445,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                            location,
                            chat_contents,
                            State.SentBy.ACTOR);
-            if (!this.is_active) {
-                let row = this._actorRow(actor);
-                let notification = new Gio.Notification();
-                // TODO: make it translatable
-                notification.set_title('Message from ' + actor);
-                notification.set_body(message);
-                if (row)
-                    notification.set_icon(row.avatar);
-                notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
-                this.application.send_notification(notificationId(actor), notification);
-            }
+            this._showNotification('Message from ' + actor, message, actor);
         }));
 
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
@@ -476,6 +466,20 @@ const CodingChatboxMainWindow = new Lang.Class({
             }
             this.application.withdraw_notification(notificationId(row.contact_name));
         }));
+    },
+
+    _showNotification: function(title, body, actor) {
+        if (!this.is_active) {
+            let row = this._actorRow(actor);
+            let notification = new Gio.Notification();
+            // TODO: make it translatable
+            notification.set_title(title);
+            notification.set_body(message);
+            if (row)
+                notification.set_icon(row.avatar);
+            notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
+            this.application.send_notification(notificationId(actor), notification);
+        }
     },
 
     _actorRow: function(actor) {
