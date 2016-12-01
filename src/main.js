@@ -470,6 +470,8 @@ const CodingChatboxMainWindow = new Lang.Class({
                 this.chatbox_list_box.add(contact_row);
                 this.chatbox_stack.add_named(chat_contents, actor.name);
             }));
+
+            this.chatbox_list_box.select_row(this.chatbox_list_box.get_row_at_index(0));
         }));
 
         this.chatbox_service.connect('chat-message', Lang.bind(this, function(service, actor, message, location) {
