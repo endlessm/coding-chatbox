@@ -134,6 +134,22 @@ const CodingChatboxContactListItem = new Lang.Class({
         this._contact_image_widget.pixbuf = this._contact_image_pixbuf;
     },
 
+    setMostRecentMessage: function(message) {
+        this.contact_message_snippit_label.label = message;
+        if (!this.is_selected()) {
+            // If we aren't selected, bold the current name and
+            // message snippit to make it clear to the user that
+            // there is a new message here
+            this.contact_name_label.get_style_context().add_class('new-content');
+            this.contact_message_snippit_label.get_style_context().add_class('new-content');
+        }
+    },
+
+    selected: function() {
+        this.contact_name_label.get_style_context().remove_class('new-content');
+        this.contact_message_snippit_label.get_style_context().remove_class('new-content');
+    },
+
     get avatar() {
         return this._contact_image_pixbuf;
     }
@@ -464,6 +480,31 @@ const CodingChatboxMainWindow = new Lang.Class({
                                        chat_contents,
                                        State.SentBy.USER);
                     }
+
+                    // From the very last item in the list, keep going backwards until
+                    // we find a message or attachment, and then display it in the chatbox
+                    for (let i = history.length - 1; i > -1; --i) {
+                        if (history[i].type.indexOf('chat') === 0) {
+                            let label = contact_row.contact_message_snippit_label;
+
+                            // We set the contents differently depending on the type
+                            // of thing we have
+                            switch (history[i].type) {
+                                case 'chat-user':
+                                case 'chat-actor':
+                                    label.label = history[i].message;
+                                    break;
+                                case 'chat-actor-attachment':
+                                    label.label = history[i].attachment.desc;
+                                    break;
+                                default:
+                                    throw new Error('Don\'t know how to handle message type ' +
+                                                    history[i].type + ' in setting chat message snippit');
+                            }
+
+                            break;
+                        }
+                    }
                 });
 
                 this.chatbox_list_box.add(contact_row);
@@ -513,13 +554,20 @@ const CodingChatboxMainWindow = new Lang.Class({
             if (children.length) {
                 children[children.length - 1].focused();
             }
+            row.selected();
             this.application.withdraw_notification(notificationId(row.contact_name));
         }));
     },
 
     _showNotification: function(title, body, actor) {
+        let row = this._actorRow(actor);
+
+        // If this row is not active, or the window is not active,
+        // bold the row and indicate that a new message was sent
+        // at this time
+        row.setMostRecentMessage(body);
+
         if (!this.is_active) {
-            let row = this._actorRow(actor);
             let notification = new Gio.Notification();
             // TODO: make it translatable
             notification.set_title(title);
