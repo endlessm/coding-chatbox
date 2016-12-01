@@ -33,20 +33,11 @@
               </object>
             </child>
             <child>
-              <object class="GtkScrolledWindow">
+              <object class="GtkStack" id="chatbox-stack">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
                 <property name="width-request">500</property>
-                <child>
-                  <object class="GtkStack" id="chatbox-stack">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="width-request">500</property>
-                    <property name="transition-type">slide-left-right</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                  </object>
-                </child>
+                <property name="transition-type">slide-left-right</property>
               </object>
               <packing>
                 <property name="expand">True</property>

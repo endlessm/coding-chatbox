@@ -507,15 +507,21 @@ const CodingChatboxMainWindow = new Lang.Class({
                     }
                 });
 
+                let chat_scroll_view = new Gtk.ScrolledWindow({
+                    visible: true,
+                    width_request: 500
+                });
+                chat_scroll_view.add(chat_contents);
+
                 this.chatbox_list_box.add(contact_row);
-                this.chatbox_stack.add_named(chat_contents, actor.name);
+                this.chatbox_stack.add_named(chat_scroll_view, actor.name);
             }));
 
             this.chatbox_list_box.select_row(this.chatbox_list_box.get_row_at_index(0));
         }));
 
         this.chatbox_service.connect('chat-message', Lang.bind(this, function(service, actor, message, location) {
-            let chat_contents = this.chatbox_stack.get_child_by_name(actor);
+            let chat_contents = this._contentsForActor(actor);
             add_new_bubble({ type: 'scrolled', text: message },
                            actor,
                            location,
@@ -525,7 +531,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         }));
 
         this.chatbox_service.connect('chat-attachment', Lang.bind(this, function(service, actor, spec, location) {
-            let chat_contents = this.chatbox_stack.get_child_by_name(actor);
+            let chat_contents = this._contentsForActor(actor);
             add_new_bubble({ type: 'attachment', attachment: spec.attachment },
                            actor,
                            location,
@@ -537,7 +543,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
             // Doesn't make sense to append a new bubble, so just
             // create a new one now
-            let chat_contents = this.chatbox_stack.get_child_by_name(actor);
+            let chat_contents = this._contentsForActor(actor);
             add_new_bubble(spec,
                            actor,
                            location,
@@ -550,13 +556,19 @@ const CodingChatboxMainWindow = new Lang.Class({
                 return;
 
             this.chatbox_stack.set_visible_child_name(row.contact_name);
-            let children = this.chatbox_stack.get_visible_child().get_children();
+            let scrollViewport = this.chatbox_stack.get_visible_child().get_child();
+            let chatBubbles = scrollViewport.get_child();
+            let children = chatBubbles.get_children();
             if (children.length) {
                 children[children.length - 1].focused();
             }
             row.selected();
             this.application.withdraw_notification(notificationId(row.contact_name));
         }));
+    },
+
+    _contentsForActor: function(actor) {
+        return this.chatbox_stack.get_child_by_name(actor).get_child().get_child();
     },
 
     _showNotification: function(title, body, actor) {
