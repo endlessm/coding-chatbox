@@ -521,6 +521,7 @@ const CodingChatboxApplication = new Lang.Class({
 
             let actor = parameter.unpack();
             this._mainWindow.switchToChatWith(actor);
+            this.activate();
         }));
         this.add_action(chatWithAction);
     },
