@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="Gjs_AttachmentChatboxMessageView" parent="GtkBox">
+    <child>
+      <object class="GtkGrid" id="content-grid">
+        <property name="visible">True</property>
+        <property name="hexpand">True</property>
+        <child>
+          <object class="GtkBox">
+            <property name="hexpand">True</property>
+            <property name="visible">True</property>
+            <child>
+              <object class="GtkEventBox" id="attachment-icon-event-box">
+                <property name="width-request">64</property>
+                <property name="height-request">64</property>
+                <property name="visible">True</property>
+                <child>
+                  <object class="GtkImage" id="attachment-icon">
+                    <property name="width-request">64</property>
+                    <property name="height-request">64</property>
+                    <property name="visible">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="hexpand">True</property>
+                <property name="visible">True</property>
+                <property name="orientation">vertical</property>
+                <property name="margin-left">10</property>
+                <property name="margin-top">10</property>
+                <property name="margin-bottom">10</property>
+                <child>
+                  <object class="GtkLabel" id="attachment-name">
+                    <property name="visible">True</property>
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="attachment-desc">
+                    <property name="visible">True</property>
+                    <property name="margin-top">3</property>
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

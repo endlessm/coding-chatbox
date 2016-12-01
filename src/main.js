@@ -316,13 +316,31 @@ const RenderableExternalEventsChatboxMessage = new Lang.Class({
     }
 });
 
+const RenderableAttachmentChatboxMessage = new Lang.Class({
+    Name: 'RenderableAttachmentChatboxMessage',
+    Extends: State.AttachmentChatboxMessage,
+
+    render_view: function(listener) {
+        let view = new Views.AttachmentChatboxMessageView({
+            state: this,
+            visible: true
+        });
+        view.connect('clicked', Lang.bind(this, function() {
+            let handler = this.path.query_default_handler(null);
+            handler.launch([this.path], null);
+        }));
+        return view;
+    }
+});
+
 const MessageClasses = {
     scrolled: RenderableTextChatboxMessage,
     scroll_wait: RenderableTextChatboxMessage,
     choice: RenderableChoiceChatboxMessage,
     text: RenderableInputChatboxMessage,
     console: RenderableInputChatboxMessage,
-    external_events: RenderableExternalEventsChatboxMessage
+    external_events: RenderableExternalEventsChatboxMessage,
+    attachment: RenderableAttachmentChatboxMessage
 };
 
 function notificationId(actor) {
@@ -411,12 +429,28 @@ const CodingChatboxMainWindow = new Lang.Class({
                     history.filter(function(item) {
                         return item.type.indexOf('chat') == 0;
                     }).forEach(function(item) {
-                        add_new_bubble({ type: 'scrolled', text: item.message },
-                                       actor.name,
-                                       'none::none',
-                                       chat_contents,
-                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
-                                                                    State.SentBy.USER);
+                        switch (item.type) {
+                            case 'chat-user':
+                            case 'chat-actor':
+                                add_new_bubble({ type: 'scrolled', text: item.message },
+                                               actor.name,
+                                               'none::none',
+                                               chat_contents,
+                                               item.type === 'chat-actor' ? State.SentBy.ACTOR :
+                                                                            State.SentBy.USER);
+                                break;
+                            case 'chat-user-attachment':
+                            case 'chat-actor-attachment':
+                                add_new_bubble({ type: 'attachment', attachment: item.attachment },
+                                               actor.name,
+                                               item.name,
+                                               chat_contents,
+                                               item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
+                                                                                       State.SentBy.USER);
+                                break;
+                            default:
+                                throw new Error('Don\'t know how to handle logged message type ' + item.type);
+                        }
                     });
 
                     // Get the very last item in the history and check if it is
@@ -448,11 +482,25 @@ const CodingChatboxMainWindow = new Lang.Class({
             this._showNotification('Message from ' + actor, message, actor);
         }));
 
+        this.chatbox_service.connect('chat-attachment', Lang.bind(this, function(service, actor, spec, location) {
+            let chat_contents = this.chatbox_stack.get_child_by_name(actor);
+            add_new_bubble({ type: 'attachment', attachment: spec.attachment },
+                           actor,
+                           location,
+                           chat_contents,
+                           State.SentBy.ACTOR);
+            this._showNotification('Attachment from ' + actor, message, actor);
+        }));
+
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
             // Doesn't make sense to append a new bubble, so just
             // create a new one now
             let chat_contents = this.chatbox_stack.get_child_by_name(actor);
-            add_new_bubble(spec, actor, location, chat_contents, State.SentBy.USER);
+            add_new_bubble(spec,
+                           actor,
+                           location,
+                           chat_contents,
+                           State.SentBy.USER);
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
