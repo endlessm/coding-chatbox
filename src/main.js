@@ -576,6 +576,10 @@ const CodingChatboxMainWindow = new Lang.Class({
     _showNotification: function(title, body, actor) {
         let row = this._actorRow(actor);
 
+        if (!row) {
+            throw new Error('Couldn\'t show notification, no such actor ' + actor);
+        }
+
         // If this row is not active, or the window is not active,
         // bold the row and indicate that a new message was sent
         // at this time
@@ -585,8 +589,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             let notification = new Gio.Notification();
             notification.set_title(title);
             notification.set_body(body);
-            if (row)
-                notification.set_icon(row.avatar);
+            notification.set_icon(row.avatar);
             notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
             this.application.send_notification(notificationId(actor), notification);
         }
