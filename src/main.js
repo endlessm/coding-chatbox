@@ -527,6 +527,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                            location,
                            chat_contents,
                            State.SentBy.ACTOR);
+            // TODO: make it translatable
             this._showNotification('Message from ' + actor, message, actor);
         }));
 
@@ -537,6 +538,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                            location,
                            chat_contents,
                            State.SentBy.ACTOR);
+            // TODO: make it translatable
             this._showNotification('Attachment from ' + actor, spec.attachment.desc, actor);
         }));
 
@@ -581,7 +583,6 @@ const CodingChatboxMainWindow = new Lang.Class({
 
         if (!this.is_active) {
             let notification = new Gio.Notification();
-            // TODO: make it translatable
             notification.set_title(title);
             notification.set_body(body);
             if (row)
