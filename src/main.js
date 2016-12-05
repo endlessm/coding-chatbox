@@ -574,9 +574,8 @@ const CodingChatboxMainWindow = new Lang.Class({
     _showNotification: function(title, body, actor) {
         let row = this._actorRow(actor);
 
-        if (!row) {
+        if (!row)
             throw new Error('Couldn\'t show notification, no such actor ' + actor);
-        }
 
         // If this row is not active, or the window is not active,
         // bold the row and indicate that a new message was sent
