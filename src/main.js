@@ -140,14 +140,12 @@ const CodingChatboxContactListItem = new Lang.Class({
             // If we aren't selected, bold the current name and
             // message snippit to make it clear to the user that
             // there is a new message here
-            this.contact_name_label.get_style_context().add_class('new-content');
-            this.contact_message_snippit_label.get_style_context().add_class('new-content');
+            this.get_style_context().add_class('new-content');
         }
     },
 
     selected: function() {
-        this.contact_name_label.get_style_context().remove_class('new-content');
-        this.contact_message_snippit_label.get_style_context().remove_class('new-content');
+        this.get_style_context().remove_class('new-content');
     },
 
     get avatar() {
