@@ -568,6 +568,11 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     _contentsForActor: function(actor) {
+        // This level of nesting is gross, but we are basically reaching through
+        // a GtkScrollView and its own internal child in order to get to the chatbox
+        // contents themselves.
+        //
+        // This isn't ideal, but it is the quickest way to get access to that component
         return this.chatbox_stack.get_child_by_name(actor).get_child().get_child();
     },
 
