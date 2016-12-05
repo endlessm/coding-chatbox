@@ -150,7 +150,7 @@ function getIconForFile(path, widget) {
 
 const AttachmentChatboxMessageView = new Lang.Class({
     Name: 'AttachmentChatboxMessageView',
-    Extends: Gtk.Box,
+    Extends: Gtk.Button,
     Template: 'resource:///com/endlessm/Coding/Chatbox/attachment-view.ui',
     Children: ['attachment-icon', 'attachment-name', 'attachment-desc', 'attachment-icon-event-box'],
     Implements: [ ChatboxMessageView ],
@@ -162,21 +162,13 @@ const AttachmentChatboxMessageView = new Lang.Class({
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         State.AttachmentChatboxMessage)
     },
-    Signals: {
-        'clicked': {
-            param_types: []
-        }
-    },
 
     _init: function(params) {
         this.parent(params);
+        this.get_style_context().add_class('attachment-button');
         this.attachment_name.label = this.state.path.get_basename();
         this.attachment_desc.label = this.state.desc;
         this.attachment_icon.set_from_gicon(getIconForFile(this.state.path),
                                             Gtk.IconSize.DIALOG);
-        this.attachment_icon_event_box.events |= Gdk.BUTTON_PRESS_MASK | Gdk.BUTTON_RELEASE_MASK;
-        this.attachment_icon_event_box.connect('button-release-event', Lang.bind(this, function() {
-            this.emit('clicked');
-        }));
     }
 });

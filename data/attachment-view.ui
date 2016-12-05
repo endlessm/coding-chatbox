@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <template class="Gjs_AttachmentChatboxMessageView" parent="GtkBox">
+  <template class="Gjs_AttachmentChatboxMessageView" parent="GtkButton">
     <child>
       <object class="GtkGrid" id="content-grid">
         <property name="visible">True</property>
