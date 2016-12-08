@@ -165,7 +165,6 @@ const AttachmentChatboxMessageView = new Lang.Class({
 
     _init: function(params) {
         this.parent(params);
-        this.get_style_context().add_class('attachment-button');
         this.attachment_name.label = this.state.path.get_basename();
         this.attachment_desc.label = this.state.desc;
         this.attachment_icon.set_from_gicon(getIconForFile(this.state.path),
