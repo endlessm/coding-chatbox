@@ -537,15 +537,15 @@ const CodingChatboxMainWindow = new Lang.Class({
             this._showNotification('Message from ' + actor, message, actor);
         }));
 
-        this.chatbox_service.connect('chat-attachment', Lang.bind(this, function(service, actor, spec, location) {
+        this.chatbox_service.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location) {
             let chat_contents = this._contentsForActor(actor);
-            add_new_bubble({ type: 'attachment', attachment: spec.attachment },
+            add_new_bubble({ type: 'attachment', attachment: attachment },
                            actor,
                            location,
                            chat_contents,
                            State.SentBy.ACTOR);
             // TODO: make it translatable
-            this._showNotification('Attachment from ' + actor, spec.attachment.desc, actor);
+            this._showNotification('Attachment from ' + actor, attachment.desc, actor);
         }));
 
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
