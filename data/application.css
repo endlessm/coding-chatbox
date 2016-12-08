@@ -18,3 +18,18 @@
 .chatbox-bubble.by-user {
     background-color: #82c3ea;
 }
+
+.contact-item .contact-message-preview {
+    font-style: italic;
+}
+
+.new-content {
+    font-weight: bold;
+}
+
+.attachment-button {
+    background-image: none;
+    border-width: 0px;
+    outline-width: 0px;
+    box-shadow: none;
+}

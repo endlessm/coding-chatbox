@@ -7,6 +7,7 @@
 // the rest of the game.
 //
 
+const Gio = imports.gi.Gio;
 const GObject = imports.gi.GObject;
 
 const Lang = imports.lang;
@@ -120,6 +121,35 @@ const InputChatboxMessage = new Lang.Class({
     _init: function(params, spec) {
         this.parent(params);
         this.showmehow_id = spec.settings.showmehow_id;
+    },
+
+    amend: function() {
+        return false;
+    }
+});
+
+const AttachmentChatboxMessage = new Lang.Class({
+    Name: 'AttachmentChatboxMessage',
+    Extends: CodingChatboxMessageBase,
+    Properties: {
+        path: GObject.ParamSpec.object('path',
+                                       'Path',
+                                       'Path to the Attachment',
+                                       GObject.ParamFlags.READWRITE |
+                                       GObject.ParamFlags.CONSTRUCT_ONLY,
+                                       Gio.File),
+        desc: GObject.ParamSpec.string('desc',
+                                       'Description',
+                                       'Description of the Attachment',
+                                       GObject.ParamFlags.READWRITE |
+                                       GObject.ParamFlags.CONSTRUCT_ONLY,
+                                       '')
+    },
+
+    _init: function(params, spec) {
+        this.parent(params);
+        this.path = Gio.File.new_for_path(spec.attachment.path);
+        this.desc = spec.attachment.desc;
     },
 
     amend: function() {

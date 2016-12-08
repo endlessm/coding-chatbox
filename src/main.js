@@ -90,7 +90,6 @@ const CodingChatboxContactListItem = new Lang.Class({
         this.parent(params);
 
         this.contact_name_label.set_text(params.contact_name);
-        this.contact_message_snippit_label.set_markup('<i>Last seen</i>');
         this._contact_image_pixbuf = null;
         this._contact_image_widget = new RoundedImage({ visible: true,
                                                         margin: 8 });
@@ -133,6 +132,20 @@ const CodingChatboxContactListItem = new Lang.Class({
                                                                      CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
         }
         this._contact_image_widget.pixbuf = this._contact_image_pixbuf;
+    },
+
+    setMostRecentMessage: function(message) {
+        this.contact_message_snippit_label.label = message;
+        if (!this.is_selected()) {
+            // If we aren't selected, bold the current name and
+            // message snippit to make it clear to the user that
+            // there is a new message here
+            this.get_style_context().add_class('new-content');
+        }
+    },
+
+    selected: function() {
+        this.get_style_context().remove_class('new-content');
     },
 
     get avatar() {
@@ -193,7 +206,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     },
 
     focused: function() {
-        this.content.focused();
+        this._content.focused();
     }
 });
 
@@ -316,14 +329,45 @@ const RenderableExternalEventsChatboxMessage = new Lang.Class({
     }
 });
 
+const RenderableAttachmentChatboxMessage = new Lang.Class({
+    Name: 'RenderableAttachmentChatboxMessage',
+    Extends: State.AttachmentChatboxMessage,
+
+    render_view: function(listener) {
+        let view = new Views.AttachmentChatboxMessageView({
+            state: this,
+            visible: true
+        });
+        view.connect('clicked', Lang.bind(this, function() {
+            let handler = this.path.query_default_handler(null);
+            handler.launch([this.path], null);
+        }));
+        return view;
+    }
+});
+
 const MessageClasses = {
     scrolled: RenderableTextChatboxMessage,
     scroll_wait: RenderableTextChatboxMessage,
     choice: RenderableChoiceChatboxMessage,
     text: RenderableInputChatboxMessage,
     console: RenderableInputChatboxMessage,
-    external_events: RenderableExternalEventsChatboxMessage
+    external_events: RenderableExternalEventsChatboxMessage,
+    attachment: RenderableAttachmentChatboxMessage
 };
+
+const CodingChatboxChatScrollView = new Lang.Class({
+    Name: 'CodingChatboxChatScrollView',
+    Extends: Gtk.ScrolledWindow,
+
+    _init: function(chatContents) {
+        this.parent({ visible: true,
+                      width_request: 500 });
+
+        this.chatContents = chatContents;
+        this.add(chatContents);
+    }
+});
 
 function notificationId(actor) {
     return actor + '-message';
@@ -411,12 +455,28 @@ const CodingChatboxMainWindow = new Lang.Class({
                     history.filter(function(item) {
                         return item.type.indexOf('chat') == 0;
                     }).forEach(function(item) {
-                        add_new_bubble({ type: 'scrolled', text: item.message },
-                                       actor.name,
-                                       'none::none',
-                                       chat_contents,
-                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
-                                                                    State.SentBy.USER);
+                        switch (item.type) {
+                            case 'chat-user':
+                            case 'chat-actor':
+                                add_new_bubble({ type: 'scrolled', text: item.message },
+                                               actor.name,
+                                               'none::none',
+                                               chat_contents,
+                                               item.type === 'chat-actor' ? State.SentBy.ACTOR :
+                                                                            State.SentBy.USER);
+                                break;
+                            case 'chat-user-attachment':
+                            case 'chat-actor-attachment':
+                                add_new_bubble({ type: 'attachment', attachment: item.attachment },
+                                               actor.name,
+                                               item.name,
+                                               chat_contents,
+                                               item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
+                                                                                       State.SentBy.USER);
+                                break;
+                            default:
+                                throw new Error('Don\'t know how to handle logged message type ' + item.type);
+                        }
                     });
 
                     // Get the very last item in the history and check if it is
@@ -431,38 +491,72 @@ const CodingChatboxMainWindow = new Lang.Class({
                                        chat_contents,
                                        State.SentBy.USER);
                     }
+
+                    // From the very last item in the list, keep going backwards until
+                    // we find a message or attachment, and then display it in the chatbox
+                    for (let i = history.length - 1; i > -1; --i) {
+                        if (history[i].type.indexOf('chat') === 0) {
+                            let label = contact_row.contact_message_snippit_label;
+
+                            // We set the contents differently depending on the type
+                            // of thing we have
+                            switch (history[i].type) {
+                                case 'chat-user':
+                                case 'chat-actor':
+                                    label.label = history[i].message;
+                                    break;
+                                case 'chat-actor-attachment':
+                                    label.label = history[i].attachment.desc;
+                                    break;
+                                default:
+                                    throw new Error('Don\'t know how to handle message type ' +
+                                                    history[i].type + ' in setting chat message snippit');
+                            }
+
+                            break;
+                        }
+                    }
                 });
 
+                let chatScrollView = new CodingChatboxChatScrollView(chat_contents);
                 this.chatbox_list_box.add(contact_row);
-                this.chatbox_stack.add_named(chat_contents, actor.name);
+                this.chatbox_stack.add_named(chatScrollView, actor.name);
             }));
+
+            this.chatbox_list_box.select_row(this.chatbox_list_box.get_row_at_index(0));
         }));
 
         this.chatbox_service.connect('chat-message', Lang.bind(this, function(service, actor, message, location) {
-            let chat_contents = this.chatbox_stack.get_child_by_name(actor);
+            let chat_contents = this._contentsForActor(actor);
             add_new_bubble({ type: 'scrolled', text: message },
                            actor,
                            location,
                            chat_contents,
                            State.SentBy.ACTOR);
-            if (!this.is_active) {
-                let row = this._actorRow(actor);
-                let notification = new Gio.Notification();
-                // TODO: make it translatable
-                notification.set_title('Message from ' + actor);
-                notification.set_body(message);
-                if (row)
-                    notification.set_icon(row.avatar);
-                notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
-                this.application.send_notification(notificationId(actor), notification);
-            }
+            // TODO: make it translatable
+            this._showNotification('Message from ' + actor, message, actor);
+        }));
+
+        this.chatbox_service.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location) {
+            let chat_contents = this._contentsForActor(actor);
+            add_new_bubble({ type: 'attachment', attachment: attachment },
+                           actor,
+                           location,
+                           chat_contents,
+                           State.SentBy.ACTOR);
+            // TODO: make it translatable
+            this._showNotification('Attachment from ' + actor, attachment.desc, actor);
         }));
 
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
             // Doesn't make sense to append a new bubble, so just
             // create a new one now
-            let chat_contents = this.chatbox_stack.get_child_by_name(actor);
-            add_new_bubble(spec, actor, location, chat_contents, State.SentBy.USER);
+            let chat_contents = this._contentsForActor(actor);
+            add_new_bubble(spec,
+                           actor,
+                           location,
+                           chat_contents,
+                           State.SentBy.USER);
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
@@ -470,12 +564,41 @@ const CodingChatboxMainWindow = new Lang.Class({
                 return;
 
             this.chatbox_stack.set_visible_child_name(row.contact_name);
-            let children = this.chatbox_stack.get_visible_child().get_children();
-            if (children.length) {
+
+            let chatContents = this._contentsForActor(row.contact_name);
+            let children = chatContents.get_children();
+            if (children.length)
                 children[children.length - 1].focused();
-            }
+
+            row.selected();
             this.application.withdraw_notification(notificationId(row.contact_name));
         }));
+    },
+
+    _contentsForActor: function(actor) {
+        let scrollView = this.chatbox_stack.get_child_by_name(actor);
+        return scrollView.chatContents;
+    },
+
+    _showNotification: function(title, body, actor) {
+        let row = this._actorRow(actor);
+
+        if (!row)
+            throw new Error('Couldn\'t show notification, no such actor ' + actor);
+
+        // If this row is not active, or the window is not active,
+        // bold the row and indicate that a new message was sent
+        // at this time
+        row.setMostRecentMessage(body);
+
+        if (!this.is_active) {
+            let notification = new Gio.Notification();
+            notification.set_title(title);
+            notification.set_body(body);
+            notification.set_icon(row.avatar);
+            notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
+            this.application.send_notification(notificationId(actor), notification);
+        }
     },
 
     _actorRow: function(actor) {

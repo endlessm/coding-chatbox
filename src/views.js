@@ -6,7 +6,9 @@
 // The views for chatbox content.
 //
 
+const Gdk = imports.gi.Gdk;
 const GObject = imports.gi.GObject;
+const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 
 const Lang = imports.lang;
@@ -131,5 +133,41 @@ const ExternalEventsChatboxMessageView = new Lang.Class({
 
     focused: function() {
         this.emit('check-events');
+    }
+});
+
+// getIconForFile
+//
+// Get a GIcon containing an icon for the provided GFile. The
+// icon will just be the icon and not a preview of the
+// file itself.
+function getIconForFile(path, widget) {
+    let info = path.query_info(Gio.FILE_ATTRIBUTE_STANDARD_ICON,
+                               Gio.FileQueryInfoFlags.NONE,
+                               null);
+    return info.get_icon();
+}
+
+const AttachmentChatboxMessageView = new Lang.Class({
+    Name: 'AttachmentChatboxMessageView',
+    Extends: Gtk.Button,
+    Template: 'resource:///com/endlessm/Coding/Chatbox/attachment-view.ui',
+    Children: ['attachment-icon', 'attachment-name', 'attachment-desc'],
+    Implements: [ ChatboxMessageView ],
+    Properties: {
+        state: GObject.ParamSpec.object('state',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        State.AttachmentChatboxMessage)
+    },
+
+    _init: function(params) {
+        this.parent(params);
+        this.attachment_name.label = this.state.path.get_basename();
+        this.attachment_desc.label = this.state.desc;
+        this.attachment_icon.set_from_gicon(getIconForFile(this.state.path),
+                                            Gtk.IconSize.DIALOG);
     }
 });
