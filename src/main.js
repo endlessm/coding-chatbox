@@ -356,6 +356,19 @@ const MessageClasses = {
     attachment: RenderableAttachmentChatboxMessage
 };
 
+const CodingChatboxChatScrollView = new Lang.Class({
+    Name: 'CodingChatboxChatScrollView',
+    Extends: Gtk.ScrolledWindow,
+
+    _init: function(chatContents) {
+        this.parent({ visible: true,
+                      width_request: 500 });
+
+        this.chatContents = chatContents;
+        this.add(chatContents);
+    }
+});
+
 function notificationId(actor) {
     return actor + '-message';
 }
@@ -505,14 +518,9 @@ const CodingChatboxMainWindow = new Lang.Class({
                     }
                 });
 
-                let chat_scroll_view = new Gtk.ScrolledWindow({
-                    visible: true,
-                    width_request: 500
-                });
-                chat_scroll_view.add(chat_contents);
-
+                let chatScrollView = new CodingChatboxChatScrollView(chat_contents);
                 this.chatbox_list_box.add(contact_row);
-                this.chatbox_stack.add_named(chat_scroll_view, actor.name);
+                this.chatbox_stack.add_named(chatScrollView, actor.name);
             }));
 
             this.chatbox_list_box.select_row(this.chatbox_list_box.get_row_at_index(0));
@@ -556,24 +564,20 @@ const CodingChatboxMainWindow = new Lang.Class({
                 return;
 
             this.chatbox_stack.set_visible_child_name(row.contact_name);
-            let scrollViewport = this.chatbox_stack.get_visible_child().get_child();
-            let chatBubbles = scrollViewport.get_child();
-            let children = chatBubbles.get_children();
-            if (children.length) {
+
+            let chatContents = this._contentsForActor(row.contact_name);
+            let children = chatContents.get_children();
+            if (children.length)
                 children[children.length - 1].focused();
-            }
+
             row.selected();
             this.application.withdraw_notification(notificationId(row.contact_name));
         }));
     },
 
     _contentsForActor: function(actor) {
-        // This level of nesting is gross, but we are basically reaching through
-        // a GtkScrollView and its own internal child in order to get to the chatbox
-        // contents themselves.
-        //
-        // This isn't ideal, but it is the quickest way to get access to that component
-        return this.chatbox_stack.get_child_by_name(actor).get_child().get_child();
+        let scrollView = this.chatbox_stack.get_child_by_name(actor);
+        return scrollView.chatContents;
     },
 
     _showNotification: function(title, body, actor) {
