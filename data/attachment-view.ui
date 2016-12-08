@@ -13,17 +13,10 @@
             <property name="hexpand">True</property>
             <property name="visible">True</property>
             <child>
-              <object class="GtkEventBox" id="attachment-icon-event-box">
+              <object class="GtkImage" id="attachment-icon">
                 <property name="width-request">64</property>
                 <property name="height-request">64</property>
                 <property name="visible">True</property>
-                <child>
-                  <object class="GtkImage" id="attachment-icon">
-                    <property name="width-request">64</property>
-                    <property name="height-request">64</property>
-                    <property name="visible">True</property>
-                  </object>
-                </child>
               </object>
             </child>
             <child>

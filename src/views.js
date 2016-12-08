@@ -152,7 +152,7 @@ const AttachmentChatboxMessageView = new Lang.Class({
     Name: 'AttachmentChatboxMessageView',
     Extends: Gtk.Button,
     Template: 'resource:///com/endlessm/Coding/Chatbox/attachment-view.ui',
-    Children: ['attachment-icon', 'attachment-name', 'attachment-desc', 'attachment-icon-event-box'],
+    Children: ['attachment-icon', 'attachment-name', 'attachment-desc'],
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
