@@ -93,8 +93,16 @@ const CodingChatboxContactListItem = new Lang.Class({
         this._contact_image_pixbuf = null;
         this._contact_image_widget = new RoundedImage({ visible: true,
                                                         margin: 8 });
-        this._contact_image_widget.get_style_context().add_class('contact-image');
-        this.content_grid.attach_next_to(this._contact_image_widget, null, Gtk.PositionType.LEFT,
+
+        this._contact_image_overlay = new Gtk.Overlay({ visible: true });
+        this._contact_image_overlay.add(this._contact_image_widget);
+
+        let frame = new Gtk.Frame({ visible: true,
+                                    shadow_type: Gtk.ShadowType.NONE });
+        this._contact_image_overlay.add_overlay(frame);
+        frame.get_style_context().add_class('contact-image-overlay');
+
+        this.content_grid.attach_next_to(this._contact_image_overlay, null, Gtk.PositionType.LEFT,
                                          1, 1);
 
         let useContactImage = this.contact_image;
@@ -113,20 +121,25 @@ const CodingChatboxContactListItem = new Lang.Class({
             let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
                                                  CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
             let cr = new Cairo.Context(surface);
-            cr.setSourceRGBA(0.74, 0.74, 0.74, 1.0);
-            cr.paint();
+            let context = this._contact_image_widget.get_style_context();
+            context.add_class('contact-default-image');
+
+            Gtk.render_background(context, cr, 0, 0,
+                                  CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+            Gtk.render_frame(context, cr, 0, 0,
+                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
 
             let text = initials_from_name(params.contact_name);
             let layout = this._contact_image_widget.create_pango_layout(text);
             let [text_width, text_height] = layout.get_pixel_size();
 
-            let context = this._contact_image_widget.get_style_context();
             Gtk.render_layout(context, cr,
                               (CONTACT_IMAGE_SIZE - text_width) / 2,
                               (CONTACT_IMAGE_SIZE - text_height) / 2,
                               layout);
 
             cr.$dispose();
+            context.remove_class('contact-default-image');
 
             this._contact_image_pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0,
                                                                      CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
@@ -157,7 +170,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     Name: 'CodingChatboxChatBubbleContainer',
     Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/Coding/Chatbox/chat-bubble-container.ui',
-    Children: ['inner-box', 'bubble-box'],
+    Children: ['inner-box'],
     Properties: {
         'content': GObject.ParamSpec.object('content',
                                             '',
@@ -175,14 +188,14 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
-        let [margin_prop, halign] = params.by_user ? ['margin-right', Gtk.Align.END] :
-                                                     ['margin-left', Gtk.Align.START];
+        let [margin_prop, halign] = params.by_user ? ['margin-end', Gtk.Align.END] :
+                                                     ['margin-start', Gtk.Align.START];
 
         this[margin_prop] = 10;
         this.halign = halign;
 
         if (this.by_user)
-            this.bubble_box.get_style_context().add_class('by-user');
+            this.get_style_context().add_class('by-user');
 
         this.inner_box.pack_start(this.content, false, false, 0);
     },
@@ -294,7 +307,8 @@ const RenderableInputChatboxMessage = new Lang.Class({
             state: this,
             visible: true
         });
-        view.connect('activate', Lang.bind(this, function(view, msg) {
+        view.connect('activate', Lang.bind(this, function(view) {
+            let msg = view.text;
             listener({
                 response: {
                     showmehow_id: this.showmehow_id,

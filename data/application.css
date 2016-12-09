@@ -1,30 +1,47 @@
-.big-label {
-    font-size: 4em;
-    font-weight: bold;
-}
-
-.contact-image {
+image.contact-default-image {
     font-family: 'Sans';
     font-size: 27px;
     font-weight: bold;
     color: white;
+    background-color: #bdbdbd;
 }
 
 .chatbox-bubble {
     background-color: #737478;
     border-radius: 20px;
+    text-shadow: 1px -1px alpha(black, 0.4);
 }
 
 .chatbox-bubble.by-user {
     background-color: #82c3ea;
+    text-shadow: 1px 1px alpha(black, 0.6);
+}
+
+.chatbox-bubble:backdrop {
+    text-shadow: none;
+}
+
+.chatbox-bubble.by-user:backdrop {
+    background-color: #8dbedd;
+}
+
+.chatbox-bubble.by-user label:backdrop {
+    color: #ccc;
 }
 
 .contact-item .contact-message-preview {
-    font-style: italic;
+    font-weight: 300; /* light */
 }
 
 .new-content {
     font-weight: bold;
+}
+
+.new-content frame.contact-image-overlay {
+    background-image: url('resource:////com/endlessm/Coding/Chatbox/img/summary-counter.svg');
+    background-size: 22px;
+    background-position: 85% 15%;
+    background-repeat: no-repeat;
 }
 
 .attachment-button {

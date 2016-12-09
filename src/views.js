@@ -27,7 +27,7 @@ const ChatboxMessageView = new Lang.Interface({
 
 const TextChatboxMessageView = new Lang.Class({
     Name: 'TextChatboxMessageView',
-    Extends: Gtk.Box,
+    Extends: Gtk.Label,
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
@@ -39,16 +39,13 @@ const TextChatboxMessageView = new Lang.Class({
     },
 
     _init: function(params) {
+        params.wrap = true;
+        params.max_width_chars = MAX_WIDTH_CHARS;
         this.parent(params);
-        this._label = new Gtk.Label({
-            visible: true,
-            wrap: true,
-            max_width_chars: MAX_WIDTH_CHARS,
-            label: this.state.text
-        });
-        this.pack_start(this._label, false, false, 0);
-        this.state.bind_property('text', this._label, 'label',
-                                 GObject.BindingFlags.DEFAULT);
+
+        this.state.bind_property('text', this, 'label',
+                                 GObject.BindingFlags.DEFAULT |
+                                 GObject.BindingFlags.SYNC_CREATE);
     }
 });
 
@@ -92,7 +89,7 @@ const ChoiceChatboxMessageView = new Lang.Class({
 
 const InputChatboxMessageView = new Lang.Class({
     Name: 'InputChatboxMessageView',
-    Extends: Gtk.Box,
+    Extends: Gtk.Entry,
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
@@ -102,24 +99,12 @@ const InputChatboxMessageView = new Lang.Class({
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         State.InputChatboxMessage)
     },
-    Signals: {
-        'activate': {
-            param_types: [ GObject.TYPE_STRING ]
-        }
-    },
 
     _init: function(params) {
-        params.orientation = Gtk.Orientation.VERTICAL;
+        params.margin = 10;
+        params.width_request = MAX_WIDTH_CHARS * 5;
 
         this.parent(params);
-        this._input = new Gtk.Entry({
-            visible: true,
-            width_request: MAX_WIDTH_CHARS * 5
-        });
-        this._input.connect('activate', Lang.bind(this, function(input) {
-            this.emit('activate', input.get_text());
-        }));
-        this.pack_start(this._input, true, true, 10);
     },
 });
 
