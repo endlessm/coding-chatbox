@@ -188,8 +188,8 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
-        let [margin_prop, halign] = params.by_user ? ['margin-right', Gtk.Align.END] :
-                                                     ['margin-left', Gtk.Align.START];
+        let [margin_prop, halign] = params.by_user ? ['margin-end', Gtk.Align.END] :
+                                                     ['margin-start', Gtk.Align.START];
 
         this[margin_prop] = 10;
         this.halign = halign;
