@@ -9,14 +9,28 @@ image.contact-default-image {
 .chatbox-bubble {
     background-color: #737478;
     border-radius: 20px;
+    text-shadow: 1px -1px alpha(black, 0.4);
 }
 
 .chatbox-bubble.by-user {
     background-color: #82c3ea;
+    text-shadow: 1px 1px alpha(black, 0.6);
+}
+
+.chatbox-bubble:backdrop {
+    text-shadow: none;
+}
+
+.chatbox-bubble.by-user:backdrop {
+    background-color: #8dbedd;
+}
+
+.chatbox-bubble.by-user label:backdrop {
+    color: #ccc;
 }
 
 .contact-item .contact-message-preview {
-    font-style: italic;
+    font-weight: 300; /* light */
 }
 
 .new-content {
