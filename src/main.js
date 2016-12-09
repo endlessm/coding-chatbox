@@ -93,7 +93,6 @@ const CodingChatboxContactListItem = new Lang.Class({
         this._contact_image_pixbuf = null;
         this._contact_image_widget = new RoundedImage({ visible: true,
                                                         margin: 8 });
-        this._contact_image_widget.get_style_context().add_class('contact-image');
 
         this._contact_image_overlay = new Gtk.Overlay({ visible: true });
         this._contact_image_overlay.add(this._contact_image_widget);
@@ -122,20 +121,25 @@ const CodingChatboxContactListItem = new Lang.Class({
             let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
                                                  CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
             let cr = new Cairo.Context(surface);
-            cr.setSourceRGBA(0.74, 0.74, 0.74, 1.0);
-            cr.paint();
+            let context = this._contact_image_widget.get_style_context();
+            context.add_class('contact-default-image');
+
+            Gtk.render_background(context, cr, 0, 0,
+                                  CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+            Gtk.render_frame(context, cr, 0, 0,
+                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
 
             let text = initials_from_name(params.contact_name);
             let layout = this._contact_image_widget.create_pango_layout(text);
             let [text_width, text_height] = layout.get_pixel_size();
 
-            let context = this._contact_image_widget.get_style_context();
             Gtk.render_layout(context, cr,
                               (CONTACT_IMAGE_SIZE - text_width) / 2,
                               (CONTACT_IMAGE_SIZE - text_height) / 2,
                               layout);
 
             cr.$dispose();
+            context.remove_class('contact-default-image');
 
             this._contact_image_pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0,
                                                                      CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);

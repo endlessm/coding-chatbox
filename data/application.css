@@ -1,8 +1,9 @@
-.contact-image {
+image.contact-default-image {
     font-family: 'Sans';
     font-size: 27px;
     font-weight: bold;
     color: white;
+    background-color: #bdbdbd;
 }
 
 .chatbox-bubble {
