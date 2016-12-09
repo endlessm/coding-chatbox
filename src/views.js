@@ -27,7 +27,7 @@ const ChatboxMessageView = new Lang.Interface({
 
 const TextChatboxMessageView = new Lang.Class({
     Name: 'TextChatboxMessageView',
-    Extends: Gtk.Box,
+    Extends: Gtk.Label,
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
@@ -39,16 +39,13 @@ const TextChatboxMessageView = new Lang.Class({
     },
 
     _init: function(params) {
+        params.wrap = true;
+        params.max_width_chars = MAX_WIDTH_CHARS;
         this.parent(params);
-        this._label = new Gtk.Label({
-            visible: true,
-            wrap: true,
-            max_width_chars: MAX_WIDTH_CHARS,
-            label: this.state.text
-        });
-        this.pack_start(this._label, false, false, 0);
-        this.state.bind_property('text', this._label, 'label',
-                                 GObject.BindingFlags.DEFAULT);
+
+        this.state.bind_property('text', this, 'label',
+                                 GObject.BindingFlags.DEFAULT |
+                                 GObject.BindingFlags.SYNC_CREATE);
     }
 });
 
