@@ -170,7 +170,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     Name: 'CodingChatboxChatBubbleContainer',
     Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/Coding/Chatbox/chat-bubble-container.ui',
-    Children: ['inner-box', 'bubble-box'],
+    Children: ['inner-box'],
     Properties: {
         'content': GObject.ParamSpec.object('content',
                                             '',
@@ -195,7 +195,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
         this.halign = halign;
 
         if (this.by_user)
-            this.bubble_box.get_style_context().add_class('by-user');
+            this.get_style_context().add_class('by-user');
 
         this.inner_box.pack_start(this.content, false, false, 0);
     },
