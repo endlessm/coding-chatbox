@@ -94,7 +94,16 @@ const CodingChatboxContactListItem = new Lang.Class({
         this._contact_image_widget = new RoundedImage({ visible: true,
                                                         margin: 8 });
         this._contact_image_widget.get_style_context().add_class('contact-image');
-        this.content_grid.attach_next_to(this._contact_image_widget, null, Gtk.PositionType.LEFT,
+
+        this._contact_image_overlay = new Gtk.Overlay({ visible: true });
+        this._contact_image_overlay.add(this._contact_image_widget);
+
+        let frame = new Gtk.Frame({ visible: true,
+                                    shadow_type: Gtk.ShadowType.NONE });
+        this._contact_image_overlay.add_overlay(frame);
+        frame.get_style_context().add_class('contact-image-overlay');
+
+        this.content_grid.attach_next_to(this._contact_image_overlay, null, Gtk.PositionType.LEFT,
                                          1, 1);
 
         let useContactImage = this.contact_image;

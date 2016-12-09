@@ -11,5 +11,6 @@
     <file>img/meme.png</file>
     <file>img/goog.png</file>
     <file>img/fruit.png</file>
+    <file>img/summary-counter.svg</file>
   </gresource>
 </gresources>

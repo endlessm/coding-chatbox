@@ -27,6 +27,13 @@
     font-weight: bold;
 }
 
+.new-content frame.contact-image-overlay {
+    background-image: url('resource:////com/endlessm/Coding/Chatbox/img/summary-counter.svg');
+    background-size: 22px;
+    background-position: 85% 15%;
+    background-repeat: no-repeat;
+}
+
 .attachment-button {
     background-image: none;
     border-width: 0px;
