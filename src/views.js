@@ -89,7 +89,7 @@ const ChoiceChatboxMessageView = new Lang.Class({
 
 const InputChatboxMessageView = new Lang.Class({
     Name: 'InputChatboxMessageView',
-    Extends: Gtk.Box,
+    Extends: Gtk.Entry,
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
@@ -99,24 +99,12 @@ const InputChatboxMessageView = new Lang.Class({
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         State.InputChatboxMessage)
     },
-    Signals: {
-        'activate': {
-            param_types: [ GObject.TYPE_STRING ]
-        }
-    },
 
     _init: function(params) {
-        params.orientation = Gtk.Orientation.VERTICAL;
+        params.margin = 10;
+        params.width_request = MAX_WIDTH_CHARS * 5;
 
         this.parent(params);
-        this._input = new Gtk.Entry({
-            visible: true,
-            width_request: MAX_WIDTH_CHARS * 5
-        });
-        this._input.connect('activate', Lang.bind(this, function(input) {
-            this.emit('activate', input.get_text());
-        }));
-        this.pack_start(this._input, true, true, 10);
     },
 });
 

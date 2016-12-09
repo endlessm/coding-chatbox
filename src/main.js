@@ -307,7 +307,8 @@ const RenderableInputChatboxMessage = new Lang.Class({
             state: this,
             visible: true
         });
-        view.connect('activate', Lang.bind(this, function(view, msg) {
+        view.connect('activate', Lang.bind(this, function(view) {
+            let msg = view.text;
             listener({
                 response: {
                     showmehow_id: this.showmehow_id,
