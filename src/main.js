@@ -219,9 +219,9 @@ const CodingChatboxContactListItem = new Lang.Class({
         this._contact_image_widget.pixbuf = this.actor.avatar;
     },
 
-    setMostRecentMessage: function(message) {
+    setMostRecentMessage: function(message, fromHistory) {
         this.contact_message_snippit_label.label = message;
-        if (!this.is_selected()) {
+        if (!this.is_selected() && !fromHistory) {
             // If we aren't selected, bold the current name and
             // message snippit to make it clear to the user that
             // there is a new message here
@@ -491,11 +491,6 @@ const CodingChatboxMainWindow = new Lang.Class({
 
         this._state = new State.CodingChatboxState(MessageClasses);
         this.chatbox_list_box.bind_model(this.actor_model, Lang.bind(this, function(actor) {
-            let contact_row = new CodingChatboxContactListItem({
-                visible: true,
-                actor: actor
-            });
-
             // Ensure we create a content widget for this actor
             this._contentsForActor(actor.name);
 
@@ -537,34 +532,12 @@ const CodingChatboxMainWindow = new Lang.Class({
                                   lastMessage.name,
                                   State.SentBy.USER);
                 }
-
-                // From the very last item in the list, keep going backwards until
-                // we find a message or attachment, and then display it in the chatbox
-                for (let i = history.length - 1; i > -1; --i) {
-                    if (history[i].type.indexOf('chat') === 0) {
-                        let label = contact_row.contact_message_snippit_label;
-
-                        // We set the contents differently depending on the type
-                        // of thing we have
-                        switch (history[i].type) {
-                        case 'chat-user':
-                        case 'chat-actor':
-                            label.label = history[i].message;
-                            break;
-                        case 'chat-actor-attachment':
-                            label.label = history[i].attachment.desc;
-                            break;
-                        default:
-                            throw new Error('Don\'t know how to handle message type ' +
-                                            history[i].type + ' in setting chat message snippit');
-                        }
-
-                        break;
-                    }
-                }
             }));
 
-            return contact_row;
+            return new CodingChatboxContactListItem({
+                visible: true,
+                actor: actor
+            });
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
@@ -631,28 +604,26 @@ const CodingChatboxMainWindow = new Lang.Class({
                                     false, false, 10);
         }
 
-        if (!fromHistory) {
-            let body, title;
+        let body, title;
 
-            let row = this._rowForActor(actor);
-            if (!row)
-                throw new Error('Couldn\'t find row matching actor ' + actor);
+        let row = this._rowForActor(actor);
+        if (!row)
+            throw new Error('Couldn\'t find row matching actor ' + actor);
 
-            // TODO: make these translatable
-            if (item.type === 'scrolled') {
-                title = 'Message from ' + actor;
-                body = item.text;
-            } else if (item.type === 'attachment') {
-                title = 'Attachment from ' + actor;
-                body = item.attachment.desc;
-            }
-
-            if (title && body)
-                this.application.showNotification(title, body, row.avatar, actor);
-
-            if (row && body)
-                row.setMostRecentMessage(body);
+        // TODO: make these translatable
+        if (item.type === 'scrolled') {
+            title = 'Message from ' + actor;
+            body = item.text;
+        } else if (item.type === 'attachment') {
+            title = 'Attachment from ' + actor;
+            body = item.attachment.desc;
         }
+
+        if (!fromHistory && title && body)
+            this.application.showNotification(title, body, row.avatar, actor);
+
+        if (row && body)
+            row.setMostRecentMessage(body, fromHistory);
     },
 
     chatMessage: function(actor, message, location) {
