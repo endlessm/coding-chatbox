@@ -43,6 +43,57 @@ function initials_from_name(name) {
 const CONTACT_IMAGE_SIZE = 48;
 const CHAT_WITH_ACTION = 'chat-with';
 
+function getActorAvatar(contactImage, contactName, parentWidget) {
+    let useContactImage = !!contactImage;
+    let pixbuf = null;
+
+    if (!parentWidget)
+        // fake a GtkImage
+        parentWidget = new Gtk.Image();
+
+    if (useContactImage) {
+        let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + contactImage;
+        try {
+            pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+                resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
+        } catch(e) {
+            logError(e, 'Can\'t load resource at ' + resourcePath);
+            useContactImage = false;
+        }
+    }
+
+    if (!useContactImage) {
+        let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
+                                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+        let cr = new Cairo.Context(surface);
+        let context = parentWidget.get_style_context();
+        context.add_class('contact-default-image');
+
+        Gtk.render_background(context, cr, 0, 0,
+                              CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+        Gtk.render_frame(context, cr, 0, 0,
+                         CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+
+        let text = initials_from_name(contactName);
+        let layout = parentWidget.create_pango_layout(text);
+
+        let [text_width, text_height] = layout.get_pixel_size();
+
+        Gtk.render_layout(context, cr,
+                          (CONTACT_IMAGE_SIZE - text_width) / 2,
+                          (CONTACT_IMAGE_SIZE - text_height) / 2,
+                          layout);
+
+        cr.$dispose();
+        context.remove_class('contact-default-image');
+
+        pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0,
+                                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+    }
+
+    return pixbuf;
+}
+
 const RoundedImage = new Lang.Class({
     Name: 'RoundedImage',
     Extends: Gtk.Image,
@@ -104,46 +155,8 @@ const CodingChatboxContactListItem = new Lang.Class({
 
         this.content_grid.attach_next_to(this._contact_image_overlay, null, Gtk.PositionType.LEFT,
                                          1, 1);
+        this._contact_image_pixbuf = getActorAvatar(this.contact_image, params.contact_name, this._contact_image_widget);
 
-        let useContactImage = this.contact_image;
-        if (useContactImage) {
-            let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.contact_image;
-            try {
-                this._contact_image_pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
-                    resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
-            } catch(e) {
-                logError(e, 'Can\'t load resource at ' + resourcePath);
-                useContactImage = false;
-            }
-        }
-
-        if (!useContactImage) {
-            let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
-                                                 CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-            let cr = new Cairo.Context(surface);
-            let context = this._contact_image_widget.get_style_context();
-            context.add_class('contact-default-image');
-
-            Gtk.render_background(context, cr, 0, 0,
-                                  CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-            Gtk.render_frame(context, cr, 0, 0,
-                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-
-            let text = initials_from_name(params.contact_name);
-            let layout = this._contact_image_widget.create_pango_layout(text);
-            let [text_width, text_height] = layout.get_pixel_size();
-
-            Gtk.render_layout(context, cr,
-                              (CONTACT_IMAGE_SIZE - text_width) / 2,
-                              (CONTACT_IMAGE_SIZE - text_height) / 2,
-                              layout);
-
-            cr.$dispose();
-            context.remove_class('contact-default-image');
-
-            this._contact_image_pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0,
-                                                                     CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-        }
         this._contact_image_widget.pixbuf = this._contact_image_pixbuf;
     },
 
