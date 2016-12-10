@@ -603,8 +603,7 @@ const CodingChatboxMainWindow = new Lang.Class({
 
     _rowForActor: function(actor) {
         let children = this.chatbox_list_box.get_children();
-        for (let index in children) {
-            let row = children[index];
+        for (let row of children) {
             if (row.actor.name == actor)
                 return row;
         }
