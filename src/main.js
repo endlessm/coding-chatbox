@@ -219,18 +219,22 @@ const CodingChatboxContactListItem = new Lang.Class({
         this._contact_image_widget.pixbuf = this.actor.avatar;
     },
 
-    setMostRecentMessage: function(message, fromHistory) {
-        this.contact_message_snippit_label.label = message;
-        if (!this.is_selected() && !fromHistory) {
+    set snippet(v) {
+        this.contact_message_snippit_label.label = v;
+    },
+
+    set highlight(v) {
+        if (!v) {
+            this.get_style_context().remove_class('new-content');
+            return;
+        }
+
+        if (!this.is_selected()) {
             // If we aren't selected, bold the current name and
             // message snippit to make it clear to the user that
             // there is a new message here
             this.get_style_context().add_class('new-content');
         }
-    },
-
-    selected: function() {
-        this.get_style_context().remove_class('new-content');
     },
 
     get avatar() {
@@ -502,19 +506,21 @@ const CodingChatboxMainWindow = new Lang.Class({
                     switch (item.type) {
                     case 'chat-user':
                     case 'chat-actor':
-                        this._addItem({ type: 'scrolled', text: item.message },
-                                      actor.name,
-                                      'none::none',
+                        let spec = { type: 'scrolled',
+                                     text: item.message };
+                        this._addItem(spec, actor.name, 'none::none',
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER);
+                        this._notifyItem(spec, actor.name, false);
                         break;
                     case 'chat-user-attachment':
                     case 'chat-actor-attachment':
-                        this._addItem({ type: 'attachment', attachment: item.attachment },
-                                      actor.name,
-                                      item.name,
+                        spec = { type: 'attachment',
+                                 attachment: item.attachment };
+                        this._addItem(spec, actor.name, item.name,
                                       item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
                                                                               State.SentBy.USER);
+                        this._notifyItem(spec, actor.name, false);
                         break;
                     default:
                         throw new Error('Don\'t know how to handle logged message type ' + item.type);
@@ -551,7 +557,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             if (children.length)
                 children[children.length - 1].focused();
 
-            row.selected();
+            row.highlight = false;
             this.application.withdraw_notification(notificationId(row.actor.name));
         }));
     },
@@ -583,7 +589,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         return null;
     },
 
-    _addItem: function(item, actor, location, sentBy, fromHistory = true) {
+    _addItem: function(item, actor, location, sentBy) {
         let chatContents = this._contentsForActor(actor);
 
         // If we can amend the last message, great.
@@ -603,7 +609,9 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                                actor),
                                     false, false, 10);
         }
+    },
 
+    _notifyItem: function(item, actor, isNew) {
         let body, title;
 
         let row = this._rowForActor(actor);
@@ -617,37 +625,34 @@ const CodingChatboxMainWindow = new Lang.Class({
         } else if (item.type === 'attachment') {
             title = 'Attachment from ' + actor;
             body = item.attachment.desc;
+        } else {
+            return;
         }
 
-        if (!fromHistory && title && body)
-            this.application.showNotification(title, body, row.avatar, actor);
+        row.snippet = body;
 
-        if (row && body)
-            row.setMostRecentMessage(body, fromHistory);
+        if (isNew) {
+            this.application.showNotification(title, body, row.avatar, actor);
+            row.highlight = true;
+        }
     },
 
     chatMessage: function(actor, message, location) {
-        this._addItem({ type: 'scrolled', text: message },
-                      actor,
-                      location,
-                      State.SentBy.ACTOR,
-                      false);
+        let item = { type: 'scrolled',
+                     text: message };
+        this._addItem(item, actor, location, State.SentBy.ACTOR);
+        this._notifyItem(item, actor, true);
     },
 
     chatAttachment: function(actor, attachment, location) {
-        this._addItem({ type: 'attachment', attachment: attachment },
-                      actor,
-                      location,
-                      State.SentBy.ACTOR,
-                      false);
+        let item = { type: 'attachment',
+                     attachment: attachment };
+        this._addItem(item, actor, location, State.SentBy.ACTOR);
+        this._notifyItem(item, actor, true);
     },
 
     chatUserInput: function(actor, spec, location) {
-        this._addItem(spec,
-                      actor,
-                      location,
-                      State.SentBy.USER,
-                      false);
+        this._addItem(spec, actor, location, State.SentBy.USER);
     },
 
     switchToChatWith: function(actor) {
