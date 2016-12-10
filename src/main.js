@@ -667,12 +667,10 @@ const CodingChatboxApplication = new Lang.Class({
         let chatWithAction = new Gio.SimpleAction({ name: CHAT_WITH_ACTION,
                                                     parameter_type: new GLib.VariantType('s') });
         chatWithAction.connect('activate', Lang.bind(this, function(action, parameter) {
-            if (this._mainWindow === null)
-                return;
+            this.activate();
 
             let actor = parameter.unpack();
             this._mainWindow.switchToChatWith(actor);
-            this.activate();
         }));
         this.add_action(chatWithAction);
     },
