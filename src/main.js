@@ -495,11 +495,9 @@ const CodingChatboxMainWindow = new Lang.Class({
                 visible: true,
                 actor: actor
             });
-            let chat_contents = new Gtk.Box({
-                orientation: Gtk.Orientation.VERTICAL,
-                visible: true,
-            });
-            chat_contents.get_style_context().add_class('chatbox-chats');
+
+            // Ensure we create a content widget for this actor
+            this._contentsForActor(actor.name);
 
             // Get the history for this actor, asynchronously
             this.game_service.chatboxLogForActor(actor.name, Lang.bind(this, function(history) {
@@ -512,7 +510,6 @@ const CodingChatboxMainWindow = new Lang.Class({
                         this._addItem({ type: 'scrolled', text: item.message },
                                       actor.name,
                                       'none::none',
-                                      chat_contents,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER);
                         break;
@@ -521,7 +518,6 @@ const CodingChatboxMainWindow = new Lang.Class({
                         this._addItem({ type: 'attachment', attachment: item.attachment },
                                       actor.name,
                                       item.name,
-                                      chat_contents,
                                       item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
                                                                               State.SentBy.USER);
                         break;
@@ -539,7 +535,6 @@ const CodingChatboxMainWindow = new Lang.Class({
                     this._addItem(lastMessage.input,
                                   lastMessage.actor,
                                   lastMessage.name,
-                                  chat_contents,
                                   State.SentBy.USER);
                 }
 
@@ -569,13 +564,8 @@ const CodingChatboxMainWindow = new Lang.Class({
                 }
             }));
 
-            let chatScrollView = new CodingChatboxChatScrollView(chat_contents);
-            this.chatbox_stack.add_named(chatScrollView, actor.name);
-
             return contact_row;
         }));
-
-        this.chatbox_list_box.select_row(this.chatbox_list_box.get_row_at_index(0));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
             if (!row)
@@ -598,7 +588,16 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (scrollView)
             return scrollView.chatContents;
 
-        return null;
+        let chatContents = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            visible: true,
+        });
+        chatContents.get_style_context().add_class('chatbox-chats');
+
+        scrollView = new CodingChatboxChatScrollView(chatContents);
+        this.chatbox_stack.add_named(scrollView, actor);
+
+        return chatContents;
     },
 
     _rowForActor: function(actor) {
@@ -611,7 +610,9 @@ const CodingChatboxMainWindow = new Lang.Class({
         return null;
     },
 
-    _addItem: function(item, actor, location, chatContents, sentBy, fromHistory = true) {
+    _addItem: function(item, actor, location, sentBy, fromHistory = true) {
+        let chatContents = this._contentsForActor(actor);
+
         // If we can amend the last message, great.
         // Though I'm not really sure if we want this. "amend" currently
         // means 'amend-or-replace'.
@@ -655,31 +656,25 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     chatMessage: function(actor, message, location) {
-        let chat_contents = this._contentsForActor(actor);
         this._addItem({ type: 'scrolled', text: message },
                       actor,
                       location,
-                      chat_contents,
                       State.SentBy.ACTOR,
                       false);
     },
 
     chatAttachment: function(actor, attachment, location) {
-        let chat_contents = this._contentsForActor(actor);
         this._addItem({ type: 'attachment', attachment: attachment },
                       actor,
                       location,
-                      chat_contents,
                       State.SentBy.ACTOR,
                       false);
     },
 
     chatUserInput: function(actor, spec, location) {
-        let chat_contents = this._contentsForActor(actor);
         this._addItem(spec,
                       actor,
                       location,
-                      chat_contents,
                       State.SentBy.USER,
                       false);
     },
