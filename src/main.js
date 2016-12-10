@@ -68,57 +68,61 @@ const Actor = new Lang.Class({
         this.image = data.img;
     },
 
+    _createActorAvatar: function() {
+        if (!this.image)
+            return null;
+
+        let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.image;
+        try {
+            return GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+                resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
+        } catch(e) {
+            logError(e, 'Can\'t load resource at ' + resourcePath);
+        }
+
+        return null;
+    },
+
+    _createDefaultAvatar: function() {
+        // fake a GtkImage
+        let parentWidget = new Gtk.Image();
+
+        let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
+                                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+        let cr = new Cairo.Context(surface);
+        let context = parentWidget.get_style_context();
+        context.add_class('contact-default-image');
+
+        Gtk.render_background(context, cr, 0, 0,
+                              CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+        Gtk.render_frame(context, cr, 0, 0,
+                         CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+
+        let text = initials_from_name(this.name);
+        let layout = parentWidget.create_pango_layout(text);
+
+        let [text_width, text_height] = layout.get_pixel_size();
+
+        Gtk.render_layout(context, cr,
+                          (CONTACT_IMAGE_SIZE - text_width) / 2,
+                          (CONTACT_IMAGE_SIZE - text_height) / 2,
+                          layout);
+
+        cr.$dispose();
+        context.remove_class('contact-default-image');
+
+        return Gdk.pixbuf_get_from_surface(surface, 0, 0,
+                                           CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+    },
+
     get avatar() {
         if (this._avatar)
             return this._avatar;
 
-        let useContactImage = !!this.image;
-        let pixbuf = null;
+        this._avatar = this._createActorAvatar();
+        if (!this._avatar)
+            this._avatar = this._createDefaultAvatar();
 
-        // fake a GtkImage
-        let parentWidget = new Gtk.Image();
-
-        if (useContactImage) {
-            let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.image;
-            try {
-                pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
-                    resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
-            } catch(e) {
-                logError(e, 'Can\'t load resource at ' + resourcePath);
-                useContactImage = false;
-            }
-        }
-
-        if (!useContactImage) {
-            let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
-                                                 CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-            let cr = new Cairo.Context(surface);
-            let context = parentWidget.get_style_context();
-            context.add_class('contact-default-image');
-
-            Gtk.render_background(context, cr, 0, 0,
-                                  CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-            Gtk.render_frame(context, cr, 0, 0,
-                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-
-            let text = initials_from_name(this.name);
-            let layout = parentWidget.create_pango_layout(text);
-
-            let [text_width, text_height] = layout.get_pixel_size();
-
-            Gtk.render_layout(context, cr,
-                              (CONTACT_IMAGE_SIZE - text_width) / 2,
-                              (CONTACT_IMAGE_SIZE - text_height) / 2,
-                              layout);
-
-            cr.$dispose();
-            context.remove_class('contact-default-image');
-
-            pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0,
-                                                 CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-        }
-
-        this._avatar = pixbuf;
         return this._avatar;
     }
 });
