@@ -419,28 +419,6 @@ const CodingChatboxMainWindow = new Lang.Class({
 
         this._state = new State.CodingChatboxState(MessageClasses);
 
-        let add_new_bubble = Lang.bind(this, function(item, actor, location, chat_contents, sent_by) {
-            // If we can amend the last message, great.
-            // Though I'm not really sure if we want this. "amend" currently
-            // means 'amend-or-replace'.
-            if (item.type === 'scrolled' &&
-                this._state.amend_last_message_for_actor(actor,
-                                                         sent_by,
-                                                         item)) {
-                return;
-            }
-
-            let container = this._state.add_message_for_actor(actor,
-                                                              sent_by,
-                                                              item,
-                                                              location);
-            chat_contents.pack_start(new_message_view_for_state(container,
-                                                                this.service,
-                                                                this.game_service,
-                                                                actor),
-                                     false, false, 10);
-        });
-
         let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
         actorsFile.load_contents_async(null, Lang.bind(this, function(file, result) {
             let contents;
@@ -465,33 +443,33 @@ const CodingChatboxMainWindow = new Lang.Class({
                 chat_contents.get_style_context().add_class('chatbox-chats');
 
                 // Get the history for this actor, asynchronously
-                this.game_service.chatboxLogForActor(actor.name, function(history) {
+                this.game_service.chatboxLogForActor(actor.name, Lang.bind(this, function(history) {
                     history.filter(function(item) {
                         return item.type.indexOf('chat') == 0;
-                    }).forEach(function(item) {
+                    }).forEach(Lang.bind(this, function(item) {
                         switch (item.type) {
                             case 'chat-user':
                             case 'chat-actor':
-                                add_new_bubble({ type: 'scrolled', text: item.message },
-                                               actor.name,
-                                               'none::none',
-                                               chat_contents,
-                                               item.type === 'chat-actor' ? State.SentBy.ACTOR :
-                                                                            State.SentBy.USER);
+                                this._addItem({ type: 'scrolled', text: item.message },
+                                              actor.name,
+                                              'none::none',
+                                              chat_contents,
+                                              item.type === 'chat-actor' ? State.SentBy.ACTOR :
+                                                                           State.SentBy.USER);
                                 break;
                             case 'chat-user-attachment':
                             case 'chat-actor-attachment':
-                                add_new_bubble({ type: 'attachment', attachment: item.attachment },
-                                               actor.name,
-                                               item.name,
-                                               chat_contents,
-                                               item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
-                                                                                       State.SentBy.USER);
+                                this._addItem({ type: 'attachment', attachment: item.attachment },
+                                              actor.name,
+                                              item.name,
+                                              chat_contents,
+                                              item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
+                                                                                      State.SentBy.USER);
                                 break;
                             default:
                                 throw new Error('Don\'t know how to handle logged message type ' + item.type);
                         }
-                    });
+                    }));
 
                     // Get the very last item in the history and check if it is
                     // a user input bubble. If so, display it.
@@ -499,11 +477,11 @@ const CodingChatboxMainWindow = new Lang.Class({
                         history[history.length - 1].type == 'input-user' &&
                         history[history.length - 1].input) {
                         let lastMessage = history[history.length - 1];
-                        add_new_bubble(lastMessage.input,
-                                       lastMessage.actor,
-                                       lastMessage.name,
-                                       chat_contents,
-                                       State.SentBy.USER);
+                        this._addItem(lastMessage.input,
+                                      lastMessage.actor,
+                                      lastMessage.name,
+                                      chat_contents,
+                                      State.SentBy.USER);
                     }
 
                     // From the very last item in the list, keep going backwards until
@@ -530,7 +508,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                             break;
                         }
                     }
-                });
+                }));
 
                 let chatScrollView = new CodingChatboxChatScrollView(chat_contents);
                 this.chatbox_list_box.add(contact_row);
@@ -542,35 +520,34 @@ const CodingChatboxMainWindow = new Lang.Class({
 
         this.chatbox_service.connect('chat-message', Lang.bind(this, function(service, actor, message, location) {
             let chat_contents = this._contentsForActor(actor);
-            add_new_bubble({ type: 'scrolled', text: message },
-                           actor,
-                           location,
-                           chat_contents,
-                           State.SentBy.ACTOR);
-            // TODO: make it translatable
-            this._showNotification('Message from ' + actor, message, actor);
+            this._addItem({ type: 'scrolled', text: message },
+                          actor,
+                          location,
+                          chat_contents,
+                          State.SentBy.ACTOR,
+                          false);
         }));
 
         this.chatbox_service.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location) {
             let chat_contents = this._contentsForActor(actor);
-            add_new_bubble({ type: 'attachment', attachment: attachment },
-                           actor,
-                           location,
-                           chat_contents,
-                           State.SentBy.ACTOR);
-            // TODO: make it translatable
-            this._showNotification('Attachment from ' + actor, attachment.desc, actor);
+            this._addItem({ type: 'attachment', attachment: attachment },
+                          actor,
+                          location,
+                          chat_contents,
+                          State.SentBy.ACTOR,
+                          false);
         }));
 
         this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
             // Doesn't make sense to append a new bubble, so just
             // create a new one now
             let chat_contents = this._contentsForActor(actor);
-            add_new_bubble(spec,
-                           actor,
-                           location,
-                           chat_contents,
-                           State.SentBy.USER);
+            this._addItem(spec,
+                          actor,
+                          location,
+                          chat_contents,
+                          State.SentBy.USER,
+                          false);
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
@@ -626,6 +603,34 @@ const CodingChatboxMainWindow = new Lang.Class({
             notification.set_icon(row.avatar);
             notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
             this.application.send_notification(notificationId(actor), notification);
+        }
+    },
+
+    _addItem: function(item, actor, location, chatContents, sentBy, fromHistory = true) {
+        // If we can amend the last message, great.
+        // Though I'm not really sure if we want this. "amend" currently
+        // means 'amend-or-replace'.
+        if (item.type !== 'scrolled' ||
+            !this._state.amend_last_message_for_actor(actor,
+                                                      sentBy,
+                                                      item)) {
+            let container = this._state.add_message_for_actor(actor,
+                                                              sentBy,
+                                                              item,
+                                                              location);
+            chatContents.pack_start(new_message_view_for_state(container,
+                                                               this.service,
+                                                               this.game_service,
+                                                               actor),
+                                    false, false, 10);
+        }
+
+        if (!fromHistory) {
+            // TODO: make these translatable
+            if (item.type === 'scrolled')
+                this._showNotification('Message from ' + actor, item.text, actor);
+            else if (item.type === 'attachment')
+                this._showNotification('Attachment from ' + actor, item.attachment.desc, actor);
         }
     },
 
