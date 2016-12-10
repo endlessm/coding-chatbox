@@ -490,10 +490,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         this.parent(params);
 
         this._state = new State.CodingChatboxState(MessageClasses);
-
-        for (let idx = 0; idx < this.actor_model.get_n_items(); idx++) {
-            let actor = this.actor_model.get_item(idx);
-
+        this.chatbox_list_box.bind_model(this.actor_model, Lang.bind(this, function(actor) {
             let contact_row = new CodingChatboxContactListItem({
                 visible: true,
                 actor: actor
@@ -573,9 +570,10 @@ const CodingChatboxMainWindow = new Lang.Class({
             }));
 
             let chatScrollView = new CodingChatboxChatScrollView(chat_contents);
-            this.chatbox_list_box.add(contact_row);
             this.chatbox_stack.add_named(chatScrollView, actor.name);
-        }
+
+            return contact_row;
+        }));
 
         this.chatbox_list_box.select_row(this.chatbox_list_box.get_row_at_index(0));
 
