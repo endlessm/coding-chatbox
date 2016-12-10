@@ -585,17 +585,6 @@ const CodingChatboxMainWindow = new Lang.Class({
         return null;
     },
 
-    _showNotification: function(title, body, icon, actor) {
-        if (!this.is_active) {
-            let notification = new Gio.Notification();
-            notification.set_title(title);
-            notification.set_body(body);
-            notification.set_icon(icon);
-            notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
-            this.application.send_notification(notificationId(actor), notification);
-        }
-    },
-
     _addItem: function(item, actor, location, chatContents, sentBy, fromHistory = true) {
         // If we can amend the last message, great.
         // Though I'm not really sure if we want this. "amend" currently
@@ -632,7 +621,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             }
 
             if (title && body)
-                this._showNotification(title, body, icon, actor);
+                this.application.showNotification(title, body, icon, actor);
 
             if (row && body)
                 row.setMostRecentMessage(body);
@@ -710,6 +699,18 @@ const CodingChatboxApplication = new Lang.Class({
         }
 
         this.parent(conn, object_path);
+    },
+
+    showNotification: function(title, body, icon, actor) {
+        if (this._mainWindow && this._mainWindow.is_active)
+            return;
+
+        let notification = new Gio.Notification();
+        notification.set_title(title);
+        notification.set_body(body);
+        notification.set_icon(icon);
+        notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
+        this.send_notification(notificationId(actor), notification);
     }
 });
 
