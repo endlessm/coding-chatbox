@@ -412,12 +412,6 @@ const CodingChatboxMainWindow = new Lang.Class({
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           Service.CodingChatboxTextService),
-        chatbox_service: GObject.ParamSpec.object('chatbox-service',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  Service.ChatboxReceiverService),
         game_service: GObject.ParamSpec.object('game-service',
                                                '',
                                                '',
@@ -689,7 +683,6 @@ const CodingChatboxApplication = new Lang.Class({
         if (!this._mainWindow)
             this._mainWindow = new CodingChatboxMainWindow({ application: this,
                                                              service: this._service,
-                                                             chatbox_service: this._skeleton,
                                                              game_service: this._gameService });
 
         this._mainWindow.present();
