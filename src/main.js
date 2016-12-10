@@ -591,11 +591,25 @@ const CodingChatboxMainWindow = new Lang.Class({
 
     _contentsForActor: function(actor) {
         let scrollView = this.chatbox_stack.get_child_by_name(actor);
-        return scrollView.chatContents;
+        if (scrollView)
+            return scrollView.chatContents;
+
+        return null;
+    },
+
+    _rowForActor: function(actor) {
+        let children = this.chatbox_list_box.get_children();
+        for (let index in children) {
+            let row = children[index];
+            if (row.contact_name == actor)
+                return row;
+        }
+
+        return null;
     },
 
     _showNotification: function(title, body, actor) {
-        let row = this._actorRow(actor);
+        let row = this._rowForActor(actor);
 
         if (!row)
             throw new Error('Couldn\'t show notification, no such actor ' + actor);
@@ -615,18 +629,8 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
     },
 
-    _actorRow: function(actor) {
-        let children = this.chatbox_list_box.get_children();
-        for (let index in children) {
-            let row = children[index];
-            if (row.contact_name == actor)
-                return row;
-        }
-        return null;
-    },
-
     switchToChatWith: function(actor) {
-        let row = this._actorRow(actor);
+        let row = this._rowForActor(actor);
         if (row)
             this.chatbox_list_box.select_row(row);
     }
