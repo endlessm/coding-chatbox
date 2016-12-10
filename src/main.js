@@ -94,6 +94,56 @@ function getActorAvatar(contactImage, contactName, parentWidget) {
     return pixbuf;
 }
 
+const Actor = new Lang.Class({
+    Name: 'Actor',
+    Extends: GObject.Object,
+    Properties: {
+        'name': GObject.ParamSpec.string('name',
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.READWRITE |
+                                         GObject.ParamFlags.CONSTRUCT_ONLY,
+                                         ''),
+        'image': GObject.ParamSpec.string('image',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          '')
+    },
+
+    _init: function(data) {
+        this.parent();
+
+        this.name = data.name;
+        this.image = data.img;
+    }
+});
+
+const ActorModel = new Lang.Class({
+    Name: 'ActorModel',
+    Extends: Gio.ListStore,
+
+    _init: function() {
+        this.parent({ item_type: Actor.$gtype });
+
+        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
+        let contents;
+        try {
+            contents = actorsFile.load_contents(null)[1];
+        } catch (e) {
+            logError(e, 'Couldn\'t load chatbox data file from data resource');
+            return;
+        }
+
+        let actorsData = JSON.parse(String(contents)).actor_details;
+        actorsData.forEach(Lang.bind(this, function(actorData) {
+            let actor = new Actor(actorData);
+            this.append(actor);
+        }));
+    }
+});
+
 const RoundedImage = new Lang.Class({
     Name: 'RoundedImage',
     Extends: Gtk.Image,
@@ -123,24 +173,18 @@ const CodingChatboxContactListItem = new Lang.Class({
     Template: 'resource:///com/endlessm/Coding/Chatbox/contact.ui',
     Children: ['content-grid', 'contact-name-label', 'contact-message-snippit-label'],
     Properties: {
-        'contact-name': GObject.ParamSpec.string('contact-name',
-                                                 '',
-                                                 '',
-                                                 GObject.ParamFlags.READWRITE |
-                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                 ''),
-        'contact-image': GObject.ParamSpec.string('contact-image',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  '')
+        'actor': GObject.ParamSpec.object('actor',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          Actor.$gtype)
     },
 
     _init: function(params) {
         this.parent(params);
 
-        this.contact_name_label.set_text(params.contact_name);
+        this.contact_name_label.set_text(this.actor.name);
         this._contact_image_pixbuf = null;
         this._contact_image_widget = new RoundedImage({ visible: true,
                                                         margin: 8 });
@@ -155,7 +199,7 @@ const CodingChatboxContactListItem = new Lang.Class({
 
         this.content_grid.attach_next_to(this._contact_image_overlay, null, Gtk.PositionType.LEFT,
                                          1, 1);
-        this._contact_image_pixbuf = getActorAvatar(this.contact_image, params.contact_name, this._contact_image_widget);
+        this._contact_image_pixbuf = getActorAvatar(this.actor.image, this.actor.name, this._contact_image_widget);
 
         this._contact_image_widget.pixbuf = this._contact_image_pixbuf;
     },
@@ -406,6 +450,12 @@ const CodingChatboxMainWindow = new Lang.Class({
     Template: 'resource:///com/endlessm/Coding/Chatbox/main.ui',
     Children: ['chatbox-list-box', 'chatbox-stack', 'main-header'],
     Properties: {
+        actor_model: GObject.ParamSpec.object('actor-model',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              ActorModel),
         service: GObject.ParamSpec.object('service',
                                           '',
                                           '',
@@ -426,118 +476,107 @@ const CodingChatboxMainWindow = new Lang.Class({
 
         this._state = new State.CodingChatboxState(MessageClasses);
 
-        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
-        actorsFile.load_contents_async(null, Lang.bind(this, function(file, result) {
-            let contents;
-            try {
-                contents = file.load_contents_finish(result)[1];
-            } catch (e) {
-                logError(e, 'Couldn\'t load chatbox data file from data resource');
-                return;
-            }
+        for (let idx = 0; idx < this.actor_model.get_n_items(); idx++) {
+            let actor = this.actor_model.get_item(idx);
 
-            let actors = JSON.parse(String(contents)).actor_details;
-            actors.forEach(Lang.bind(this, function(actor) {
-                let contact_row = new CodingChatboxContactListItem({
-                    visible: true,
-                    contact_name: actor.name,
-                    contact_image: actor.img
-                });
-                let chat_contents = new Gtk.Box({
-                    orientation: Gtk.Orientation.VERTICAL,
-                    visible: true,
-                });
-                chat_contents.get_style_context().add_class('chatbox-chats');
+            let contact_row = new CodingChatboxContactListItem({
+                visible: true,
+                actor: actor
+            });
+            let chat_contents = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                visible: true,
+            });
+            chat_contents.get_style_context().add_class('chatbox-chats');
 
-                // Get the history for this actor, asynchronously
-                this.game_service.chatboxLogForActor(actor.name, Lang.bind(this, function(history) {
-                    history.filter(function(item) {
-                        return item.type.indexOf('chat') == 0;
-                    }).forEach(Lang.bind(this, function(item) {
-                        switch (item.type) {
-                            case 'chat-user':
-                            case 'chat-actor':
-                                this._addItem({ type: 'scrolled', text: item.message },
-                                              actor.name,
-                                              'none::none',
-                                              chat_contents,
-                                              item.type === 'chat-actor' ? State.SentBy.ACTOR :
-                                                                           State.SentBy.USER);
-                                break;
-                            case 'chat-user-attachment':
-                            case 'chat-actor-attachment':
-                                this._addItem({ type: 'attachment', attachment: item.attachment },
-                                              actor.name,
-                                              item.name,
-                                              chat_contents,
-                                              item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
-                                                                                      State.SentBy.USER);
-                                break;
-                            default:
-                                throw new Error('Don\'t know how to handle logged message type ' + item.type);
-                        }
-                    }));
-
-                    // Get the very last item in the history and check if it is
-                    // a user input bubble. If so, display it.
-                    if (history.length &&
-                        history[history.length - 1].type == 'input-user' &&
-                        history[history.length - 1].input) {
-                        let lastMessage = history[history.length - 1];
-                        this._addItem(lastMessage.input,
-                                      lastMessage.actor,
-                                      lastMessage.name,
+            // Get the history for this actor, asynchronously
+            this.game_service.chatboxLogForActor(actor.name, Lang.bind(this, function(history) {
+                history.filter(function(item) {
+                    return item.type.indexOf('chat') == 0;
+                }).forEach(Lang.bind(this, function(item) {
+                    switch (item.type) {
+                    case 'chat-user':
+                    case 'chat-actor':
+                        this._addItem({ type: 'scrolled', text: item.message },
+                                      actor.name,
+                                      'none::none',
                                       chat_contents,
-                                      State.SentBy.USER);
-                    }
-
-                    // From the very last item in the list, keep going backwards until
-                    // we find a message or attachment, and then display it in the chatbox
-                    for (let i = history.length - 1; i > -1; --i) {
-                        if (history[i].type.indexOf('chat') === 0) {
-                            let label = contact_row.contact_message_snippit_label;
-
-                            // We set the contents differently depending on the type
-                            // of thing we have
-                            switch (history[i].type) {
-                                case 'chat-user':
-                                case 'chat-actor':
-                                    label.label = history[i].message;
-                                    break;
-                                case 'chat-actor-attachment':
-                                    label.label = history[i].attachment.desc;
-                                    break;
-                                default:
-                                    throw new Error('Don\'t know how to handle message type ' +
-                                                    history[i].type + ' in setting chat message snippit');
-                            }
-
-                            break;
-                        }
+                                      item.type === 'chat-actor' ? State.SentBy.ACTOR :
+                                                                   State.SentBy.USER);
+                        break;
+                    case 'chat-user-attachment':
+                    case 'chat-actor-attachment':
+                        this._addItem({ type: 'attachment', attachment: item.attachment },
+                                      actor.name,
+                                      item.name,
+                                      chat_contents,
+                                      item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
+                                                                              State.SentBy.USER);
+                        break;
+                    default:
+                        throw new Error('Don\'t know how to handle logged message type ' + item.type);
                     }
                 }));
 
-                let chatScrollView = new CodingChatboxChatScrollView(chat_contents);
-                this.chatbox_list_box.add(contact_row);
-                this.chatbox_stack.add_named(chatScrollView, actor.name);
+                // Get the very last item in the history and check if it is
+                // a user input bubble. If so, display it.
+                if (history.length &&
+                    history[history.length - 1].type == 'input-user' &&
+                    history[history.length - 1].input) {
+                    let lastMessage = history[history.length - 1];
+                    this._addItem(lastMessage.input,
+                                  lastMessage.actor,
+                                  lastMessage.name,
+                                  chat_contents,
+                                  State.SentBy.USER);
+                }
+
+                // From the very last item in the list, keep going backwards until
+                // we find a message or attachment, and then display it in the chatbox
+                for (let i = history.length - 1; i > -1; --i) {
+                    if (history[i].type.indexOf('chat') === 0) {
+                        let label = contact_row.contact_message_snippit_label;
+
+                        // We set the contents differently depending on the type
+                        // of thing we have
+                        switch (history[i].type) {
+                        case 'chat-user':
+                        case 'chat-actor':
+                            label.label = history[i].message;
+                            break;
+                        case 'chat-actor-attachment':
+                            label.label = history[i].attachment.desc;
+                            break;
+                        default:
+                            throw new Error('Don\'t know how to handle message type ' +
+                                            history[i].type + ' in setting chat message snippit');
+                        }
+
+                        break;
+                    }
+                }
             }));
 
-            this.chatbox_list_box.select_row(this.chatbox_list_box.get_row_at_index(0));
-        }));
+            let chatScrollView = new CodingChatboxChatScrollView(chat_contents);
+            this.chatbox_list_box.add(contact_row);
+            this.chatbox_stack.add_named(chatScrollView, actor.name);
+        }
+
+        this.chatbox_list_box.select_row(this.chatbox_list_box.get_row_at_index(0));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
             if (!row)
                 return;
 
-            this.chatbox_stack.set_visible_child_name(row.contact_name);
+            this.chatbox_stack.set_visible_child_name(row.actor.name);
 
-            let chatContents = this._contentsForActor(row.contact_name);
+            let chatContents = this._contentsForActor(row.actor.name);
             let children = chatContents.get_children();
             if (children.length)
                 children[children.length - 1].focused();
 
             row.selected();
-            this.application.withdraw_notification(notificationId(row.contact_name));
+            this.application.withdraw_notification(notificationId(row.actor.name));
         }));
     },
 
@@ -553,7 +592,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         let children = this.chatbox_list_box.get_children();
         for (let index in children) {
             let row = children[index];
-            if (row.contact_name == actor)
+            if (row.actor.name == actor)
                 return row;
         }
 
@@ -677,11 +716,13 @@ const CodingChatboxApplication = new Lang.Class({
 
         this._service = new Service.CodingChatboxTextService();
         this._gameService = new Service.CodingGameService();
+        this._actorModel = new ActorModel();
     },
 
     vfunc_activate: function() {
         if (!this._mainWindow)
             this._mainWindow = new CodingChatboxMainWindow({ application: this,
+                                                             actor_model: this._actorModel,
                                                              service: this._service,
                                                              game_service: this._gameService });
 
