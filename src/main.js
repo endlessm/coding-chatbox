@@ -585,22 +585,12 @@ const CodingChatboxMainWindow = new Lang.Class({
         return null;
     },
 
-    _showNotification: function(title, body, actor) {
-        let row = this._rowForActor(actor);
-
-        if (!row)
-            throw new Error('Couldn\'t show notification, no such actor ' + actor);
-
-        // If this row is not active, or the window is not active,
-        // bold the row and indicate that a new message was sent
-        // at this time
-        row.setMostRecentMessage(body);
-
+    _showNotification: function(title, body, icon, actor) {
         if (!this.is_active) {
             let notification = new Gio.Notification();
             notification.set_title(title);
             notification.set_body(body);
-            notification.set_icon(row.avatar);
+            notification.set_icon(icon);
             notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
             this.application.send_notification(notificationId(actor), notification);
         }
@@ -626,11 +616,26 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
 
         if (!fromHistory) {
+            let body, title, icon = null;
+
+            let row = this._rowForActor(actor);
+            if (row)
+                icon = row.avatar;
+
             // TODO: make these translatable
-            if (item.type === 'scrolled')
-                this._showNotification('Message from ' + actor, item.text, actor);
-            else if (item.type === 'attachment')
-                this._showNotification('Attachment from ' + actor, item.attachment.desc, actor);
+            if (item.type === 'scrolled') {
+                title = 'Message from ' + actor;
+                body = item.text;
+            } else if (item.type === 'attachment') {
+                title = 'Attachment from ' + actor;
+                body = item.attachment.desc;
+            }
+
+            if (title && body)
+                this._showNotification(title, body, icon, actor);
+
+            if (row && body)
+                row.setMostRecentMessage(body);
         }
     },
 
