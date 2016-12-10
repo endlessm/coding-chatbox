@@ -788,7 +788,8 @@ const CodingChatboxApplication = new Lang.Class({
         let notification = new Gio.Notification();
         notification.set_title(title);
         notification.set_body(body);
-        notification.set_icon(icon);
+        if (icon)
+            notification.set_icon(icon);
         notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
         this.send_notification(notificationId(actor), notification);
     }
