@@ -43,57 +43,6 @@ function initials_from_name(name) {
 const CONTACT_IMAGE_SIZE = 48;
 const CHAT_WITH_ACTION = 'chat-with';
 
-function getActorAvatar(contactImage, contactName, parentWidget) {
-    let useContactImage = !!contactImage;
-    let pixbuf = null;
-
-    if (!parentWidget)
-        // fake a GtkImage
-        parentWidget = new Gtk.Image();
-
-    if (useContactImage) {
-        let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + contactImage;
-        try {
-            pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
-                resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
-        } catch(e) {
-            logError(e, 'Can\'t load resource at ' + resourcePath);
-            useContactImage = false;
-        }
-    }
-
-    if (!useContactImage) {
-        let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
-                                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-        let cr = new Cairo.Context(surface);
-        let context = parentWidget.get_style_context();
-        context.add_class('contact-default-image');
-
-        Gtk.render_background(context, cr, 0, 0,
-                              CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-        Gtk.render_frame(context, cr, 0, 0,
-                         CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-
-        let text = initials_from_name(contactName);
-        let layout = parentWidget.create_pango_layout(text);
-
-        let [text_width, text_height] = layout.get_pixel_size();
-
-        Gtk.render_layout(context, cr,
-                          (CONTACT_IMAGE_SIZE - text_width) / 2,
-                          (CONTACT_IMAGE_SIZE - text_height) / 2,
-                          layout);
-
-        cr.$dispose();
-        context.remove_class('contact-default-image');
-
-        pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0,
-                                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-    }
-
-    return pixbuf;
-}
-
 const Actor = new Lang.Class({
     Name: 'Actor',
     Extends: GObject.Object,
@@ -117,6 +66,60 @@ const Actor = new Lang.Class({
 
         this.name = data.name;
         this.image = data.img;
+    },
+
+    get avatar() {
+        if (this._avatar)
+            return this._avatar;
+
+        let useContactImage = !!this.image;
+        let pixbuf = null;
+
+        // fake a GtkImage
+        let parentWidget = new Gtk.Image();
+
+        if (useContactImage) {
+            let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.image;
+            try {
+                pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+                    resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
+            } catch(e) {
+                logError(e, 'Can\'t load resource at ' + resourcePath);
+                useContactImage = false;
+            }
+        }
+
+        if (!useContactImage) {
+            let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
+                                                 CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+            let cr = new Cairo.Context(surface);
+            let context = parentWidget.get_style_context();
+            context.add_class('contact-default-image');
+
+            Gtk.render_background(context, cr, 0, 0,
+                                  CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+            Gtk.render_frame(context, cr, 0, 0,
+                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+
+            let text = initials_from_name(this.name);
+            let layout = parentWidget.create_pango_layout(text);
+
+            let [text_width, text_height] = layout.get_pixel_size();
+
+            Gtk.render_layout(context, cr,
+                              (CONTACT_IMAGE_SIZE - text_width) / 2,
+                              (CONTACT_IMAGE_SIZE - text_height) / 2,
+                              layout);
+
+            cr.$dispose();
+            context.remove_class('contact-default-image');
+
+            pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0,
+                                                 CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+        }
+
+        this._avatar = pixbuf;
+        return this._avatar;
     }
 });
 
@@ -141,6 +144,16 @@ const ActorModel = new Lang.Class({
             let actor = new Actor(actorData);
             this.append(actor);
         }));
+    },
+
+    getByName: function(name) {
+        for (let idx = 0; idx < this.get_n_items(); idx++) {
+            let actor = this.get_item(idx);
+            if (actor.name == name)
+                return actor;
+        }
+
+        return null;
     }
 });
 
@@ -199,9 +212,7 @@ const CodingChatboxContactListItem = new Lang.Class({
 
         this.content_grid.attach_next_to(this._contact_image_overlay, null, Gtk.PositionType.LEFT,
                                          1, 1);
-        this._contact_image_pixbuf = getActorAvatar(this.actor.image, this.actor.name, this._contact_image_widget);
-
-        this._contact_image_widget.pixbuf = this._contact_image_pixbuf;
+        this._contact_image_widget.pixbuf = this.actor.avatar;
     },
 
     setMostRecentMessage: function(message) {
@@ -219,7 +230,7 @@ const CodingChatboxContactListItem = new Lang.Class({
     },
 
     get avatar() {
-        return this._contact_image_pixbuf;
+        return this.actor.avatar;
     }
 });
 
@@ -739,8 +750,8 @@ const CodingChatboxApplication = new Lang.Class({
                 this._mainWindow.chatMessage(actor, message, location);
             } else {
                 let title = 'Message from ' + actor;
-                let icon = getActorAvatar(actor.img, actor, null);
-                this.showNotification(title, message, icon, actor);
+                let actorObj = this._actorModel.getByName(actor);
+                this.showNotification(title, message, actorObj.avatar, actor);
             }
         }));
 
@@ -749,8 +760,8 @@ const CodingChatboxApplication = new Lang.Class({
                 this._mainWindow.chatAttachment(actor, attachment, location);
             } else {
                 let title = 'Attachment from ' + actor;
-                let icon = getActorAvatar(actor.img, actor, null);
-                this.showNotification(title, attachment.desc, icon, actor);
+                let actorObj = this._actorModel.getByName(actor);
+                this.showNotification(title, attachment.desc, actorObj.avatar, actor);
             }
         }));
 
