@@ -630,11 +630,11 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
 
         if (!fromHistory) {
-            let body, title, icon = null;
+            let body, title;
 
             let row = this._rowForActor(actor);
-            if (row)
-                icon = row.avatar;
+            if (!row)
+                throw new Error('Couldn\'t find row matching actor ' + actor);
 
             // TODO: make these translatable
             if (item.type === 'scrolled') {
@@ -646,7 +646,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             }
 
             if (title && body)
-                this.application.showNotification(title, body, icon, actor);
+                this.application.showNotification(title, body, row.avatar, actor);
 
             if (row && body)
                 row.setMostRecentMessage(body);
