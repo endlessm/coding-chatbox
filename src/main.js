@@ -43,6 +43,124 @@ function initials_from_name(name) {
 const CONTACT_IMAGE_SIZE = 48;
 const CHAT_WITH_ACTION = 'chat-with';
 
+const Actor = new Lang.Class({
+    Name: 'Actor',
+    Extends: GObject.Object,
+    Properties: {
+        'name': GObject.ParamSpec.string('name',
+                                         '',
+                                         '',
+                                         GObject.ParamFlags.READWRITE |
+                                         GObject.ParamFlags.CONSTRUCT_ONLY,
+                                         ''),
+        'image': GObject.ParamSpec.string('image',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          '')
+    },
+
+    _init: function(data) {
+        this.parent();
+
+        this.name = data.name;
+        this.image = data.img;
+    },
+
+    _createActorAvatar: function() {
+        if (!this.image)
+            return null;
+
+        let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.image;
+        try {
+            return GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+                resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
+        } catch(e) {
+            logError(e, 'Can\'t load resource at ' + resourcePath);
+        }
+
+        return null;
+    },
+
+    _createDefaultAvatar: function() {
+        // fake a GtkImage
+        let parentWidget = new Gtk.Image();
+
+        let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
+                                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+        let cr = new Cairo.Context(surface);
+        let context = parentWidget.get_style_context();
+        context.add_class('contact-default-image');
+
+        Gtk.render_background(context, cr, 0, 0,
+                              CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+        Gtk.render_frame(context, cr, 0, 0,
+                         CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+
+        let text = initials_from_name(this.name);
+        let layout = parentWidget.create_pango_layout(text);
+
+        let [text_width, text_height] = layout.get_pixel_size();
+
+        Gtk.render_layout(context, cr,
+                          (CONTACT_IMAGE_SIZE - text_width) / 2,
+                          (CONTACT_IMAGE_SIZE - text_height) / 2,
+                          layout);
+
+        cr.$dispose();
+        context.remove_class('contact-default-image');
+
+        return Gdk.pixbuf_get_from_surface(surface, 0, 0,
+                                           CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
+    },
+
+    get avatar() {
+        if (this._avatar)
+            return this._avatar;
+
+        this._avatar = this._createActorAvatar();
+        if (!this._avatar)
+            this._avatar = this._createDefaultAvatar();
+
+        return this._avatar;
+    }
+});
+
+const ActorModel = new Lang.Class({
+    Name: 'ActorModel',
+    Extends: Gio.ListStore,
+
+    _init: function() {
+        this.parent({ item_type: Actor.$gtype });
+
+        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
+        let contents;
+        try {
+            contents = actorsFile.load_contents(null)[1];
+        } catch (e) {
+            logError(e, 'Couldn\'t load chatbox data file from data resource');
+            return;
+        }
+
+        let actorsData = JSON.parse(String(contents)).actor_details;
+        actorsData.forEach(Lang.bind(this, function(actorData) {
+            let actor = new Actor(actorData);
+            this.append(actor);
+        }));
+    },
+
+    getByName: function(name) {
+        for (let idx = 0; idx < this.get_n_items(); idx++) {
+            let actor = this.get_item(idx);
+            if (actor.name == name)
+                return actor;
+        }
+
+        return null;
+    }
+});
+
 const RoundedImage = new Lang.Class({
     Name: 'RoundedImage',
     Extends: Gtk.Image,
@@ -72,24 +190,18 @@ const CodingChatboxContactListItem = new Lang.Class({
     Template: 'resource:///com/endlessm/Coding/Chatbox/contact.ui',
     Children: ['content-grid', 'contact-name-label', 'contact-message-snippit-label'],
     Properties: {
-        'contact-name': GObject.ParamSpec.string('contact-name',
-                                                 '',
-                                                 '',
-                                                 GObject.ParamFlags.READWRITE |
-                                                 GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                 ''),
-        'contact-image': GObject.ParamSpec.string('contact-image',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  '')
+        'actor': GObject.ParamSpec.object('actor',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          Actor.$gtype)
     },
 
     _init: function(params) {
         this.parent(params);
 
-        this.contact_name_label.set_text(params.contact_name);
+        this.contact_name_label.set_text(this.actor.name);
         this._contact_image_pixbuf = null;
         this._contact_image_widget = new RoundedImage({ visible: true,
                                                         margin: 8 });
@@ -104,51 +216,19 @@ const CodingChatboxContactListItem = new Lang.Class({
 
         this.content_grid.attach_next_to(this._contact_image_overlay, null, Gtk.PositionType.LEFT,
                                          1, 1);
-
-        let useContactImage = this.contact_image;
-        if (useContactImage) {
-            let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.contact_image;
-            try {
-                this._contact_image_pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
-                    resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
-            } catch(e) {
-                logError(e, 'Can\'t load resource at ' + resourcePath);
-                useContactImage = false;
-            }
-        }
-
-        if (!useContactImage) {
-            let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
-                                                 CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-            let cr = new Cairo.Context(surface);
-            let context = this._contact_image_widget.get_style_context();
-            context.add_class('contact-default-image');
-
-            Gtk.render_background(context, cr, 0, 0,
-                                  CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-            Gtk.render_frame(context, cr, 0, 0,
-                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-
-            let text = initials_from_name(params.contact_name);
-            let layout = this._contact_image_widget.create_pango_layout(text);
-            let [text_width, text_height] = layout.get_pixel_size();
-
-            Gtk.render_layout(context, cr,
-                              (CONTACT_IMAGE_SIZE - text_width) / 2,
-                              (CONTACT_IMAGE_SIZE - text_height) / 2,
-                              layout);
-
-            cr.$dispose();
-            context.remove_class('contact-default-image');
-
-            this._contact_image_pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0,
-                                                                     CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-        }
-        this._contact_image_widget.pixbuf = this._contact_image_pixbuf;
+        this._contact_image_widget.pixbuf = this.actor.avatar;
     },
 
-    setMostRecentMessage: function(message) {
-        this.contact_message_snippit_label.label = message;
+    set snippet(v) {
+        this.contact_message_snippit_label.label = v;
+    },
+
+    set highlight(v) {
+        if (!v) {
+            this.get_style_context().remove_class('new-content');
+            return;
+        }
+
         if (!this.is_selected()) {
             // If we aren't selected, bold the current name and
             // message snippit to make it clear to the user that
@@ -157,12 +237,8 @@ const CodingChatboxContactListItem = new Lang.Class({
         }
     },
 
-    selected: function() {
-        this.get_style_context().remove_class('new-content');
-    },
-
     get avatar() {
-        return this._contact_image_pixbuf;
+        return this.actor.avatar;
     }
 });
 
@@ -393,18 +469,18 @@ const CodingChatboxMainWindow = new Lang.Class({
     Template: 'resource:///com/endlessm/Coding/Chatbox/main.ui',
     Children: ['chatbox-list-box', 'chatbox-stack', 'main-header'],
     Properties: {
+        actor_model: GObject.ParamSpec.object('actor-model',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              ActorModel),
         service: GObject.ParamSpec.object('service',
                                           '',
                                           '',
                                           GObject.ParamFlags.READWRITE |
                                           GObject.ParamFlags.CONSTRUCT_ONLY,
                                           Service.CodingChatboxTextService),
-        chatbox_service: GObject.ParamSpec.object('chatbox-service',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  Service.ChatboxReceiverService),
         game_service: GObject.ParamSpec.object('game-service',
                                                '',
                                                '',
@@ -418,215 +494,169 @@ const CodingChatboxMainWindow = new Lang.Class({
         this.parent(params);
 
         this._state = new State.CodingChatboxState(MessageClasses);
+        this.chatbox_list_box.bind_model(this.actor_model, Lang.bind(this, function(actor) {
+            // Ensure we create a content widget for this actor
+            this._contentsForActor(actor.name);
 
-        let add_new_bubble = Lang.bind(this, function(item, actor, location, chat_contents, sent_by) {
-            // If we can amend the last message, great.
-            // Though I'm not really sure if we want this. "amend" currently
-            // means 'amend-or-replace'.
-            if (item.type === 'scrolled' &&
-                this._state.amend_last_message_for_actor(actor,
-                                                         sent_by,
-                                                         item)) {
-                return;
-            }
-
-            let container = this._state.add_message_for_actor(actor,
-                                                              sent_by,
-                                                              item,
-                                                              location);
-            chat_contents.pack_start(new_message_view_for_state(container,
-                                                                this.service,
-                                                                this.game_service,
-                                                                actor),
-                                     false, false, 10);
-        });
-
-        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
-        actorsFile.load_contents_async(null, Lang.bind(this, function(file, result) {
-            let contents;
-            try {
-                contents = file.load_contents_finish(result)[1];
-            } catch (e) {
-                logError(e, 'Couldn\'t load chatbox data file from data resource');
-                return;
-            }
-
-            let actors = JSON.parse(String(contents)).actor_details;
-            actors.forEach(Lang.bind(this, function(actor) {
-                let contact_row = new CodingChatboxContactListItem({
-                    visible: true,
-                    contact_name: actor.name,
-                    contact_image: actor.img
-                });
-                let chat_contents = new Gtk.Box({
-                    orientation: Gtk.Orientation.VERTICAL,
-                    visible: true,
-                });
-                chat_contents.get_style_context().add_class('chatbox-chats');
-
-                // Get the history for this actor, asynchronously
-                this.game_service.chatboxLogForActor(actor.name, function(history) {
-                    history.filter(function(item) {
-                        return item.type.indexOf('chat') == 0;
-                    }).forEach(function(item) {
-                        switch (item.type) {
-                            case 'chat-user':
-                            case 'chat-actor':
-                                add_new_bubble({ type: 'scrolled', text: item.message },
-                                               actor.name,
-                                               'none::none',
-                                               chat_contents,
-                                               item.type === 'chat-actor' ? State.SentBy.ACTOR :
-                                                                            State.SentBy.USER);
-                                break;
-                            case 'chat-user-attachment':
-                            case 'chat-actor-attachment':
-                                add_new_bubble({ type: 'attachment', attachment: item.attachment },
-                                               actor.name,
-                                               item.name,
-                                               chat_contents,
-                                               item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
-                                                                                       State.SentBy.USER);
-                                break;
-                            default:
-                                throw new Error('Don\'t know how to handle logged message type ' + item.type);
-                        }
-                    });
-
-                    // Get the very last item in the history and check if it is
-                    // a user input bubble. If so, display it.
-                    if (history.length &&
-                        history[history.length - 1].type == 'input-user' &&
-                        history[history.length - 1].input) {
-                        let lastMessage = history[history.length - 1];
-                        add_new_bubble(lastMessage.input,
-                                       lastMessage.actor,
-                                       lastMessage.name,
-                                       chat_contents,
-                                       State.SentBy.USER);
+            // Get the history for this actor, asynchronously
+            this.game_service.chatboxLogForActor(actor.name, Lang.bind(this, function(history) {
+                history.filter(function(item) {
+                    return item.type.indexOf('chat') == 0;
+                }).forEach(Lang.bind(this, function(item) {
+                    switch (item.type) {
+                    case 'chat-user':
+                    case 'chat-actor':
+                        let spec = { type: 'scrolled',
+                                     text: item.message };
+                        this._addItem(spec, actor.name, 'none::none',
+                                      item.type === 'chat-actor' ? State.SentBy.ACTOR :
+                                                                   State.SentBy.USER);
+                        this._notifyItem(spec, actor.name, false);
+                        break;
+                    case 'chat-user-attachment':
+                    case 'chat-actor-attachment':
+                        spec = { type: 'attachment',
+                                 attachment: item.attachment };
+                        this._addItem(spec, actor.name, item.name,
+                                      item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
+                                                                              State.SentBy.USER);
+                        this._notifyItem(spec, actor.name, false);
+                        break;
+                    default:
+                        throw new Error('Don\'t know how to handle logged message type ' + item.type);
                     }
+                }));
 
-                    // From the very last item in the list, keep going backwards until
-                    // we find a message or attachment, and then display it in the chatbox
-                    for (let i = history.length - 1; i > -1; --i) {
-                        if (history[i].type.indexOf('chat') === 0) {
-                            let label = contact_row.contact_message_snippit_label;
-
-                            // We set the contents differently depending on the type
-                            // of thing we have
-                            switch (history[i].type) {
-                                case 'chat-user':
-                                case 'chat-actor':
-                                    label.label = history[i].message;
-                                    break;
-                                case 'chat-actor-attachment':
-                                    label.label = history[i].attachment.desc;
-                                    break;
-                                default:
-                                    throw new Error('Don\'t know how to handle message type ' +
-                                                    history[i].type + ' in setting chat message snippit');
-                            }
-
-                            break;
-                        }
-                    }
-                });
-
-                let chatScrollView = new CodingChatboxChatScrollView(chat_contents);
-                this.chatbox_list_box.add(contact_row);
-                this.chatbox_stack.add_named(chatScrollView, actor.name);
+                // Get the very last item in the history and check if it is
+                // a user input bubble. If so, display it.
+                if (history.length &&
+                    history[history.length - 1].type == 'input-user' &&
+                    history[history.length - 1].input) {
+                    let lastMessage = history[history.length - 1];
+                    this._addItem(lastMessage.input,
+                                  lastMessage.actor,
+                                  lastMessage.name,
+                                  State.SentBy.USER);
+                }
             }));
 
-            this.chatbox_list_box.select_row(this.chatbox_list_box.get_row_at_index(0));
-        }));
-
-        this.chatbox_service.connect('chat-message', Lang.bind(this, function(service, actor, message, location) {
-            let chat_contents = this._contentsForActor(actor);
-            add_new_bubble({ type: 'scrolled', text: message },
-                           actor,
-                           location,
-                           chat_contents,
-                           State.SentBy.ACTOR);
-            // TODO: make it translatable
-            this._showNotification('Message from ' + actor, message, actor);
-        }));
-
-        this.chatbox_service.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location) {
-            let chat_contents = this._contentsForActor(actor);
-            add_new_bubble({ type: 'attachment', attachment: attachment },
-                           actor,
-                           location,
-                           chat_contents,
-                           State.SentBy.ACTOR);
-            // TODO: make it translatable
-            this._showNotification('Attachment from ' + actor, attachment.desc, actor);
-        }));
-
-        this.chatbox_service.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
-            // Doesn't make sense to append a new bubble, so just
-            // create a new one now
-            let chat_contents = this._contentsForActor(actor);
-            add_new_bubble(spec,
-                           actor,
-                           location,
-                           chat_contents,
-                           State.SentBy.USER);
+            return new CodingChatboxContactListItem({
+                visible: true,
+                actor: actor
+            });
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
             if (!row)
                 return;
 
-            this.chatbox_stack.set_visible_child_name(row.contact_name);
+            this.chatbox_stack.set_visible_child_name(row.actor.name);
 
-            let chatContents = this._contentsForActor(row.contact_name);
+            let chatContents = this._contentsForActor(row.actor.name);
             let children = chatContents.get_children();
             if (children.length)
                 children[children.length - 1].focused();
 
-            row.selected();
-            this.application.withdraw_notification(notificationId(row.contact_name));
+            row.highlight = false;
+            this.application.withdraw_notification(notificationId(row.actor.name));
         }));
     },
 
     _contentsForActor: function(actor) {
         let scrollView = this.chatbox_stack.get_child_by_name(actor);
-        return scrollView.chatContents;
+        if (scrollView)
+            return scrollView.chatContents;
+
+        let chatContents = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            visible: true,
+        });
+        chatContents.get_style_context().add_class('chatbox-chats');
+
+        scrollView = new CodingChatboxChatScrollView(chatContents);
+        this.chatbox_stack.add_named(scrollView, actor);
+
+        return chatContents;
     },
 
-    _showNotification: function(title, body, actor) {
-        let row = this._actorRow(actor);
-
-        if (!row)
-            throw new Error('Couldn\'t show notification, no such actor ' + actor);
-
-        // If this row is not active, or the window is not active,
-        // bold the row and indicate that a new message was sent
-        // at this time
-        row.setMostRecentMessage(body);
-
-        if (!this.is_active) {
-            let notification = new Gio.Notification();
-            notification.set_title(title);
-            notification.set_body(body);
-            notification.set_icon(row.avatar);
-            notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
-            this.application.send_notification(notificationId(actor), notification);
-        }
-    },
-
-    _actorRow: function(actor) {
+    _rowForActor: function(actor) {
         let children = this.chatbox_list_box.get_children();
-        for (let index in children) {
-            let row = children[index];
-            if (row.contact_name == actor)
+        for (let row of children) {
+            if (row.actor.name == actor)
                 return row;
         }
+
         return null;
     },
 
+    _addItem: function(item, actor, location, sentBy) {
+        let chatContents = this._contentsForActor(actor);
+
+        // If we can amend the last message, great.
+        // Though I'm not really sure if we want this. "amend" currently
+        // means 'amend-or-replace'.
+        if (item.type !== 'scrolled' ||
+            !this._state.amend_last_message_for_actor(actor,
+                                                      sentBy,
+                                                      item)) {
+            let container = this._state.add_message_for_actor(actor,
+                                                              sentBy,
+                                                              item,
+                                                              location);
+            chatContents.pack_start(new_message_view_for_state(container,
+                                                               this.service,
+                                                               this.game_service,
+                                                               actor),
+                                    false, false, 10);
+        }
+    },
+
+    _notifyItem: function(item, actor, isNew) {
+        let body, title;
+
+        let row = this._rowForActor(actor);
+        if (!row)
+            throw new Error('Couldn\'t find row matching actor ' + actor);
+
+        // TODO: make these translatable
+        if (item.type === 'scrolled') {
+            title = 'Message from ' + actor;
+            body = item.text;
+        } else if (item.type === 'attachment') {
+            title = 'Attachment from ' + actor;
+            body = item.attachment.desc;
+        } else {
+            return;
+        }
+
+        row.snippet = body;
+
+        if (isNew) {
+            this.application.showNotification(title, body, row.avatar, actor);
+            row.highlight = true;
+        }
+    },
+
+    chatMessage: function(actor, message, location) {
+        let item = { type: 'scrolled',
+                     text: message };
+        this._addItem(item, actor, location, State.SentBy.ACTOR);
+        this._notifyItem(item, actor, true);
+    },
+
+    chatAttachment: function(actor, attachment, location) {
+        let item = { type: 'attachment',
+                     attachment: attachment };
+        this._addItem(item, actor, location, State.SentBy.ACTOR);
+        this._notifyItem(item, actor, true);
+    },
+
+    chatUserInput: function(actor, spec, location) {
+        this._addItem(spec, actor, location, State.SentBy.USER);
+    },
+
     switchToChatWith: function(actor) {
-        let row = this._actorRow(actor);
+        let row = this._rowForActor(actor);
         if (row)
             this.chatbox_list_box.select_row(row);
     }
@@ -653,12 +683,10 @@ const CodingChatboxApplication = new Lang.Class({
         let chatWithAction = new Gio.SimpleAction({ name: CHAT_WITH_ACTION,
                                                     parameter_type: new GLib.VariantType('s') });
         chatWithAction.connect('activate', Lang.bind(this, function(action, parameter) {
-            if (this._mainWindow === null)
-                return;
+            this.activate();
 
             let actor = parameter.unpack();
             this._mainWindow.switchToChatWith(actor);
-            this.activate();
         }));
         this.add_action(chatWithAction);
     },
@@ -671,13 +699,14 @@ const CodingChatboxApplication = new Lang.Class({
 
         this._service = new Service.CodingChatboxTextService();
         this._gameService = new Service.CodingGameService();
+        this._actorModel = new ActorModel();
     },
 
     vfunc_activate: function() {
         if (!this._mainWindow)
             this._mainWindow = new CodingChatboxMainWindow({ application: this,
+                                                             actor_model: this._actorModel,
                                                              service: this._service,
-                                                             chatbox_service: this._skeleton,
                                                              game_service: this._gameService });
 
         this._mainWindow.present();
@@ -687,6 +716,32 @@ const CodingChatboxApplication = new Lang.Class({
         this.parent(conn, object_path);
         this._skeleton = new Service.ChatboxReceiverService();
         this._skeleton.export(conn, object_path);
+
+        this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location) {
+            if (this._mainWindow) {
+                this._mainWindow.chatMessage(actor, message, location);
+            } else {
+                let title = 'Message from ' + actor;
+                let actorObj = this._actorModel.getByName(actor);
+                this.showNotification(title, message, actorObj.avatar, actor);
+            }
+        }));
+
+        this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location) {
+            if (this._mainWindow) {
+                this._mainWindow.chatAttachment(actor, attachment, location);
+            } else {
+                let title = 'Attachment from ' + actor;
+                let actorObj = this._actorModel.getByName(actor);
+                this.showNotification(title, attachment.desc, actorObj.avatar, actor);
+            }
+        }));
+
+        this._skeleton.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
+            if (this._mainWindow)
+                this._mainWindow.chatUserInput(actor, spec, location);
+        }));
+
         return true;
     },
 
@@ -696,6 +751,19 @@ const CodingChatboxApplication = new Lang.Class({
         }
 
         this.parent(conn, object_path);
+    },
+
+    showNotification: function(title, body, icon, actor) {
+        if (this._mainWindow && this._mainWindow.is_active)
+            return;
+
+        let notification = new Gio.Notification();
+        notification.set_title(title);
+        notification.set_body(body);
+        if (icon)
+            notification.set_icon(icon);
+        notification.set_default_action_and_target('app.' + CHAT_WITH_ACTION, new GLib.Variant('s', actor));
+        this.send_notification(notificationId(actor), notification);
     }
 });
 

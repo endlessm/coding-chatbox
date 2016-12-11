@@ -4,6 +4,7 @@ image.contact-default-image {
     font-weight: bold;
     color: white;
     background-color: #bdbdbd;
+    border-radius: 24px;
 }
 
 .chatbox-bubble {

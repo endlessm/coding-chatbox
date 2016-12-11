@@ -135,4 +135,3 @@ const CodingChatboxTextService = new Lang.Class({
         }));
     },
 });
-Signals.addSignalMethods(CodingChatboxTextService.prototype);
