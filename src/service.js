@@ -51,6 +51,16 @@ const CodingGameService = new Lang.Class({
         }));
     },
 
+    callExternalEvent: function(event) {
+        this._service.call_external_event(event, null, Lang.bind(this, function(source, result) {
+            try {
+                this._service.call_external_event_finish(result);
+            } catch(e) {
+                logError(e, 'Failed to send external event ' + event);
+            }
+        }));
+    },
+
     respond_to_message: function(location, response_contents, response_name) {
         this._service.call_chat_response(location,
                                          response_contents,
