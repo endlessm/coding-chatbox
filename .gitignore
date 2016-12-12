@@ -27,5 +27,7 @@ Makefile.in
 /ChatboxService.h
 /data/com.endlessm.Coding.Chatbox.data.gresource
 /data/com.endlessm.Coding.Chatbox.service
+/lib/ChatboxPrivate-1.0.gir
+/lib/ChatboxPrivate-1.0.typelib
 /src/com.endlessm.Coding.Chatbox
 /src/com.endlessm.Coding.Chatbox.src.gresource

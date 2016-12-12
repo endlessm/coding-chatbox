@@ -22,6 +22,7 @@ AC_PATH_PROG([GJS],[gjs])
 
 # Checks for libraries.
 PKG_CHECK_MODULES(CODING_CHATBOX, [glib-2.0 gio-2.0 gobject-2.0 gio-unix-2.0 gtk+-3.0])
+PKG_CHECK_MODULES(CODING_CHATBOX_PRIVATE, [glib-2.0 gio-2.0 gtk+-3.0 gdk-3.0])
 
 # Checks for header files.
 
@@ -31,5 +32,10 @@ PKG_CHECK_MODULES(CODING_CHATBOX, [glib-2.0 gio-2.0 gobject-2.0 gio-unix-2.0 gtk
 
 # Substitute variables
 AC_SUBST(GLIB_COMPILE_RESOURCES)
-AC_CONFIG_FILES([Makefile])
+
+AC_CONFIG_FILES([
+Makefile
+lib/Makefile
+])
+
 AC_OUTPUT
