@@ -242,11 +242,27 @@ const CodingChatboxContactListItem = new Lang.Class({
     }
 });
 
+
+// createCopyPopover
+//
+// Creates a popover copy button which invokes the specified
+// callback when the button is clicked
+function createCopyPopover(forWidget, callback) {
+    let popover = Gtk.Popover.new(forWidget);
+    let button = new Gtk.Button({
+        label: 'Copy',
+        visible: true
+    });
+    button.connect('clicked', callback);
+    popover.add(button);
+    return popover;
+}
+
 const CodingChatboxChatBubbleContainer = new Lang.Class({
     Name: 'CodingChatboxChatBubbleContainer',
     Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/Coding/Chatbox/chat-bubble-container.ui',
-    Children: ['inner-box'],
+    Children: ['inner-box', 'event-box'],
     Properties: {
         'content': GObject.ParamSpec.object('content',
                                             '',
@@ -263,6 +279,10 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 
     _init: function(params) {
         this.parent(params);
+        this._popover = createCopyPopover(this, Lang.bind(this, function() {
+            this.content.copyToClipboard();
+            this._popover.hide();
+        }));
 
         let [margin_prop, halign] = params.by_user ? ['margin-end', Gtk.Align.END] :
                                                      ['margin-start', Gtk.Align.START];
@@ -274,6 +294,19 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
             this.get_style_context().add_class('by-user');
 
         this.inner_box.pack_start(this.content, false, false, 0);
+        this.event_box.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
+                                  Gdk.EventMask.BUTTON_RELEASE_MASK);
+
+        this.event_box.connect('button-press-event', Lang.bind(this, function(btn, event) {
+            if (!this.content.supportsCopyPaste()) {
+                return;
+            }
+
+            if (event.get_button()[1] === Gdk.BUTTON_SECONDARY) {
+                // Secondary button pressed. Show popover with copy option
+                this._popover.show();
+            }
+        }));
     },
 
     set content(val) {

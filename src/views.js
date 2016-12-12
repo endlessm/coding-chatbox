@@ -6,6 +6,7 @@
 // The views for chatbox content.
 //
 
+const ChatboxPrivate = imports.gi.ChatboxPrivate;
 const Gdk = imports.gi.Gdk;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
@@ -22,6 +23,13 @@ const ChatboxMessageView = new Lang.Interface({
     GTypeName: 'Gjs_ChatboxMessageView',
 
     focused: function() {
+    },
+
+    copyToClipboard: function() {
+    },
+
+    supportsCopyPaste: function() {
+        return false;
     }
 });
 
@@ -46,6 +54,14 @@ const TextChatboxMessageView = new Lang.Class({
         this.state.bind_property('text', this, 'label',
                                  GObject.BindingFlags.DEFAULT |
                                  GObject.BindingFlags.SYNC_CREATE);
+    },
+
+    copyToClipboard: function() {
+        this.get_clipbpard().set_text(this.state.text, -1);
+    },
+
+    supportsCopyPaste: function() {
+        return true;
     }
 });
 
@@ -105,7 +121,7 @@ const InputChatboxMessageView = new Lang.Class({
         params.width_request = MAX_WIDTH_CHARS * 5;
 
         this.parent(params);
-    },
+    }
 });
 
 const ExternalEventsChatboxMessageView = new Lang.Class({
@@ -154,5 +170,14 @@ const AttachmentChatboxMessageView = new Lang.Class({
         this.attachment_desc.label = this.state.desc;
         this.attachment_icon.set_from_gicon(getIconForFile(this.state.path),
                                             Gtk.IconSize.DIALOG);
+    },
+
+    copyToClipboard: function() {
+        ChatboxPrivate.utils_copy_file_to_clipboard(this,
+                                                    this.state.path);
+    },
+
+    supportsCopyPaste: function() {
+        return true;
     }
 });
