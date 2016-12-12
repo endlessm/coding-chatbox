@@ -314,7 +314,10 @@ function new_message_view_for_state(container, content_service, game_service, ac
             content_service.evaluate(response.showmehow_id, response.text, function(evaluated) {
                 game_service.respond_to_message(container.location, response.text, evaluated);
             });
-        } else {
+        } else if (response.external_event_id) {
+            // Notify that this external event has been triggered
+            game_service.callExternalEvent(response.external_event_id);
+        } else if (response.evaluate) {
             // Nothing to evaluate, just send back the pre-determined evaluated response
             game_service.respond_to_message(container.location, response.text, response.evaluate);
         }
@@ -431,6 +434,12 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
         view.connect('clicked', Lang.bind(this, function() {
             let handler = this.path.query_default_handler(null);
             handler.launch([this.path], null);
+
+            listener({
+                response: {
+                    external_event_id: this.open_event,
+                }
+            });
         }));
         return view;
     }

@@ -143,13 +143,21 @@ const AttachmentChatboxMessage = new Lang.Class({
                                        'Description of the Attachment',
                                        GObject.ParamFlags.READWRITE |
                                        GObject.ParamFlags.CONSTRUCT_ONLY,
-                                       '')
+                                       ''),
+        open_event: GObject.ParamSpec.string('open-event',
+                                             'Optional event to trigger on open',
+                                             'Optional event to trigger on open',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             '')
     },
 
     _init: function(params, spec) {
         this.parent(params);
         this.path = Gio.File.new_for_path(spec.attachment.path);
         this.desc = spec.attachment.desc;
+        if (spec.attachment.open_event)
+            this.open_event = spec.attachment.open_event;
     },
 
     amend: function() {
