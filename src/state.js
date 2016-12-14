@@ -94,9 +94,9 @@ const ChoiceChatboxMessage = new Lang.Class({
 
     _init: function(params, spec) {
         this.parent(params);
-        this.choices = Object.keys(spec.settings).map(function(key) {
+        this.choices = Object.keys(spec.settings.choices).map(function(key) {
             return {
-                label: spec.settings[key].text,
+                label: spec.settings.choices[key].text,
                 name: key
             };
         });
