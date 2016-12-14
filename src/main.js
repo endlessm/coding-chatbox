@@ -532,7 +532,9 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     _init: function(params) {
-        params.title = '';
+        // Force the title of the window to be Coding Chatbox here so that it
+        // doesn't get overridden as 'Current Page' later.
+        params.title = _('Coding Chatbox');
         this.parent(params);
 
         this._state = new State.CodingChatboxState(MessageClasses);
