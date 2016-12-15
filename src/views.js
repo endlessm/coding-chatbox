@@ -71,7 +71,7 @@ const ChatboxMessageView = new Lang.Interface({
 //
 // Apply all given style classes to widget
 function applyStyles(widget, styles) {
-    if (styles && styles.length) {
+    if (styles) {
         let context = widget.get_style_context();
         styles.forEach(function(style) {
             context.add_class(style);
