@@ -379,10 +379,6 @@ const RenderableTextChatboxMessage = new Lang.Class({
     Name: 'RenderableTextChatboxMessage',
     Extends: State.TextChatboxMessage,
 
-    _init: function(params, spec) {
-        this.parent(params, spec);
-    },
-
     render_view: function() {
         return new Views.TextChatboxMessageView({
             state: this,
@@ -394,10 +390,6 @@ const RenderableTextChatboxMessage = new Lang.Class({
 const RenderableChoiceChatboxMessage = new Lang.Class({
     Name: 'RenderableChoiceChatboxMessage',
     Extends: State.ChoiceChatboxMessage,
-
-    _init: function(params, spec) {
-        this.parent(params, spec);
-    },
 
     render_view: function(listener) {
         let view = new Views.ChoiceChatboxMessageView({
@@ -424,10 +416,6 @@ const RenderableInputChatboxMessage = new Lang.Class({
     Name: 'RenderableInputChatboxMessage',
     Extends: State.InputChatboxMessage,
 
-    _init: function(params, spec) {
-        this.parent(params, spec);
-    },
-
     render_view: function(listener) {
         let view = new Views.InputChatboxMessageView({
             state: this,
@@ -453,10 +441,6 @@ const RenderableInputChatboxMessage = new Lang.Class({
 const RenderableAttachmentChatboxMessage = new Lang.Class({
     Name: 'RenderableAttachmentChatboxMessage',
     Extends: State.AttachmentChatboxMessage,
-
-    _init: function(params, spec) {
-        this.parent(params, spec);
-    },
 
     render_view: function(listener) {
         let view = new Views.AttachmentChatboxMessageView({
