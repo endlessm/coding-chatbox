@@ -453,25 +453,6 @@ const RenderableInputChatboxMessage = new Lang.Class({
     }
 });
 
-const RenderableExternalEventsChatboxMessage = new Lang.Class({
-    Name: 'RenderableExternalEventsChatboxMessage',
-    Extends: State.CodingChatboxMessageBase,
-
-    render_view: function(listener) {
-        let view = new Views.ExternalEventsChatboxMessageView();
-        view.connect('check-events', Lang.bind(this, function() {
-            listener({
-                response: {
-                    evaluate: '',
-                    text: ''
-                },
-                amendment: null
-            });
-        }));
-        return view;
-    }
-});
-
 const RenderableAttachmentChatboxMessage = new Lang.Class({
     Name: 'RenderableAttachmentChatboxMessage',
     Extends: State.AttachmentChatboxMessage,
@@ -506,7 +487,6 @@ const MessageClasses = {
     choice: RenderableChoiceChatboxMessage,
     text: RenderableInputChatboxMessage,
     console: RenderableInputChatboxMessage,
-    external_events: RenderableExternalEventsChatboxMessage,
     attachment: RenderableAttachmentChatboxMessage
 };
 

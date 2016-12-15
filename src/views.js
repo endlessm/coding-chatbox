@@ -179,19 +179,6 @@ const InputChatboxMessageView = new Lang.Class({
     },
 });
 
-const ExternalEventsChatboxMessageView = new Lang.Class({
-    Name: 'ExternalEventsChatboxMessageView',
-    Extends: Gtk.Widget,
-    Implements: [ ChatboxMessageView ],
-    Signals: {
-        'check-events': { }
-    },
-
-    focused: function() {
-        this.emit('check-events');
-    }
-});
-
 const _THUMBNAIL_MIME_TYPES = ['image/png', 'image/jpeg'];
 
 // shouldThumbnail
