@@ -8,6 +8,7 @@
 //
 
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 
 const Lang = imports.lang;
@@ -166,6 +167,10 @@ const AttachmentChatboxMessage = new Lang.Class({
     }
 });
 
+// We'll send a reminder after 20 minutes if the user fails to read a message
+const MINUTES_TO_MILLISECONDS_SCALE = 60000;
+const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_MS = 20 * MINUTES_TO_MILLISECONDS_SCALE;
+
 //
 // CodingChatboxMessageContainer
 //
@@ -195,17 +200,39 @@ const CodingChatboxMessageContainer = new Lang.Class({
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         SentBy.USER,
                                         SentBy.ACTOR,
-                                        SentBy.USER)
+                                        SentBy.USER),
+        // By default, we consider messages to be read, unless
+        // we specify that we want the unread behaviour.
+        'read': GObject.ParamSpec.boolean('read',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READABLE,
+                                          true)
     },
     Signals: {
         'message-changed': {
             param_types: [ GObject.TYPE_OBJECT ]
+        },
+        'still-unread': {
+            param_types: [ ]
         }
     },
 
     _init: function(params, message_factories) {
         this.parent(params);
         this._message_factories = message_factories;
+
+        // If we consider the message to be unread, then add a timer
+        // which fires after CHATBOX_MESSAGE_REMINDER_NOTIFICATION_MS
+        // and tells the user that there is still a message to be
+        // responded to.
+        if (!this.read)
+            this._unreadNotificationTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT,
+                                                               CHATBOX_MESSAGE_REMINDER_NOTIFICATION_MS,
+                                                               Lang.bind(this, function() {
+                                                                   this.emit('still-unread');
+                                                                   this._unreadNotificationTimeout = 0;
+                                                               }));
     },
 
     //
@@ -271,6 +298,16 @@ const CodingChatboxMessageContainer = new Lang.Class({
 
             listener(event.response);
         }));
+    },
+
+    // Mark this message as read, cancelling any timers to fire
+    // notifications for unread messages.
+    markAsRead: function() {
+        this.read = true;
+        if (this._unreadNotificationTimeout) {
+            GLib.source_remove(this._unreadNotificationTimeout);
+            this._unreadNotificationTimeout = 0;
+        }
     }
 });
 
@@ -354,6 +391,17 @@ const CodingChatboxConversationState = new Lang.Class({
         }
 
         return this._conversation[this._conversation.length - 1].location;
+    },
+
+    //
+    // markAllMessagesAsRead
+    //
+    // Marks all messages as read, thereby disconnecting any signals which
+    // may have been emitted for read messages.
+    markAllMessagesAsRead: function() {
+        this._conversation.forEach(function(container) {
+            container.markAsRead();
+        });
     }
 });
 
@@ -394,5 +442,10 @@ const CodingChatboxState = new Lang.Class({
         var amendment_spec = spec;
         amendment_spec.sender = sender;
         return this.conversations[actor].amend_last_message(spec);
+    },
+
+    markAllMessagesByActorAsRead: function(actor) {
+        this.load_conversations_for_actor(actor);
+        this.conversations[actor].markAllMessagesAsRead();
     }
 });
