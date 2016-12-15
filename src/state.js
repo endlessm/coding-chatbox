@@ -52,6 +52,12 @@ const SentBy = {
     ACTOR: 1
 };
 
+const AmendmentResult = {
+    NONE: 0,
+    DID_AMENDMENT: 1,
+    ADD_TO_CONTAINER: 2
+};
+
 const CodingChatboxMessageBase = new Lang.Class({
     Name: 'CodingChatboxMessageBase',
     Extends: GObject.Object,
@@ -79,7 +85,7 @@ const TextChatboxMessage = new Lang.Class({
     },
 
     amend: function(spec) {
-        return false;
+        return AmendmentResult.NONE;
     }
 });
 
@@ -98,7 +104,7 @@ const ChoiceChatboxMessage = new Lang.Class({
     },
 
     amend: function() {
-        return false;
+        return AmendmentResult.NONE;
     }
 });
 
@@ -119,7 +125,7 @@ const InputChatboxMessage = new Lang.Class({
     },
 
     amend: function() {
-        return false;
+        return AmendmentResult.NONE;
     }
 });
 
@@ -156,7 +162,7 @@ const AttachmentChatboxMessage = new Lang.Class({
     },
 
     amend: function() {
-        return false;
+        return AmendmentResult.NONE;
     }
 });
 
@@ -224,12 +230,27 @@ const CodingChatboxMessageContainer = new Lang.Class({
             return false;
         }
 
-        if (!this.message.amend(spec)) {
-            this.message = new this._message_factories[spec.type]({}, spec);
+        let messageAmendResult = this.message.amend(spec);
+        switch (messageAmendResult) {
+            case AmendmentResult.ADD_TO_CONTAINER:
+            case AmendmentResult.DID_AMENDMENT:
+                // Unimplemented for now
+                this.emit('message-changed', this.message);
+                return true;
+            default:
+                // In any other case, return false, as we
+                // could not do an amendment here.
+                return false;
         }
+    },
 
+    // Replaces the contents of this message container with another
+    // message, for instance when the user interacts with an
+    // InputChatboxMessage or a ChoiceChatboxMessage, the message
+    // should turn into a TextChatboxMessage.
+    replaceWith: function(spec) {
+        this.message = new this._message_factories[spec.type]({}, spec);
         this.emit('message-changed', this.message);
-        return true;
     },
 
     //
@@ -245,7 +266,7 @@ const CodingChatboxMessageContainer = new Lang.Class({
 
             if (amendment_spec) {
                 amendment_spec.sender = this.sender;
-                this.amend(amendment_spec);
+                this.replaceWith(amendment_spec);
             }
 
             listener(event.response);
@@ -306,12 +327,16 @@ const CodingChatboxConversationState = new Lang.Class({
     // Returns false if it wasn't possible to change this message (for instance, the sender
     // was different).
     //
+    // This function will return both a reference to the relevant container and also
+    // whether the amendment was successful.
+    //
     amend_last_message: function(spec) {
         if (!this._conversation.length) {
             return false;
         }
 
-        return this._conversation[this._conversation.length - 1].amend(spec);
+        let container = this._conversation[this._conversation.length - 1];
+        return [container.amend(spec), container];
     },
 
     //

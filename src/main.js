@@ -641,21 +641,25 @@ const CodingChatboxMainWindow = new Lang.Class({
         // If we can amend the last message, great.
         // Though I'm not really sure if we want this. "amend" currently
         // means 'amend-or-replace'.
-        if (item.type !== 'scrolled' ||
-            !this._state.amend_last_message_for_actor(actor,
+        let [amended, container] = this._state.amend_last_message_for_actor(actor,
+                                                                            sentBy,
+                                                                            item);
+
+        if (amended)
+            return container;
+
+        container = this._state.add_message_for_actor(actor,
                                                       sentBy,
-                                                      item)) {
-            let container = this._state.add_message_for_actor(actor,
-                                                              sentBy,
-                                                              item,
-                                                              location);
-            chatContents.pack_start(new_message_view_for_state(container,
-                                                               this.service,
-                                                               this.game_service,
-                                                               actor,
-                                                               item.style),
-                                    false, false, 10);
-        }
+                                                      item,
+                                                      location);
+        chatContents.pack_start(new_message_view_for_state(container,
+                                                           this.service,
+                                                           this.game_service,
+                                                           actor,
+                                                           item.style),
+                                false, false, 10);
+
+        return container;
     },
 
     _notifyItem: function(item, actor, isNew) {
