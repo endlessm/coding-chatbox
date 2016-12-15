@@ -83,7 +83,7 @@ const TextChatboxMessageView = new Lang.Class({
     },
 
     copyToClipboard: function() {
-        this.get_clipbpard().set_text(this.state.text, -1);
+        this.get_clipboard().set_text(this.state.text, -1);
     },
 
     supportsCopyPaste: function() {
