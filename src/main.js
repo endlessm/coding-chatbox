@@ -238,12 +238,9 @@ const CodingChatboxContactListItem = new Lang.Class({
             return;
         }
 
-        if (!this.is_selected()) {
-            // If we aren't selected, bold the current name and
-            // message snippit to make it clear to the user that
-            // there is a new message here
-            this.get_style_context().add_class('new-content');
-        }
+        // If highlight was set, then it means that we were not
+        // considered to be visible, so show a highlight here.
+        this.get_style_context().add_class('new-content');
     },
 
     get avatar() {
