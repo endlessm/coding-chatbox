@@ -104,7 +104,6 @@ const TextChatboxMessageView = new Lang.Class({
     },
 
     copyToClipboard: function() {
-        let clipboard = Gtk.Clipboard.get_default(Gdk.Display.get_default());
         // We also need to strip any markup before copypasting.
         ChatboxPrivate.utils_copy_text_to_clipboard(this, stripMarkup(this.state.text));
     },
