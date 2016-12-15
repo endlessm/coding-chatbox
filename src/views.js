@@ -83,12 +83,12 @@ const TextChatboxMessageView = new Lang.Class({
     _init: function(params) {
         params.wrap = true;
         params.max_width_chars = MAX_WIDTH_CHARS;
+        params.use_markup = true;
         this.parent(params);
 
         this.state.bind_property('text', this, 'label',
                                  GObject.BindingFlags.DEFAULT |
                                  GObject.BindingFlags.SYNC_CREATE);
-        this.use_markup = true;
     },
 
     copyToClipboard: function() {
