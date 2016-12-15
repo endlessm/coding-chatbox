@@ -7,7 +7,7 @@
 //
 
 const ChatboxPrivate = imports.gi.ChatboxPrivate;
-const Gd = imports.gi.GnomeDesktop;
+const GnomeDesktop = imports.gi.GnomeDesktop;
 const Gdk = imports.gi.Gdk;
 const GdkPixbuf = imports.gi.GdkPixbuf;
 const GObject = imports.gi.GObject;
@@ -215,7 +215,13 @@ const AttachmentChatboxMessageView = new Lang.Class({
         this.parent(params);
         this.attachment_name.label = this.state.path.get_basename();
         this.attachment_desc.label = this.state.desc;
-        this._thumbnailFactory = Gd.DesktopThumbnailFactory.new(Gd.DesktopThumbnailSize.LARGE);
+
+        // XXX: Not brilliant that we have to create a new
+        // DesktopThumbnailFactory here for every attachment view,
+        // there doesn't seem to be another way to do this that wouldn't
+        // involve things like singletons or passing props deep down
+        // the hierarchy.
+        this._thumbnailFactory = GnomeDesktop.DesktopThumbnailFactory.new(GnomeDesktop.DesktopThumbnailSize.LARGE);
 
         let preview = getPreviewForFile(this.state.path, this._thumbnailFactory);
         if (preview.thumbnail) {
