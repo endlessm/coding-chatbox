@@ -265,12 +265,10 @@ const AttachmentChatboxMessageView = new Lang.Class({
 
         let thumbnailFactory = Thumbnailer.forSize(GnomeDesktop.DesktopThumbnailSize.LARGE);
         let preview = getPreviewForFile(this.state.path, thumbnailFactory);
-        if (preview.thumbnail) {
+        if (preview.thumbnail)
             this.attachment_icon.set_from_pixbuf(preview.thumbnail);
-        } else {
-            this.attachment_icon.set_from_gicon(preview.icon,
-                                                Gtk.IconSize.DIALOG);
-        }
+        else
+            this.attachment_icon.set_from_gicon(preview.icon, Gtk.IconSize.DIALOG);
     },
     copyToClipboard: function() {
         ChatboxPrivate.utils_copy_file_to_clipboard(this, this.state.path);
