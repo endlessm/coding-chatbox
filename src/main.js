@@ -825,9 +825,6 @@ const CodingChatboxApplication = new Lang.Class({
     },
 
     showNotification: function(title, body, icon, actor) {
-        if (this._mainWindow && this._mainWindow.is_active)
-            return;
-
         let notification = new Gio.Notification();
         notification.set_title(title);
         notification.set_body(body);
