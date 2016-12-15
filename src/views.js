@@ -20,6 +20,29 @@ const State = imports.state;
 
 const MAX_WIDTH_CHARS = 30;
 
+// An immediately invoked function expression that
+// allows views to get a cached GnomeDesktopThumbnailFactory
+// for a particular thumbnail size.
+//
+// The reason we have this is that creating a
+// GnomeDesktop.DesktopThumbnailFactory is expensive and
+// we don't need to change any of its properties. It is better
+// to just use a singleton and create one for each size that
+// we might need.
+const Thumbnailer = (function() {
+    let thumbnailers = {
+    };
+
+    return {
+        forSize: function(size) {
+            if (!thumbnailers[size])
+                thumbnailers[size] = GnomeDesktop.DesktopThumbnailFactory.new(size);
+
+            return thumbnailers[size];
+        }
+    };
+})();
+
 const ChatboxMessageView = new Lang.Interface({
     Name: 'ChatboxMessageView',
     Extends: [ GObject.Object ],
@@ -240,14 +263,8 @@ const AttachmentChatboxMessageView = new Lang.Class({
         this.attachment_name.label = this.state.path.get_basename();
         this.attachment_desc.label = this.state.desc;
 
-        // XXX: Not brilliant that we have to create a new
-        // DesktopThumbnailFactory here for every attachment view,
-        // there doesn't seem to be another way to do this that wouldn't
-        // involve things like singletons or passing props deep down
-        // the hierarchy.
-        this._thumbnailFactory = GnomeDesktop.DesktopThumbnailFactory.new(GnomeDesktop.DesktopThumbnailSize.LARGE);
-
-        let preview = getPreviewForFile(this.state.path, this._thumbnailFactory);
+        let thumbnailFactory = Thumbnailer.forSize(GnomeDesktop.DesktopThumbnailSize.LARGE);
+        let preview = getPreviewForFile(this.state.path, thumbnailFactory);
         if (preview.thumbnail) {
             this.attachment_icon.set_from_pixbuf(preview.thumbnail);
         } else {
