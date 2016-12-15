@@ -1,4 +1,4 @@
-SUBDIRS = lib
+SUBDIRS = lib data/icons
 
 # Resources
 resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/src --sourcedir=$(builddir)/src --generate-dependencies $(srcdir)/src/com.endlessm.Coding.Chatbox.src.gresource.xml)
