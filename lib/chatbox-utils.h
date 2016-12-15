@@ -12,5 +12,6 @@
 #include <gtk/gtk.h>
 
 void chatbox_utils_copy_file_to_clipboard (GtkWidget *widget, GFile *file);
+void chatbox_utils_copy_text_to_clipboard (GtkWidget *widget, char *text);
 
 #endif
