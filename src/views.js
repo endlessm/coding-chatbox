@@ -92,13 +92,12 @@ const TextChatboxMessageView = new Lang.Class({
                                         State.TextChatboxMessage)
     },
 
-    _init: function(params, styles) {
+    _init: function(params) {
         params.wrap = true;
         params.max_width_chars = MAX_WIDTH_CHARS;
         params.use_markup = true;
         this.parent(params);
 
-        applyStyles(this, styles);
         this.state.bind_property('text', this, 'label',
                                  GObject.BindingFlags.DEFAULT |
                                  GObject.BindingFlags.SYNC_CREATE);
@@ -135,10 +134,11 @@ const ChoiceChatboxMessageView = new Lang.Class({
         }
     },
 
-    _init: function(params, styles) {
+    _init: function(params) {
         params.orientation = Gtk.Orientation.VERTICAL;
 
         this.parent(params);
+
         applyStyles(this, styles);
         this._buttons = this.state.choices.map(Lang.bind(this, function(choice) {
             let button = new Gtk.Button({
@@ -169,13 +169,11 @@ const InputChatboxMessageView = new Lang.Class({
                                         State.InputChatboxMessage)
     },
 
-    _init: function(params, styles) {
+    _init: function(params) {
         params.margin = 10;
         params.width_request = MAX_WIDTH_CHARS * 5;
 
         this.parent(params);
-
-        applyStyles(this, styles);
     },
 });
 
