@@ -12,6 +12,7 @@ const Gdk = imports.gi.Gdk;
 const GdkPixbuf = imports.gi.GdkPixbuf;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const Gtk = imports.gi.Gtk;
 
 const Lang = imports.lang;
@@ -187,11 +188,19 @@ function getPreviewForFile(path, thumbnailFactory) {
 
     if (shouldThumbnail(uri, thumbnailFactory, mimeType, mtime)) {
         let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
-        let thumbnailPathFile = thumbnailPath ? Gio.File.new_for_path(thumbnailPath) : null;
 
-        if (thumbnailPathFile && thumbnailPathFile.query_exists(null)) {
-            thumbnail = GdkPixbuf.Pixbuf.new_from_file(thumbnailPath);
-        } else {
+        if (thumbnailPath && GLib.file_test(thumbnailPath, GLib.FileTest.EXISTS)) {
+            try {
+                thumbnail = GdkPixbuf.Pixbuf.new_from_file(thumbnailPath);
+            } catch (e) {
+                logError(e, 'Couldn\'t read thumbnail at path ' + thumbnailPath);
+            }
+        }
+
+        // If we don't have a thumbnail after this point, it means that it
+        // either didn't exist or we failed to create one. Generate a new
+        // thumbnail.
+        if (!thumbnail) {
             // A thumbnail does not currently exist. Ask libgnome-desktop to
             // create one (currently we do so synchronously) and then
             // save the result.
