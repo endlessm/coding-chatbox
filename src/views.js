@@ -80,6 +80,7 @@ const TextChatboxMessageView = new Lang.Class({
         this.state.bind_property('text', this, 'label',
                                  GObject.BindingFlags.DEFAULT |
                                  GObject.BindingFlags.SYNC_CREATE);
+        this.use_markup = true;
     },
 
     copyToClipboard: function() {
