@@ -7,7 +7,9 @@
 //
 
 const ChatboxPrivate = imports.gi.ChatboxPrivate;
+const Gd = imports.gi.GnomeDesktop;
 const Gdk = imports.gi.Gdk;
+const GdkPixbuf = imports.gi.GdkPixbuf;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
@@ -137,16 +139,61 @@ const ExternalEventsChatboxMessageView = new Lang.Class({
     }
 });
 
-// getIconForFile
+const _THUMBNAIL_MIME_TYPES = ['image/png', 'image/jpeg'];
+
+// careAboutThumbnails
 //
-// Get a GIcon containing an icon for the provided GFile. The
-// icon will just be the icon and not a preview of the
-// file itself.
-function getIconForFile(path, widget) {
-    let info = path.query_info(Gio.FILE_ATTRIBUTE_STANDARD_ICON,
+// Determine if this file has a content type that makes
+// us care about thumbnails
+function careAboutThumbnails(uri, thumbnailFactory, mimeType, mtime) {
+    return thumbnailFactory.can_thumbnail(uri, mimeType, mtime) &&
+           _THUMBNAIL_MIME_TYPES.indexOf(mimeType) !== -1;
+}
+
+// getPreviewForFile
+//
+// Get an object containing a reference to both a GIcon
+// and potentially a thumbnailing path for the provided
+// GFile. The icon will just be the icon and not a preview
+// of the file itself.
+function getPreviewForFile(path, thumbnailFactory) {
+    let info = path.query_info([Gio.FILE_ATTRIBUTE_STANDARD_ICON,
+                                Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
+                                Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
+                                Gio.FILE_ATTRIBUTE_TIME_MODIFIED].join(','),
                                Gio.FileQueryInfoFlags.NONE,
                                null);
-    return info.get_icon();
+    let contentType = info.get_content_type();
+    let mimeType = Gio.content_type_get_mime_type(contentType);
+    let mtime = info.get_modification_time();
+    let uri = path.get_uri();
+
+    let thumbnail = null;
+
+    if (careAboutThumbnails(uri, thumbnailFactory, mimeType, mtime)) {
+        let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
+        let thumbnailPathFile = thumbnailPath ? Gio.File.new_for_path(thumbnailPath) : null;
+
+        if (thumbnailPathFile && thumbnailPathFile.query_exists(null)) {
+            thumbnail = GdkPixbuf.Pixbuf.new_from_file(thumbnailPath);
+        } else {
+            // A thumbnail does not currently exist. Ask libgnome-desktop to
+            // create one (currently we do so synchronously) and then
+            // save the result.
+            thumbnail = thumbnailFactory.generate_thumbnail(uri, mimeType);
+
+            if (thumbnail) {
+                thumbnailFactory.save_thumbnail(thumbnail, uri, mtime);
+            } else {
+                log('Failed to create thumbnail of ' + uri);
+            }
+        }
+    }
+
+    return {
+        icon: info.get_icon(),
+        thumbnail: thumbnail
+    };
 }
 
 const AttachmentChatboxMessageView = new Lang.Class({
@@ -168,10 +215,16 @@ const AttachmentChatboxMessageView = new Lang.Class({
         this.parent(params);
         this.attachment_name.label = this.state.path.get_basename();
         this.attachment_desc.label = this.state.desc;
-        this.attachment_icon.set_from_gicon(getIconForFile(this.state.path),
-                                            Gtk.IconSize.DIALOG);
-    },
+        this._thumbnailFactory = Gd.DesktopThumbnailFactory.new(Gd.DesktopThumbnailSize.LARGE);
 
+        let preview = getPreviewForFile(this.state.path, this._thumbnailFactory);
+        if (preview.thumbnail) {
+            this.attachment_icon.set_from_pixbuf(preview.thumbnail);
+        } else {
+            this.attachment_icon.set_from_gicon(preview.icon,
+                                                Gtk.IconSize.DIALOG);
+        }
+    },
     copyToClipboard: function() {
         ChatboxPrivate.utils_copy_file_to_clipboard(this, this.state.path);
     },
