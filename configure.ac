@@ -36,6 +36,7 @@ AC_SUBST(GLIB_COMPILE_RESOURCES)
 AC_CONFIG_FILES([
 Makefile
 lib/Makefile
+data/icons/Makefile
 ])
 
 AC_OUTPUT
