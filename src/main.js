@@ -278,8 +278,10 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
                                              false)
     },
 
-    _init: function(params) {
+    _init: function(params, styles) {
         this.parent(params);
+
+        Views.applyStyles(this, styles);
         this._popover = createCopyPopover(this, Lang.bind(this, function() {
             this.content.copyToClipboard();
             this._popover.hide();
@@ -339,7 +341,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 // Creates a new message view container for a message state container, which
 // automatically updates when the underlying state changes.
 //
-function new_message_view_for_state(container, content_service, game_service, actor) {
+function new_message_view_for_state(container, content_service, game_service, actor, styles) {
     let responseFunc = function(response) {
         if (response.showmehow_id) {
             // We evaluate the text of the response here in order to get an 'evaluated'
@@ -364,7 +366,7 @@ function new_message_view_for_state(container, content_service, game_service, ac
         visible: view.visible,
         content: view,
         by_user: (container.sender == State.SentBy.USER)
-    });
+    }, styles);
 
     // Re-render the view in case something changes
     container.connect('message-changed', function() {
@@ -377,11 +379,16 @@ const RenderableTextChatboxMessage = new Lang.Class({
     Name: 'RenderableTextChatboxMessage',
     Extends: State.TextChatboxMessage,
 
+    _init: function(params, spec) {
+        this.parent(params, spec);
+        this._styles = spec.styles;
+    },
+
     render_view: function() {
         return new Views.TextChatboxMessageView({
             state: this,
             visible: true
-        });
+        }, this._styles);
     }
 });
 
@@ -389,11 +396,16 @@ const RenderableChoiceChatboxMessage = new Lang.Class({
     Name: 'RenderableChoiceChatboxMessage',
     Extends: State.ChoiceChatboxMessage,
 
+    _init: function(params, spec) {
+        this.parent(params, spec);
+        this._styles = spec.style;
+    },
+
     render_view: function(listener) {
         let view = new Views.ChoiceChatboxMessageView({
             state: this,
             visible: true
-        });
+        }, this._styles);
         view.connect('clicked', Lang.bind(this, function(view, button_id, button_text) {
             listener({
                 response: {
@@ -414,11 +426,16 @@ const RenderableInputChatboxMessage = new Lang.Class({
     Name: 'RenderableInputChatboxMessage',
     Extends: State.InputChatboxMessage,
 
+    _init: function(params, spec) {
+        this.parent(params, spec);
+        this._styles = spec.style;
+    },
+
     render_view: function(listener) {
         let view = new Views.InputChatboxMessageView({
             state: this,
             visible: true
-        });
+        }, this._styles);
         view.connect('activate', Lang.bind(this, function(view) {
             let msg = view.text;
             listener({
@@ -459,11 +476,16 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
     Name: 'RenderableAttachmentChatboxMessage',
     Extends: State.AttachmentChatboxMessage,
 
+    _init: function(params, spec) {
+        this.parent(params, spec);
+        this._styles = spec.style;
+    },
+
     render_view: function(listener) {
         let view = new Views.AttachmentChatboxMessageView({
             state: this,
             visible: true
-        });
+        }, this._styles);
         view.connect('clicked', Lang.bind(this, function() {
             let handler = this.path.query_default_handler(null);
             handler.launch([this.path], null);
@@ -650,7 +672,8 @@ const CodingChatboxMainWindow = new Lang.Class({
             chatContents.pack_start(new_message_view_for_state(container,
                                                                this.service,
                                                                this.game_service,
-                                                               actor),
+                                                               actor,
+                                                               item.style),
                                     false, false, 10);
         }
     },
@@ -681,21 +704,24 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
     },
 
-    chatMessage: function(actor, message, location) {
+    chatMessage: function(actor, message, location, style) {
         let item = { type: 'scrolled',
-                     text: message };
+                     text: message,
+                     style: style };
         this._addItem(item, actor, location, State.SentBy.ACTOR);
         this._notifyItem(item, actor, true);
     },
 
-    chatAttachment: function(actor, attachment, location) {
+    chatAttachment: function(actor, attachment, location, style) {
         let item = { type: 'attachment',
-                     attachment: attachment };
+                     attachment: attachment,
+                     style: style };
         this._addItem(item, actor, location, State.SentBy.ACTOR);
         this._notifyItem(item, actor, true);
     },
 
-    chatUserInput: function(actor, spec, location) {
+    chatUserInput: function(actor, spec, location, style) {
+        spec.style = style;
         this._addItem(spec, actor, location, State.SentBy.USER);
     },
 
@@ -761,9 +787,9 @@ const CodingChatboxApplication = new Lang.Class({
         this._skeleton = new Service.ChatboxReceiverService();
         this._skeleton.export(conn, object_path);
 
-        this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location) {
+        this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location, style) {
             if (this._mainWindow) {
-                this._mainWindow.chatMessage(actor, message, location);
+                this._mainWindow.chatMessage(actor, message, location, style);
             } else {
                 let title = 'Message from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
@@ -771,9 +797,9 @@ const CodingChatboxApplication = new Lang.Class({
             }
         }));
 
-        this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location) {
+        this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location, style) {
             if (this._mainWindow) {
-                this._mainWindow.chatAttachment(actor, attachment, location);
+                this._mainWindow.chatAttachment(actor, attachment, location, style);
             } else {
                 let title = 'Attachment from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
@@ -781,9 +807,9 @@ const CodingChatboxApplication = new Lang.Class({
             }
         }));
 
-        this._skeleton.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
+        this._skeleton.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location, style) {
             if (this._mainWindow)
-                this._mainWindow.chatUserInput(actor, spec, location);
+                this._mainWindow.chatUserInput(actor, spec, location, style);
         }));
 
         return true;

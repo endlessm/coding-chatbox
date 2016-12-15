@@ -91,11 +91,11 @@ const ChatboxReceiverService = new Lang.Class({
             let decodedMessage = JSON.parse(message);
 
             if (decodedMessage.message) {
-                this.emit('chat-message', decodedMessage.actor, decodedMessage.message, decodedMessage.name);
+                this.emit('chat-message', decodedMessage.actor, decodedMessage.message, decodedMessage.name, decodedMessage.style);
             } else if (decodedMessage.input) {
-                this.emit('user-input-bubble', decodedMessage.actor, decodedMessage.input, decodedMessage.name);
+                this.emit('user-input-bubble', decodedMessage.actor, decodedMessage.input, decodedMessage.name, decodedMessage.style);
             } else if (decodedMessage.attachment) {
-                this.emit('chat-attachment', decodedMessage.actor, decodedMessage.attachment, decodedMessage.name);
+                this.emit('chat-attachment', decodedMessage.actor, decodedMessage.attachment, decodedMessage.name, decodedMessage.style);
             }
             this.complete_receive_message(method);
         } catch (e) {

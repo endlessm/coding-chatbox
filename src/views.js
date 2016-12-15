@@ -67,6 +67,18 @@ const ChatboxMessageView = new Lang.Interface({
     }
 });
 
+// applyStyles
+//
+// Apply all given style classes to widget
+function applyStyles(widget, styles) {
+    if (styles && styles.length) {
+        let context = widget.get_style_context();
+        styles.forEach(function(style) {
+            context.add_class(style);
+        });
+    }
+}
+
 const TextChatboxMessageView = new Lang.Class({
     Name: 'TextChatboxMessageView',
     Extends: Gtk.Label,
@@ -80,12 +92,13 @@ const TextChatboxMessageView = new Lang.Class({
                                         State.TextChatboxMessage)
     },
 
-    _init: function(params) {
+    _init: function(params, styles) {
         params.wrap = true;
         params.max_width_chars = MAX_WIDTH_CHARS;
         params.use_markup = true;
         this.parent(params);
 
+        applyStyles(this, styles);
         this.state.bind_property('text', this, 'label',
                                  GObject.BindingFlags.DEFAULT |
                                  GObject.BindingFlags.SYNC_CREATE);
@@ -122,10 +135,11 @@ const ChoiceChatboxMessageView = new Lang.Class({
         }
     },
 
-    _init: function(params) {
+    _init: function(params, styles) {
         params.orientation = Gtk.Orientation.VERTICAL;
 
         this.parent(params);
+        applyStyles(this, styles);
         this._buttons = this.state.choices.map(Lang.bind(this, function(choice) {
             let button = new Gtk.Button({
                 visible: true,
@@ -155,11 +169,13 @@ const InputChatboxMessageView = new Lang.Class({
                                         State.InputChatboxMessage)
     },
 
-    _init: function(params) {
+    _init: function(params, styles) {
         params.margin = 10;
         params.width_request = MAX_WIDTH_CHARS * 5;
 
         this.parent(params);
+
+        applyStyles(this, styles);
     },
 });
 
@@ -271,8 +287,10 @@ const AttachmentChatboxMessageView = new Lang.Class({
                                         State.AttachmentChatboxMessage)
     },
 
-    _init: function(params) {
+    _init: function(params, styles) {
         this.parent(params);
+
+        applyStyles(this, styles);
         this.attachment_name.label = this.state.path.get_basename();
         this.attachment_desc.label = this.state.desc;
 
