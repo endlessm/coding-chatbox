@@ -19,7 +19,10 @@ image.contact-default-image {
 }
 
 .chatbox-bubble.code {
-    background-color: #ffffff
+    background-color: #ffffff;
+    font-family: monospace;
+    text-shadow: none;
+    color: #000000;
 }
 
 .chatbox-bubble:backdrop {
