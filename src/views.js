@@ -104,8 +104,6 @@ const TextChatboxMessageView = new Lang.Class({
     },
 
     copyToClipboard: function() {
-        // We can't use gtk_widget_get_clipboard here since Atom
-        // not copyable according to gjs
         let clipboard = Gtk.Clipboard.get_default(Gdk.Display.get_default());
         // We also need to strip any markup before copypasting.
         ChatboxPrivate.utils_copy_text_to_clipboard(this, stripMarkup(this.state.text));
