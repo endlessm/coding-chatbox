@@ -141,11 +141,11 @@ const ExternalEventsChatboxMessageView = new Lang.Class({
 
 const _THUMBNAIL_MIME_TYPES = ['image/png', 'image/jpeg'];
 
-// careAboutThumbnails
+// shouldThumbnail
 //
 // Determine if this file has a content type that makes
 // us care about thumbnails
-function careAboutThumbnails(uri, thumbnailFactory, mimeType, mtime) {
+function shouldThumbnail(uri, thumbnailFactory, mimeType, mtime) {
     return thumbnailFactory.can_thumbnail(uri, mimeType, mtime) &&
            _THUMBNAIL_MIME_TYPES.indexOf(mimeType) !== -1;
 }
@@ -170,7 +170,7 @@ function getPreviewForFile(path, thumbnailFactory) {
 
     let thumbnail = null;
 
-    if (careAboutThumbnails(uri, thumbnailFactory, mimeType, mtime)) {
+    if (shouldThumbnail(uri, thumbnailFactory, mimeType, mtime)) {
         let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
         let thumbnailPathFile = thumbnailPath ? Gio.File.new_for_path(thumbnailPath) : null;
 
