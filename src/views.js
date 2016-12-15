@@ -157,12 +157,27 @@ function shouldThumbnail(uri, thumbnailFactory, mimeType, mtime) {
 // GFile. The icon will just be the icon and not a preview
 // of the file itself.
 function getPreviewForFile(path, thumbnailFactory) {
-    let info = path.query_info([Gio.FILE_ATTRIBUTE_STANDARD_ICON,
+    let info;
+
+    try {
+        // XXX: In general, it isn't great that we're doing synchronous
+        // IO here, though it is done for now to avoid too much churn.
+        info = path.query_info([Gio.FILE_ATTRIBUTE_STANDARD_ICON,
                                 Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
                                 Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
                                 Gio.FILE_ATTRIBUTE_TIME_MODIFIED].join(','),
                                Gio.FileQueryInfoFlags.NONE,
                                null);
+    } catch (e) {
+        logError(e,
+                 'Failed to query info for file, ' +
+                 'can\'t generate meaningful preview');
+        return {
+            thumbnail: null,
+            icon: Gio.Icon.new_for_string('text-x-generic')
+        };
+    }
+
     let contentType = info.get_content_type();
     let mimeType = Gio.content_type_get_mime_type(contentType);
     let mtime = info.get_modification_time();
