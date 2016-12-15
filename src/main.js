@@ -665,10 +665,10 @@ const CodingChatboxMainWindow = new Lang.Class({
         // TODO: make these translatable
         if (item.type === 'scrolled') {
             title = 'Message from ' + actor;
-            body = item.text;
+            body = Views.stripMarkup(item.text);
         } else if (item.type === 'attachment') {
             title = 'Attachment from ' + actor;
-            body = item.attachment.desc;
+            body = Views.stripMarkup(item.attachment.desc);
         } else {
             return;
         }
@@ -767,7 +767,7 @@ const CodingChatboxApplication = new Lang.Class({
             } else {
                 let title = 'Message from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
-                this.showNotification(title, message, actorObj.avatar, actor);
+                this.showNotification(title, Views.stripMarkup(message), actorObj.avatar, actor);
             }
         }));
 
@@ -777,7 +777,7 @@ const CodingChatboxApplication = new Lang.Class({
             } else {
                 let title = 'Attachment from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
-                this.showNotification(title, attachment.desc, actorObj.avatar, actor);
+                this.showNotification(title, Views.stripMarkup(attachment.desc), actorObj.avatar, actor);
             }
         }));
 

@@ -14,6 +14,7 @@ const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Gtk = imports.gi.Gtk;
+const Pango = imports.gi.Pango;
 
 const Lang = imports.lang;
 const State = imports.state;
@@ -42,6 +43,13 @@ const Thumbnailer = (function() {
         }
     };
 })();
+
+// stripMarkup
+//
+// Strip pango markup from text
+function stripMarkup(text) {
+    return Pango.parse_markup(text, -1, '')[2];
+}
 
 const ChatboxMessageView = new Lang.Interface({
     Name: 'ChatboxMessageView',
@@ -84,7 +92,11 @@ const TextChatboxMessageView = new Lang.Class({
     },
 
     copyToClipboard: function() {
-        this.get_clipboard().set_text(this.state.text, -1);
+        // We can't use gtk_widget_get_clipboard here since Atom
+        // not copyable according to gjs
+        let clipboard = Gtk.Clipboard.get_default(Gdk.Display.get_default());
+        // We also need to strip any markup before copypasting.
+        clipboard.set_text(stripMarkup(this.state.text), -1);
     },
 
     supportsCopyPaste: function() {
