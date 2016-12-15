@@ -51,7 +51,7 @@ chatbox_utils_copy_text_to_clipboard (GtkWidget *widget,
                                       char      *text)
 {
   GtkClipboard *clipboard = gtk_widget_get_clipboard (widget, GDK_SELECTION_CLIPBOARD);
-  gtk_clipboard_set_text(clipboard, text, -1);
+  gtk_clipboard_set_text (clipboard, text, -1);
 }
 
 void
