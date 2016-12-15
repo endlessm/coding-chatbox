@@ -79,12 +79,7 @@ const TextChatboxMessage = new Lang.Class({
     },
 
     amend: function(spec) {
-        if (spec.type !== 'scrolled' && spec.type !== 'scroll_wait') {
-            return false;
-        }
-
-        this.text = this.text + '\n' + spec.text;
-        return true;
+        return false;
     }
 });
 
