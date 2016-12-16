@@ -537,7 +537,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     case 'chat-actor':
                         let spec = { type: 'scrolled',
                                      text: item.message };
-                        this._addItem(spec, actor.name, 'none::none',
+                        this._addItem(spec, actor.name, 'none::none', item.styles,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER);
                         this._notifyItem(spec, actor.name, false);
@@ -546,7 +546,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     case 'chat-actor-attachment':
                         spec = { type: 'attachment',
                                  attachment: item.attachment };
-                        this._addItem(spec, actor.name, item.name,
+                        this._addItem(spec, actor.name, item.name, item.styles,
                                       item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
                                                                               State.SentBy.USER);
                         this._notifyItem(spec, actor.name, false);
@@ -565,6 +565,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     this._addItem(lastMessage.input,
                                   lastMessage.actor,
                                   lastMessage.name,
+                                  lastMessage.styles,
                                   State.SentBy.USER);
                 }
             }));
