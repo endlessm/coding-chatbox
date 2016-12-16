@@ -136,7 +136,6 @@ const ChoiceChatboxMessageView = new Lang.Class({
 
         this.parent(params);
 
-        applyStyles(this, styles);
         this._buttons = this.state.choices.map(Lang.bind(this, function(choice) {
             let button = new Gtk.Button({
                 visible: true,
