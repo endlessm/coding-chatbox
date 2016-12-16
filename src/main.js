@@ -352,6 +352,9 @@ function new_message_view_for_state(container, content_service, game_service, ac
         } else if (response.external_event_id) {
             // Notify that this external event has been triggered
             game_service.callExternalEvent(response.external_event_id);
+        } else if (response.open_attachment) {
+            // Notify that this external event has been triggered
+            game_service.openAttachment(container.location);
         } else if (response.evaluate) {
             // Nothing to evaluate, just send back the pre-determined evaluated response
             game_service.respond_to_message(container.location, response.text, response.evaluate);
@@ -453,7 +456,7 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
 
             listener({
                 response: {
-                    external_event_id: this.open_event,
+                    open_attachment: true
                 }
             });
         }));

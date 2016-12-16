@@ -61,6 +61,18 @@ const CodingGameService = new Lang.Class({
         }));
     },
 
+    openAttachment: function(location) {
+        this._service.call_open_attachment(location,
+                                           null,
+                                           Lang.bind(this, function(source, result) {
+            try {
+                [success, returnValue] = this._service.call_chat_response_finish(result);
+            } catch(e) {
+                logError(e, 'Failed to send attachment open notification to ' + location);
+            }
+        }));
+    },
+
     respond_to_message: function(location, response_contents, response_name) {
         this._service.call_chat_response(location,
                                          response_contents,
