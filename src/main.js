@@ -705,9 +705,8 @@ const CodingChatboxMainWindow = new Lang.Class({
         // If item.unread is set, then we should listen for notifications
         // to show an unread-notification on this actor in a given time
         // period.
-        if (item.unread) {
+        if (item.unread)
             this._listenForUnread(actor, container);
-        }
 
         return container;
     },
