@@ -168,8 +168,8 @@ const AttachmentChatboxMessage = new Lang.Class({
 });
 
 // We'll send a reminder after 20 minutes if the user fails to read a message
-const MINUTES_TO_MILLISECONDS_SCALE = 60000;
-const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_MS = 20 * MINUTES_TO_MILLISECONDS_SCALE;
+const MINUTES_TO_SECONDS_SCALE = 60;
+const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
 
 //
 // CodingChatboxMessageContainer
@@ -227,12 +227,12 @@ const CodingChatboxMessageContainer = new Lang.Class({
         // and tells the user that there is still a message to be
         // responded to.
         if (!this.read)
-            this._unreadNotificationTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT,
-                                                               CHATBOX_MESSAGE_REMINDER_NOTIFICATION_MS,
-                                                               Lang.bind(this, function() {
-                                                                   this.emit('still-unread');
-                                                                   this._unreadNotificationTimeout = 0;
-                                                               }));
+            this._unreadNotificationTimeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
+                                                                       CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
+                                                                       Lang.bind(this, function() {
+                                                                           this.emit('still-unread');
+                                                                           this._unreadNotificationTimeout = 0;
+                                                                       }));
     },
 
     //
