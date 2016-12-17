@@ -469,7 +469,11 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
                 appInfo = this.path.query_default_handler(null);
                 files.push(this.path);
             }
-            appInfo.launch(files, null);
+
+            if (appInfo)
+                appInfo.launch(files, null);
+            else
+                log('Couldn\'t find appInfo for ' + this.path.get_path() + ' ' + contentType(this.path));
 
             listener({
                 response: {
