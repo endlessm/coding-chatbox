@@ -376,6 +376,13 @@ const CodingChatboxConversationState = new Lang.Class({
     // Calls callback if messages on this actor are still unread
     // after a certain amount of time.
     performActionIfStillUnreadAfter: function(actor, callback, timeoutSeconds) {
+        // If _unreadNotificationTimeout is set, then just keep the old timeout
+        // on-foot instead of removing it and re-adding it. We want the user
+        // to get the notification timeoutSeconds after the first unread message
+        // arrived.
+        if (this._unreadNotificationTimeout)
+            return;
+
         this._unreadNotificationTimeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
                                                                    timeoutSeconds,
                                                                    Lang.bind(this, function() {
