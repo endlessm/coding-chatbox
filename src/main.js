@@ -513,6 +513,10 @@ function notificationId(actor) {
     return actor + '-message';
 }
 
+// We'll send a reminder after 20 minutes if the user fails to read a message
+const MINUTES_TO_SECONDS_SCALE = 60;
+const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
+
 const CodingChatboxMainWindow = new Lang.Class({
     Name: 'CodingChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
@@ -555,12 +559,13 @@ const CodingChatboxMainWindow = new Lang.Class({
                 history.filter(function(item) {
                     return item.type.indexOf('chat') == 0;
                 }).forEach(Lang.bind(this, function(item) {
+                    // We always treat messages obtained through the log as "read"
                     switch (item.type) {
                     case 'chat-user':
                     case 'chat-actor':
                         let spec = { type: 'scrolled',
                                      text: item.message };
-                        this._addItem(spec, actor.name, 'none::none', item.styles,
+                        this._addItem(spec, actor.name, 'none::none', item.styles, true,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER);
                         this._notifyItem(spec, actor.name, false);
@@ -569,7 +574,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     case 'chat-actor-attachment':
                         spec = { type: 'attachment',
                                  attachment: item.attachment };
-                        this._addItem(spec, actor.name, item.name, item.styles,
+                        this._addItem(spec, actor.name, item.name, item.styles, true,
                                       item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
                                                                               State.SentBy.USER);
                         this._notifyItem(spec, actor.name, false);
@@ -587,11 +592,11 @@ const CodingChatboxMainWindow = new Lang.Class({
                     history[history.length - 1].input) {
                     let lastMessage = history[history.length - 1];
 
-                    lastMessage.input.unread = !this._actorIsVisible(actor.name);
                     this._addItem(lastMessage.input,
                                   lastMessage.actor,
                                   lastMessage.name,
                                   lastMessage.styles,
+                                  !this._actorIsVisible(actor.name),
                                   State.SentBy.USER);
                 }
             }));
@@ -668,7 +673,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         return null;
     },
 
-    _addItem: function(item, actor, location, style, sentBy) {
+    _addItem: function(item, actor, location, style, visible, sentBy) {
         let chatContents = this._contentsForActor(actor);
 
         // Scroll view to the bottom after the child is added. We only
@@ -702,28 +707,26 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                            style),
                                 false, false, 10);
 
-        // If item.unread is set, then we should listen for notifications
+        // If visible is not true, then we should listen for notifications
         // to show an unread-notification on this actor in a given time
         // period.
-        if (item.unread)
-            this._listenForUnread(actor, container);
+        if (!visible) {
+            this._state.performActionIfStillUnreadAfter(actor,
+                                                        3, // CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS
+                                                        Lang.bind(this, function() {
+                let row = this._rowForActor(actor);
+                if (!row)
+                    throw new Error('Couldn\'t find row matching actor ' + actor);
+
+                // TODO: Translations
+                this.application.showNotification('Waiting on your input',
+                                                  actor + ' is still waiting on your response!',
+                                                  row.avatar,
+                                                  actor);
+            }));
+        }
 
         return container;
-    },
-
-    _listenForUnread: function(actor, container) {
-        // Listen for 'this message is unread' notifications on container.
-        container.connect('still-unread', Lang.bind(this, function() {
-            let row = this._rowForActor(actor);
-            if (!row)
-                throw new Error('Couldn\'t find row matching actor ' + actor);
-
-            // TODO: Translations
-            this.application.showNotification('Waiting on your input',
-                                              actor + ' is still waiting on your response!',
-                                              row.avatar,
-                                              actor);
-        }));
     },
 
     _notifyItem: function(item, actor, isNew) {
@@ -755,24 +758,22 @@ const CodingChatboxMainWindow = new Lang.Class({
     chatMessage: function(actor, message, location, style) {
         let visible = this._actorIsVisible(actor);
         let item = { type: 'scrolled',
-                     text: message,
-                     unread: !visible };
-        this._addItem(item, actor, location, style, State.SentBy.ACTOR);
+                     text: message };
+        this._addItem(item, actor, location, style, visible, State.SentBy.ACTOR);
         this._notifyItem(item, actor, !visible);
     },
 
     chatAttachment: function(actor, attachment, location, style) {
         let visible = this._actorIsVisible(actor);
         let item = { type: 'attachment',
-                     attachment: attachment,
-                     unread: !visible };
-        this._addItem(item, actor, location, style, State.SentBy.ACTOR);
+                     attachment: attachment };
+        this._addItem(item, actor, location, style, visible, State.SentBy.ACTOR);
         this._notifyItem(item, actor, !visible);
     },
 
     chatUserInput: function(actor, spec, location, style) {
-        spec.unread = !this._actorIsVisible(actor);
-        this._addItem(spec, actor, location, style, State.SentBy.USER);
+        let visible = this._actorIsVisible(actor);
+        this._addItem(spec, actor, location, style, visible, State.SentBy.USER);
     },
 
     switchToChatWith: function(actor) {

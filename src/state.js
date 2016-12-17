@@ -167,10 +167,6 @@ const AttachmentChatboxMessage = new Lang.Class({
     }
 });
 
-// We'll send a reminder after 20 minutes if the user fails to read a message
-const MINUTES_TO_SECONDS_SCALE = 60;
-const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
-
 //
 // CodingChatboxMessageContainer
 //
@@ -200,39 +196,17 @@ const CodingChatboxMessageContainer = new Lang.Class({
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         SentBy.USER,
                                         SentBy.ACTOR,
-                                        SentBy.USER),
-        // By default, we consider messages to be read, unless
-        // we specify that we want the unread behaviour.
-        'read': GObject.ParamSpec.boolean('read',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READABLE,
-                                          true)
+                                        SentBy.USER)
     },
     Signals: {
         'message-changed': {
             param_types: [ GObject.TYPE_OBJECT ]
-        },
-        'still-unread': {
-            param_types: [ ]
         }
     },
 
     _init: function(params, message_factories) {
         this.parent(params);
         this._message_factories = message_factories;
-
-        // If we consider the message to be unread, then add a timer
-        // which fires after CHATBOX_MESSAGE_REMINDER_NOTIFICATION_MS
-        // and tells the user that there is still a message to be
-        // responded to.
-        if (!this.read)
-            this._unreadNotificationTimeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
-                                                                       CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
-                                                                       Lang.bind(this, function() {
-                                                                           this.emit('still-unread');
-                                                                           this._unreadNotificationTimeout = 0;
-                                                                       }));
     },
 
     //
@@ -298,16 +272,6 @@ const CodingChatboxMessageContainer = new Lang.Class({
 
             listener(event.response);
         }));
-    },
-
-    // Mark this message as read, cancelling any timers to fire
-    // notifications for unread messages.
-    markAsRead: function() {
-        this.read = true;
-        if (this._unreadNotificationTimeout) {
-            GLib.source_remove(this._unreadNotificationTimeout);
-            this._unreadNotificationTimeout = 0;
-        }
     }
 });
 
@@ -326,6 +290,7 @@ const CodingChatboxConversationState = new Lang.Class({
         this.parent();
         this._conversation = [];
         this._message_factories = message_factories;
+        this._unreadNotificationTimeout = 0;
     },
 
     //
@@ -396,13 +361,28 @@ const CodingChatboxConversationState = new Lang.Class({
     //
     // markAllMessagesAsRead
     //
-    // Marks all messages as read, thereby disconnecting any signals which
-    // may have been emitted for read messages.
+    // Marks all messages as read, thereby disconnecting the signal for
+    // unread messages.
     markAllMessagesAsRead: function() {
-        this._conversation.forEach(function(container) {
-            container.markAsRead();
-        });
-    }
+        if (this._unreadNotificationTimeout) {
+            GLib.source_remove(this._unreadNotificationTimeout);
+            this._unreadNotificationTimeout = 0;
+        }
+    },
+
+    //
+    // performActionIfStillUnreadAfter
+    //
+    // Calls callback if messages on this actor are still unread
+    // after a certain amount of time.
+    performActionIfStillUnreadAfter: function(actor, callback, timeoutSeconds) {
+        this._unreadNotificationTimeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
+                                                                   timeoutSeconds,
+                                                                   Lang.bind(this, function() {
+                                                                       callback();
+                                                                       this._unreadNotificationTimeout = 0;
+                                                                   }));
+    },
 });
 
 //
@@ -442,6 +422,11 @@ const CodingChatboxState = new Lang.Class({
         var amendment_spec = spec;
         amendment_spec.sender = sender;
         return this.conversations[actor].amend_last_message(spec);
+    },
+
+    performActionIfStillUnreadAfter: function(actor, callback, timeoutSeconds) {
+        this.load_conversations_for_actor(actor);
+        this.conversations[actor].performActionIfStillUnreadAfter(callback, timeoutSeconds);
     },
 
     markAllMessagesByActorAsRead: function(actor) {
