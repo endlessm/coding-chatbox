@@ -565,7 +565,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     case 'chat-actor':
                         let spec = { type: 'scrolled',
                                      text: item.message };
-                        this._addItem(spec, actor.name, 'none::none', item.styles, true,
+                        this._addItem(spec, actor.name, 'none::none', item.styles, false,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER);
                         this._notifyItem(spec, actor.name, false);
@@ -574,7 +574,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     case 'chat-actor-attachment':
                         spec = { type: 'attachment',
                                  attachment: item.attachment };
-                        this._addItem(spec, actor.name, item.name, item.styles, true,
+                        this._addItem(spec, actor.name, item.name, item.styles, false,
                                       item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
                                                                               State.SentBy.USER);
                         this._notifyItem(spec, actor.name, false);
@@ -596,7 +596,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                                   lastMessage.actor,
                                   lastMessage.name,
                                   lastMessage.styles,
-                                  this._actorIsVisible(actor.name),
+                                  !this._actorIsVisible(actor.name),
                                   State.SentBy.USER);
                 }
             }));
@@ -673,7 +673,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         return null;
     },
 
-    _addItem: function(item, actor, location, style, visible, sentBy) {
+    _addItem: function(item, actor, location, style, isNew, sentBy) {
         let chatContents = this._contentsForActor(actor);
 
         // Scroll view to the bottom after the child is added. We only
@@ -707,10 +707,10 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                            style),
                                 false, false, 10);
 
-        // If visible is not true, then we should listen for notifications
+        // If isNew is true, then we should listen for notifications
         // to show an unread-notification on this actor in a given time
         // period.
-        if (!visible) {
+        if (isNew) {
             this._state.performActionIfStillUnreadAfter(actor,
                                                         CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
                                                         Lang.bind(this, function() {
@@ -759,7 +759,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         let visible = this._actorIsVisible(actor);
         let item = { type: 'scrolled',
                      text: message };
-        this._addItem(item, actor, location, style, visible, State.SentBy.ACTOR);
+        this._addItem(item, actor, location, style, !visible, State.SentBy.ACTOR);
         this._notifyItem(item, actor, !visible);
     },
 
@@ -767,13 +767,13 @@ const CodingChatboxMainWindow = new Lang.Class({
         let visible = this._actorIsVisible(actor);
         let item = { type: 'attachment',
                      attachment: attachment };
-        this._addItem(item, actor, location, style, visible, State.SentBy.ACTOR);
+        this._addItem(item, actor, location, style, !visible, State.SentBy.ACTOR);
         this._notifyItem(item, actor, !visible);
     },
 
     chatUserInput: function(actor, spec, location, style) {
         let visible = this._actorIsVisible(actor);
-        this._addItem(spec, actor, location, style, visible, State.SentBy.USER);
+        this._addItem(spec, actor, location, style, !visible, State.SentBy.USER);
     },
 
     switchToChatWith: function(actor) {
