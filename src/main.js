@@ -626,10 +626,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         // Assuming here that this will always succeed, because it is part
         // of the chatbox' invariant that an entry in the list box always has
         // a page on the GtkStack and vice versa.
-        let row = this.chatbox_list_box.get_row_at_index(
-            this.actor_model.lookupIndexForName(selectedActor)
-        );
-
+        let row = this._rowForActor(selectedActor);
         let chatContents = this._contentsForActor(selectedActor);
         let children = chatContents.get_children();
         if (children.length)
