@@ -151,22 +151,13 @@ const ActorModel = new Lang.Class({
     },
 
     getByName: function(name) {
-        let index = this.lookupIndexForName(name);
-
-        if (index !== -1)
-            return this.get_item(index);
-
-        return null;
-    },
-
-    lookupIndexForName: function(name) {
         for (let idx = 0; idx < this.get_n_items(); idx++) {
             let actor = this.get_item(idx);
             if (actor.name == name)
-                return idx;
+                return actor;
         }
 
-        return -1;
+        return null;
     }
 });
 
