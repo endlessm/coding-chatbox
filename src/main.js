@@ -660,11 +660,10 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     _rowForActor: function(actor) {
-        let children = this.chatbox_list_box.get_children();
-        for (let row of children) {
-            if (row.actor.name == actor)
-                return row;
-        }
+        let index = this.actor_model.lookupIndexForName(actor);
+
+        if (index !== -1)
+            return this.chatbox_list_box.get_row_at_index(index);
 
         return null;
     },
