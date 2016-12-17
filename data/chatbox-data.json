@@ -6,26 +6,6 @@
             "location": "intro::hook"
         },
         {
-            "name": "DANK",
-            "img": "",
-            "location": "intro::hook"
-        },
-        {
-            "name": "FOOBAR",
-            "img": "",
-            "location": "intro::hook"
-        },
-        {
-            "name": "GOOG",
-            "img": "goog.png",
-            "location": "intro::hook"
-        },
-        {
-            "name": "FRUIT",
-            "img": "fruit.png",
-            "location": "intro::hook"
-        },
-        {
             "name": "Marlon",
             "location": "intro::hook"
         }
