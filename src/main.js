@@ -712,7 +712,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         // period.
         if (!visible) {
             this._state.performActionIfStillUnreadAfter(actor,
-                                                        3, // CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS
+                                                        CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
                                                         Lang.bind(this, function() {
                 let row = this._rowForActor(actor);
                 if (!row)
