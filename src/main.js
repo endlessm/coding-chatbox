@@ -664,7 +664,6 @@ const CodingChatboxMainWindow = new Lang.Class({
                                   lastMessage.actor,
                                   lastMessage.name,
                                   lastMessage.styles,
-                                  !this._actorIsVisible(actor.name),
                                   State.SentBy.USER,
                                   0,
                                   null);
