@@ -532,6 +532,45 @@ const CodingChatboxChatScrollView = new Lang.Class({
     }
 });
 
+// This class implements a queue of widgets which could be addd
+// to the box progressively. The first item always gets added
+// straight away, but is pushed to the back of the queue. While
+// the queue has items in it, queuing more items will just cause
+// them to be added to the queue. Calling the 'showNext' method will
+// cause the front of the queue to be popped and the widget at the
+// front of the queue to be added to the box.
+//
+// Once a widget is displayed, the showContent handler will be called
+// on the widget so that it can display any animations necessary to
+// show its contents.
+const QueueableBox = new Lang.Class({
+    Name: 'QueueableBox',
+    Extends: Gtk.Box,
+
+    _init: function(params) {
+        this.parent(params);
+        this._queue = [];
+    },
+
+    pushWidget: function(widget) {
+        let hadLength = this._queue.length > 0;
+        this._queue.push(widget);
+
+        if (!hadLength) {
+            this.pack_start(widget, false, false, 0);
+            widget.showContent();
+        }
+    },
+
+    showNext: function(widget) {
+        this._queue.shift();
+        if (this._queue.length) {
+            this.pack_start(this._queue[0], false, false, 0);
+            this._queue[0].showContent();
+        }
+    }
+});
+
 function notificationId(actor) {
     return actor + '-message';
 }
