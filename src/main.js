@@ -718,7 +718,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (scrollView)
             return scrollView.chatContents;
 
-        let chatContents = new Gtk.Box({
+        let chatContents = new QueueableBox({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
         });
