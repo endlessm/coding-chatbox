@@ -344,7 +344,13 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 // Creates a new message view container for a message state container, which
 // automatically updates when the underlying state changes.
 //
-function new_message_view_for_state(container, content_service, game_service, actor, styles) {
+function new_message_view_for_state(container,
+                                    content_service,
+                                    game_service,
+                                    actor,
+                                    styles,
+                                    timeout,
+                                    onVisible) {
     let responseFunc = function(response) {
         if (response.showmehow_id) {
             // We evaluate the text of the response here in order to get an 'evaluated'
@@ -365,19 +371,34 @@ function new_message_view_for_state(container, content_service, game_service, ac
     };
 
     let view = container.render_view(responseFunc);
+    let pending = new Views.MessagePendingView({ visible: true });
+
+    let renderRealContent = function() {
+        onVisible();
+        view_container.content = view;
+        container.connect('message-changed', function() {
+            view_container.content = container.render_view(responseFunc);
+        });
+    };
+
     let view_container = new CodingChatboxChatBubbleContainer({
         // We only want to display the container if the underlying view
         // itself is visible. The assumption here is that the visibility
         // state never changes between renders.
         visible: view.visible,
-        content: view,
+        content: pending,
         by_user: (container.sender == State.SentBy.USER)
-    }, styles);
-
-    // Re-render the view in case something changes
-    container.connect('message-changed', function() {
-        view_container.content = container.render_view(responseFunc);
+    }, styles, function() {
+        // Re-render the view in case something changes
+        if (timeout > 0) {
+            GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
+                                     timeout,
+                                     renderRealContent);
+        } else {
+            renderRealContent();
+        }
     });
+
     return view_container;
 }
 
