@@ -84,7 +84,8 @@ const TextChatboxMessage = new Lang.Class({
                                           1,
                                           -1,
                                           30,
-                                          GObject.ParamFlags.READABLE)
+                                          GObject.ParamFlags.READABLE |
+                                          GObject.ParamFlags.CONSTRUCT)
     },
 
     _init: function(params, spec) {
