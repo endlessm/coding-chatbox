@@ -497,7 +497,8 @@ const CodingChatboxChatScrollView = new Lang.Class({
 
     _init: function(chatContents) {
         this.parent({ visible: true,
-                      width_request: 500 });
+                      width_request: 500,
+                      max_content_width: 750 });
 
         this.chatContents = chatContents;
         this.add(chatContents);
