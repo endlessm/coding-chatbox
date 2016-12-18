@@ -20,6 +20,7 @@ const Lang = imports.lang;
 const State = imports.state;
 
 const MAX_WIDTH_CHARS = 30;
+const CODE_MAX_WIDTH_CHARS = 65;
 
 // An immediately invoked function expression that
 // allows views to get a cached GnomeDesktopThumbnailFactory
@@ -94,8 +95,7 @@ const TextChatboxMessageView = new Lang.Class({
 
     _init: function(params) {
         params.wrap = true;
-        params.max_width_chars = params.state.wrap_width ? params.state.wrap_width :
-                                                           MAX_WIDTH_CHARS;
+        params.max_width_chars = params.state.wrap_width;
         params.use_markup = true;
         this.parent(params);
 

@@ -753,9 +753,11 @@ const CodingChatboxMainWindow = new Lang.Class({
 
     chatMessage: function(actor, message, location, style) {
         let visible = this._actorIsVisible(actor);
+        let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
+                                                       Views.MAX_WIDTH_CHARS;
         let item = { type: 'scrolled',
                      text: message,
-                     wrap_width: style.indexOf('code') !== -1 ? 65 : 30 };
+                     wrap_width: wrapWidth };
         this._addItem(item, actor, location, style, !visible, State.SentBy.ACTOR);
         this._notifyItem(item, actor, !visible);
     },
