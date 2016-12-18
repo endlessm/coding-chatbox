@@ -6,7 +6,19 @@
             "location": "intro::hook"
         },
         {
+            "name": "Konrad",
+            "location": "intro::hook"
+        },
+        {
             "name": "Marlon",
+            "location": "intro::hook"
+        },
+        {
+            "name": "Cosimo",
+            "location": "intro::hook"
+        },
+        {
+            "name": "Mary",
             "location": "intro::hook"
         }
     ]
