@@ -175,6 +175,38 @@ const InputChatboxMessageView = new Lang.Class({
     },
 });
 
+const MessagePendingView = new Lang.Class({
+    Name: 'MessagePendingView',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/Coding/Chatbox/message-pending-view.ui',
+    Children: ['animation'],
+    Implements: [ ChatboxMessageView ],
+
+    _init: function(params) {
+        this.parent(params);
+        this._dotTimings = [0, -15, -30];
+        this.animation.connect('draw', Lang.bind(this, function(widget, cr) {
+            cr.setSourceRGBA(1.0, 1.0, 1.0, 1.0);
+
+            this._dotTimings = this._dotTimings.map(function(timing) {
+                return timing + 1 > 30 ? -50 : timing + 1;
+            });
+
+            this._dotTimings.forEach(function(timing, index) {
+                cr.arc(10 + index * 15,
+                       16 + Math.sin(Math.max(0, timing) * 0.104) * 2,
+                       5,
+                       0,
+                       2 * Math.PI);
+                cr.fill();
+            });
+            cr.$dispose();
+            widget.queue_draw();
+        }));
+        this.animation.queue_draw();
+    }
+});
+
 const _THUMBNAIL_MIME_TYPES = ['image/png', 'image/jpeg'];
 
 // shouldThumbnail
