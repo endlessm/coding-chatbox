@@ -847,11 +847,17 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     chatMessage: function(actor, message, location, style, pendingTime) {
+<<<<<<< HEAD
         let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
                                                        Views.MAX_WIDTH_CHARS;
         let item = { type: 'scrolled',
                      text: message,
                      wrap_width: wrapWidth };
+=======
+        let item = { type: 'scrolled',
+                     text: message,
+                     width_request: calculateBubbleWidthRequest(style) };
+>>>>>>> main: Make _addItem take a timeout and visibility handler
         this._addItem(item,
                       actor,
                       location,
