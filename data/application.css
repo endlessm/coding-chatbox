@@ -23,6 +23,7 @@ image.contact-default-image {
     font-family: monospace;
     text-shadow: none;
     color: #000000;
+    font-size: 10pt;
 }
 
 .chatbox-bubble:backdrop {
