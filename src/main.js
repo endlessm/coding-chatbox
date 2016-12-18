@@ -517,7 +517,7 @@ const CodingChatboxMainWindow = new Lang.Class({
     Name: 'CodingChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
     Template: 'resource:///com/endlessm/Coding/Chatbox/main.ui',
-    Children: ['chatbox-list-box', 'chatbox-stack', 'main-header'],
+    Children: ['chatbox-list-box', 'chatbox-stack'],
     Properties: {
         actor_model: GObject.ParamSpec.object('actor-model',
                                               '',
