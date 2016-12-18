@@ -275,7 +275,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
                                              false)
     },
 
-    _init: function(params, styles) {
+    _init: function(params, styles, showContentHandler) {
         this.parent(params);
 
         Views.applyStyles(this, styles);
@@ -306,6 +306,8 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
                 this._popover.show();
             }
         }));
+
+        this._showContentHandler = showContentHandler;
     },
 
     set content(val) {
@@ -328,6 +330,10 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 
     focused: function() {
         this._content.focused();
+    },
+
+    showContent: function() {
+        this._showContentHandler();
     }
 });
 
