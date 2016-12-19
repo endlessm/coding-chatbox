@@ -2,4 +2,5 @@ debian/tmp/usr/bin/com.endlessm.Coding.Chatbox
 debian/tmp/usr/lib/*/com.endlessm.Coding.Chatbox
 debian/tmp/usr/share/com.endlessm.Coding.Chatbox
 debian/tmp/usr/share/applications/com.endlessm.Coding.Chatbox.desktop
+debian/tmp/usr/share/dbus-1/services/*
 debian/tmp/usr/share/icons/hicolor/64x64/apps/coding-chatbox.png
