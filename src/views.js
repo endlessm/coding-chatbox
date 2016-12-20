@@ -19,8 +19,8 @@ const Pango = imports.gi.Pango;
 const Lang = imports.lang;
 const State = imports.state;
 
-const MAX_WIDTH_CHARS = 30;
-const CODE_MAX_WIDTH_CHARS = 65;
+const CHATBOX_MESSAGE_VIEW_WIDTH_REQUEST = 250;
+const CODE_CHATBOX_MESSAGE_VIEW_WIDTH_REQUEST = 280;
 
 // An immediately invoked function expression that
 // allows views to get a cached GnomeDesktopThumbnailFactory
@@ -114,10 +114,13 @@ const TextChatboxMessageView = new Lang.Class({
         params.editable = false;
         params.wrap_mode = Gtk.WrapMode.WORD;
         params.expand = true;
-        params.width_request = 250;
         params.cursor_visible = false;
         this.parent(params);
 
+        this.state.bind_property('width-request',
+                                 this,
+                                 'width-request',
+                                 GObject.BindingFlags.SYNC_CREATE);
         this._textBuffer.insert_markup(this._textBuffer.get_start_iter(),
                                        this.state.text,
                                        -1);
@@ -187,7 +190,7 @@ const InputChatboxMessageView = new Lang.Class({
 
     _init: function(params) {
         params.margin = 10;
-        params.width_request = MAX_WIDTH_CHARS * 5;
+        params.width_request = CHATBOX_MESSAGE_VIEW_WIDTH_REQUEST;
 
         this.parent(params);
     },
