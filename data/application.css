@@ -55,3 +55,27 @@ image.contact-default-image {
     outline-width: 0px;
     box-shadow: none;
 }
+
+.chatbox-bubble.code {
+    background-color: #ffffff;
+    font-family: monospace;
+    text-shadow: none;
+    font-size: 10pt;
+}
+
+.chatbox-bubble.code:backdrop {
+    background-color: #ffffff;
+}
+
+.chatbox-bubble.code label:backdrop {
+    color: #444;
+}
+
+.chatbox-bubble:backdrop {
+    background-color: #5a5b5e;
+}
+
+.chatbox-bubble.by-user:backdrop {
+    background-color: #2595da;
+    text-shadow: none;
+}
