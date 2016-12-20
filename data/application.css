@@ -30,10 +30,6 @@ image.contact-default-image {
     text-shadow: none;
 }
 
-.chatbox-bubble.by-user:backdrop {
-    background-color: #8dbedd;
-}
-
 .chatbox-bubble.by-user label:backdrop {
     color: #ccc;
 }
