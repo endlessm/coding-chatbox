@@ -513,6 +513,12 @@ function notificationId(actor) {
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
 
+function calculateBubbleWidthRequest(styles) {
+    return (styles && styles.indexOf('code') !== -1) ?
+      Views.CODE_CHATBOX_MESSAGE_VIEW_WIDTH_REQUEST :
+      Views.CHATBOX_MESSAGE_VIEW_WIDTH_REQUEST;
+}
+
 const CodingChatboxMainWindow = new Lang.Class({
     Name: 'CodingChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
@@ -559,12 +565,9 @@ const CodingChatboxMainWindow = new Lang.Class({
                     switch (item.type) {
                     case 'chat-user':
                     case 'chat-actor':
-                        let wrapWidth = (item.styles && item.styles.indexOf('code') !== -1) ?
-                            Views.CODE_MAX_WIDTH_CHARS :
-                            Views.MAX_WIDTH_CHARS;
                         let spec = { type: 'scrolled',
                                      text: item.message,
-                                     wrap_width: wrapWidth };
+                                     width_request: calculateBubbleWidthRequest(item.styles) };
                         this._addItem(spec, actor.name, 'none::none', item.styles, false,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER);
@@ -761,11 +764,9 @@ const CodingChatboxMainWindow = new Lang.Class({
 
     chatMessage: function(actor, message, location, style) {
         let visible = this._actorIsVisible(actor);
-        let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
-                                                       Views.MAX_WIDTH_CHARS;
         let item = { type: 'scrolled',
                      text: message,
-                     wrap_width: wrapWidth };
+                     width_request: calculateBubbleWidthRequest(style) };
         this._addItem(item, actor, location, style, !visible, State.SentBy.ACTOR);
         this._notifyItem(item, actor, !visible);
     },
