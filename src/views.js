@@ -97,7 +97,7 @@ function removeStyles(widget, styles) {
 
 const TextChatboxMessageView = new Lang.Class({
     Name: 'TextChatboxMessageView',
-    Extends: Gtk.Label,
+    Extends: Gtk.TextView,
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
@@ -109,15 +109,18 @@ const TextChatboxMessageView = new Lang.Class({
     },
 
     _init: function(params) {
-        params.wrap = true;
-        params.max_width_chars = params.state.wrap_width;
-        params.use_markup = true;
-        params.selectable = true;
+        this._textBuffer = new Gtk.TextBuffer();
+        params.buffer = this._textBuffer;
+        params.editable = false;
+        params.wrap_mode = Gtk.WrapMode.WORD;
+        params.expand = true;
+        params.width_request = 250;
+        params.cursor_visible = false;
         this.parent(params);
 
-        this.state.bind_property('text', this, 'label',
-                                 GObject.BindingFlags.DEFAULT |
-                                 GObject.BindingFlags.SYNC_CREATE);
+        this._textBuffer.insert_markup(this._textBuffer.get_start_iter(),
+                                       this.state.text,
+                                       -1);
     },
 
     copyToClipboard: function() {

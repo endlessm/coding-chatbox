@@ -18,6 +18,10 @@ image.contact-default-image {
     background-color: #5a5b5e;
 }
 
+.chatbox-bubble text {
+    background-color: #737478;
+}
+
 .chatbox-bubble.by-user {
     background-color: #3b9fde;
     text-shadow: 1px 1px alpha(black, 0.6);
@@ -38,6 +42,11 @@ image.contact-default-image {
 
 .chatbox-bubble.code:backdrop {
     background-color: #ffffff;
+}
+
+.chatbox-bubble.code text {
+    background-color: #ffffff;
+    color: #000000;
 }
 
 .chatbox-bubble:backdrop {
@@ -84,4 +93,32 @@ image.contact-default-image {
     border-width: 0px;
     outline-width: 0px;
     box-shadow: none;
+}
+
+.chatbox-bubble.code {
+    background-color: #ffffff;
+    font-family: monospace;
+    text-shadow: none;
+    font-size: 10pt;
+}
+
+.chatbox-bubble.code:backdrop {
+    background-color: #ffffff;
+}
+
+.chatbox-bubble.code label:backdrop {
+    color: #ffffff;
+}
+
+.chatbox-bubble:backdrop {
+    background-color: #5a5b5e;
+}
+
+.chatbox-bubble text:backdrop {
+    background-color: #5a5b5e;
+}
+
+.chatbox-bubble.by-user:backdrop {
+    background-color: #2595da;
+    text-shadow: none;
 }
