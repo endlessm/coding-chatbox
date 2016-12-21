@@ -7,15 +7,41 @@
 //
 
 const ChatboxPrivate = imports.gi.ChatboxPrivate;
+const GnomeDesktop = imports.gi.GnomeDesktop;
 const Gdk = imports.gi.Gdk;
+const GdkPixbuf = imports.gi.GdkPixbuf;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const Gtk = imports.gi.Gtk;
 
 const Lang = imports.lang;
 const State = imports.state;
 
 const MAX_WIDTH_CHARS = 30;
+
+// An immediately invoked function expression that
+// allows views to get a cached GnomeDesktopThumbnailFactory
+// for a particular thumbnail size.
+//
+// The reason we have this is that creating a
+// GnomeDesktop.DesktopThumbnailFactory is expensive and
+// we don't need to change any of its properties. It is better
+// to just use a singleton and create one for each size that
+// we might need.
+const Thumbnailer = (function() {
+    let thumbnailers = {
+    };
+
+    return {
+        forSize: function(size) {
+            if (!thumbnailers[size])
+                thumbnailers[size] = GnomeDesktop.DesktopThumbnailFactory.new(size);
+
+            return thumbnailers[size];
+        }
+    };
+})();
 
 const ChatboxMessageView = new Lang.Interface({
     Name: 'ChatboxMessageView',
@@ -137,16 +163,84 @@ const ExternalEventsChatboxMessageView = new Lang.Class({
     }
 });
 
-// getIconForFile
+const _THUMBNAIL_MIME_TYPES = ['image/png', 'image/jpeg'];
+
+// shouldThumbnail
 //
-// Get a GIcon containing an icon for the provided GFile. The
-// icon will just be the icon and not a preview of the
-// file itself.
-function getIconForFile(path, widget) {
-    let info = path.query_info(Gio.FILE_ATTRIBUTE_STANDARD_ICON,
+// Determine if this file has a content type that makes
+// us care about thumbnails
+function shouldThumbnail(uri, thumbnailFactory, mimeType, mtime) {
+    return thumbnailFactory.can_thumbnail(uri, mimeType, mtime) &&
+           _THUMBNAIL_MIME_TYPES.indexOf(mimeType) !== -1;
+}
+
+// getPreviewForFile
+//
+// Get an object containing a reference to both a GIcon
+// and potentially a thumbnailing path for the provided
+// GFile. The icon will just be the icon and not a preview
+// of the file itself.
+function getPreviewForFile(path, thumbnailFactory) {
+    let info;
+
+    try {
+        // XXX: In general, it isn't great that we're doing synchronous
+        // IO here, though it is done for now to avoid too much churn.
+        info = path.query_info([Gio.FILE_ATTRIBUTE_STANDARD_ICON,
+                                Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
+                                Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
+                                Gio.FILE_ATTRIBUTE_TIME_MODIFIED].join(','),
                                Gio.FileQueryInfoFlags.NONE,
                                null);
-    return info.get_icon();
+    } catch (e) {
+        logError(e,
+                 'Failed to query info for file, ' +
+                 'can\'t generate meaningful preview');
+        return {
+            thumbnail: null,
+            icon: Gio.Icon.new_for_string('text-x-generic')
+        };
+    }
+
+    let contentType = info.get_content_type();
+    let mimeType = Gio.content_type_get_mime_type(contentType);
+    let mtime = info.get_modification_time();
+    let uri = path.get_uri();
+
+    let thumbnail = null;
+
+    if (shouldThumbnail(uri, thumbnailFactory, mimeType, mtime)) {
+        let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
+
+        if (thumbnailPath && GLib.file_test(thumbnailPath, GLib.FileTest.EXISTS)) {
+            try {
+                thumbnail = GdkPixbuf.Pixbuf.new_from_file(thumbnailPath);
+            } catch (e) {
+                logError(e, 'Couldn\'t read thumbnail at path ' + thumbnailPath);
+            }
+        }
+
+        // If we don't have a thumbnail after this point, it means that it
+        // either didn't exist or we failed to create one. Generate a new
+        // thumbnail.
+        if (!thumbnail) {
+            // A thumbnail does not currently exist. Ask libgnome-desktop to
+            // create one (currently we do so synchronously) and then
+            // save the result.
+            thumbnail = thumbnailFactory.generate_thumbnail(uri, mimeType);
+
+            if (thumbnail) {
+                thumbnailFactory.save_thumbnail(thumbnail, uri, mtime);
+            } else {
+                log('Failed to create thumbnail of ' + uri);
+            }
+        }
+    }
+
+    return {
+        icon: info.get_icon(),
+        thumbnail: thumbnail
+    };
 }
 
 const AttachmentChatboxMessageView = new Lang.Class({
@@ -168,10 +262,14 @@ const AttachmentChatboxMessageView = new Lang.Class({
         this.parent(params);
         this.attachment_name.label = this.state.path.get_basename();
         this.attachment_desc.label = this.state.desc;
-        this.attachment_icon.set_from_gicon(getIconForFile(this.state.path),
-                                            Gtk.IconSize.DIALOG);
-    },
 
+        let thumbnailFactory = Thumbnailer.forSize(GnomeDesktop.DesktopThumbnailSize.LARGE);
+        let preview = getPreviewForFile(this.state.path, thumbnailFactory);
+        if (preview.thumbnail)
+            this.attachment_icon.set_from_pixbuf(preview.thumbnail);
+        else
+            this.attachment_icon.set_from_gicon(preview.icon, Gtk.IconSize.DIALOG);
+    },
     copyToClipboard: function() {
         ChatboxPrivate.utils_copy_file_to_clipboard(this, this.state.path);
     },

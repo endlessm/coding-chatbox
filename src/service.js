@@ -119,7 +119,7 @@ const CodingChatboxTextService = new Lang.Class({
         let name = 'com.endlessm.Showmehow.Service';
         let path = '/com/endlessm/Showmehow/Service';
 
-       // Connect to the service and refresh the content once we have a connection 
+        // Connect to the service and refresh the content once we have a connection
         this._service = Showmehow.ServiceProxy.new_for_bus_sync(Gio.BusType.SESSION, 0, name, path, null);
     },
 
@@ -140,7 +140,7 @@ const CodingChatboxTextService = new Lang.Class({
 
             let decodedReturnValue = JSON.parse(returnValue);
 
-           // Send that result back to the game service 
+            // Send that result back to the game service
             callback(decodedReturnValue.result);
         }));
     },
