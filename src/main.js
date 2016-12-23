@@ -442,7 +442,7 @@ const RenderableInputChatboxMessage = new Lang.Class({
 //
 // Helper function that returns content type of a GFile.
 function contentType(file){
-    let fileInfo = file.query_info('standard::*', 0, null, null);
+    let fileInfo = file.query_info('standard::content-type', 0, null, null);
     let type = fileInfo.get_content_type();
     return type;
 }
@@ -461,10 +461,10 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
             let appInfo = null;
 
             if (contentType(this.path) == 'application/x-desktop') {
-                appInfo = Gio.DesktopAppInfo.new_from_filename(this.path.get_parse_name());
+                appInfo = Gio.DesktopAppInfo.new_from_filename(this.path.get_path());
             } else {
                 appInfo = this.path.query_default_handler(null);
-                glist = [this.path];
+                glist.push([this.path]);
             }
             appInfo.launch(glist, null);
 
