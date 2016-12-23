@@ -66,7 +66,7 @@ const CodingGameService = new Lang.Class({
                                            null,
                                            Lang.bind(this, function(source, result) {
             try {
-                [success, returnValue] = this._service.call_chat_response_finish(result);
+                [success, returnValue] = this._service.call_open_attachment_finish(result);
             } catch(e) {
                 logError(e, 'Failed to send attachment open notification to ' + location);
             }
