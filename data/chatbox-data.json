@@ -24,6 +24,10 @@
             "name": "FRUIT",
             "img": "fruit.png",
             "location": "intro::hook"
+        },
+        {
+            "name": "CHANGE",
+            "location": "intro::hook"
         }
     ]
 }

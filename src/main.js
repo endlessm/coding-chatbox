@@ -352,6 +352,9 @@ function new_message_view_for_state(container, content_service, game_service, ac
         } else if (response.external_event_id) {
             // Notify that this external event has been triggered
             game_service.callExternalEvent(response.external_event_id);
+        } else if (response.open_attachment) {
+            // Notify that this external event has been triggered
+            game_service.openAttachment(container.location);
         } else if (response.evaluate) {
             // Nothing to evaluate, just send back the pre-determined evaluated response
             game_service.respond_to_message(container.location, response.text, response.evaluate);
@@ -453,7 +456,7 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
 
             listener({
                 response: {
-                    external_event_id: this.open_event,
+                    open_attachment: true
                 }
             });
         }));
@@ -534,7 +537,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     case 'chat-actor':
                         let spec = { type: 'scrolled',
                                      text: item.message };
-                        this._addItem(spec, actor.name, 'none::none',
+                        this._addItem(spec, actor.name, 'none::none', item.styles,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER);
                         this._notifyItem(spec, actor.name, false);
@@ -543,7 +546,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     case 'chat-actor-attachment':
                         spec = { type: 'attachment',
                                  attachment: item.attachment };
-                        this._addItem(spec, actor.name, item.name,
+                        this._addItem(spec, actor.name, item.name, item.styles,
                                       item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
                                                                               State.SentBy.USER);
                         this._notifyItem(spec, actor.name, false);
@@ -562,6 +565,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     this._addItem(lastMessage.input,
                                   lastMessage.actor,
                                   lastMessage.name,
+                                  lastMessage.styles,
                                   State.SentBy.USER);
                 }
             }));
