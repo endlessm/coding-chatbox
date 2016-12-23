@@ -18,6 +18,13 @@ image.contact-default-image {
     text-shadow: 1px 1px alpha(black, 0.6);
 }
 
+.chatbox-bubble.code {
+    background-color: #ffffff;
+    font-family: monospace;
+    text-shadow: none;
+    color: #000000;
+}
+
 .chatbox-bubble:backdrop {
     text-shadow: none;
 }

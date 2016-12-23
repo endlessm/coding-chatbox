@@ -278,8 +278,10 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
                                              false)
     },
 
-    _init: function(params) {
+    _init: function(params, styles) {
         this.parent(params);
+
+        Views.applyStyles(this, styles);
         this._popover = createCopyPopover(this, Lang.bind(this, function() {
             this.content.copyToClipboard();
             this._popover.hide();
@@ -339,7 +341,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 // Creates a new message view container for a message state container, which
 // automatically updates when the underlying state changes.
 //
-function new_message_view_for_state(container, content_service, game_service, actor) {
+function new_message_view_for_state(container, content_service, game_service, actor, styles) {
     let responseFunc = function(response) {
         if (response.showmehow_id) {
             // We evaluate the text of the response here in order to get an 'evaluated'
@@ -364,7 +366,7 @@ function new_message_view_for_state(container, content_service, game_service, ac
         visible: view.visible,
         content: view,
         by_user: (container.sender == State.SentBy.USER)
-    });
+    }, styles);
 
     // Re-render the view in case something changes
     container.connect('message-changed', function() {
@@ -436,25 +438,6 @@ const RenderableInputChatboxMessage = new Lang.Class({
     }
 });
 
-const RenderableExternalEventsChatboxMessage = new Lang.Class({
-    Name: 'RenderableExternalEventsChatboxMessage',
-    Extends: State.CodingChatboxMessageBase,
-
-    render_view: function(listener) {
-        let view = new Views.ExternalEventsChatboxMessageView();
-        view.connect('check-events', Lang.bind(this, function() {
-            listener({
-                response: {
-                    evaluate: '',
-                    text: ''
-                },
-                amendment: null
-            });
-        }));
-        return view;
-    }
-});
-
 const RenderableAttachmentChatboxMessage = new Lang.Class({
     Name: 'RenderableAttachmentChatboxMessage',
     Extends: State.AttachmentChatboxMessage,
@@ -484,7 +467,6 @@ const MessageClasses = {
     choice: RenderableChoiceChatboxMessage,
     text: RenderableInputChatboxMessage,
     console: RenderableInputChatboxMessage,
-    external_events: RenderableExternalEventsChatboxMessage,
     attachment: RenderableAttachmentChatboxMessage
 };
 
@@ -633,26 +615,31 @@ const CodingChatboxMainWindow = new Lang.Class({
         return null;
     },
 
-    _addItem: function(item, actor, location, sentBy) {
+    _addItem: function(item, actor, location, style, sentBy) {
         let chatContents = this._contentsForActor(actor);
 
         // If we can amend the last message, great.
         // Though I'm not really sure if we want this. "amend" currently
         // means 'amend-or-replace'.
-        if (item.type !== 'scrolled' ||
-            !this._state.amend_last_message_for_actor(actor,
+        let [amended, container] = this._state.amend_last_message_for_actor(actor,
+                                                                            sentBy,
+                                                                            item);
+
+        if (amended)
+            return container;
+
+        container = this._state.add_message_for_actor(actor,
                                                       sentBy,
-                                                      item)) {
-            let container = this._state.add_message_for_actor(actor,
-                                                              sentBy,
-                                                              item,
-                                                              location);
-            chatContents.pack_start(new_message_view_for_state(container,
-                                                               this.service,
-                                                               this.game_service,
-                                                               actor),
-                                    false, false, 10);
-        }
+                                                      item,
+                                                      location);
+        chatContents.pack_start(new_message_view_for_state(container,
+                                                           this.service,
+                                                           this.game_service,
+                                                           actor,
+                                                           style),
+                                false, false, 10);
+
+        return container;
     },
 
     _notifyItem: function(item, actor, isNew) {
@@ -665,10 +652,10 @@ const CodingChatboxMainWindow = new Lang.Class({
         // TODO: make these translatable
         if (item.type === 'scrolled') {
             title = 'Message from ' + actor;
-            body = item.text;
+            body = Views.stripMarkup(item.text);
         } else if (item.type === 'attachment') {
             title = 'Attachment from ' + actor;
-            body = item.attachment.desc;
+            body = Views.stripMarkup(item.attachment.desc);
         } else {
             return;
         }
@@ -681,22 +668,22 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
     },
 
-    chatMessage: function(actor, message, location) {
+    chatMessage: function(actor, message, location, style) {
         let item = { type: 'scrolled',
                      text: message };
-        this._addItem(item, actor, location, State.SentBy.ACTOR);
+        this._addItem(item, actor, location, style, State.SentBy.ACTOR);
         this._notifyItem(item, actor, true);
     },
 
-    chatAttachment: function(actor, attachment, location) {
+    chatAttachment: function(actor, attachment, location, style) {
         let item = { type: 'attachment',
                      attachment: attachment };
-        this._addItem(item, actor, location, State.SentBy.ACTOR);
+        this._addItem(item, actor, location, style, State.SentBy.ACTOR);
         this._notifyItem(item, actor, true);
     },
 
-    chatUserInput: function(actor, spec, location) {
-        this._addItem(spec, actor, location, State.SentBy.USER);
+    chatUserInput: function(actor, spec, location, style) {
+        this._addItem(spec, actor, location, style, State.SentBy.USER);
     },
 
     switchToChatWith: function(actor) {
@@ -761,29 +748,29 @@ const CodingChatboxApplication = new Lang.Class({
         this._skeleton = new Service.ChatboxReceiverService();
         this._skeleton.export(conn, object_path);
 
-        this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location) {
+        this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location, styles) {
             if (this._mainWindow) {
-                this._mainWindow.chatMessage(actor, message, location);
+                this._mainWindow.chatMessage(actor, message, location, styles);
             } else {
                 let title = 'Message from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
-                this.showNotification(title, message, actorObj.avatar, actor);
+                this.showNotification(title, Views.stripMarkup(message), actorObj.avatar, actor);
             }
         }));
 
-        this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location) {
+        this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location, styles) {
             if (this._mainWindow) {
-                this._mainWindow.chatAttachment(actor, attachment, location);
+                this._mainWindow.chatAttachment(actor, attachment, location, styles);
             } else {
                 let title = 'Attachment from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
-                this.showNotification(title, attachment.desc, actorObj.avatar, actor);
+                this.showNotification(title, Views.stripMarkup(attachment.desc), actorObj.avatar, actor);
             }
         }));
 
-        this._skeleton.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location) {
+        this._skeleton.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location, styles) {
             if (this._mainWindow)
-                this._mainWindow.chatUserInput(actor, spec, location);
+                this._mainWindow.chatUserInput(actor, spec, location, styles);
         }));
 
         return true;

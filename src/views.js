@@ -14,6 +14,7 @@ const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Gtk = imports.gi.Gtk;
+const Pango = imports.gi.Pango;
 
 const Lang = imports.lang;
 const State = imports.state;
@@ -43,6 +44,13 @@ const Thumbnailer = (function() {
     };
 })();
 
+// stripMarkup
+//
+// Strip pango markup from text
+function stripMarkup(text) {
+    return Pango.parse_markup(text, -1, '')[2];
+}
+
 const ChatboxMessageView = new Lang.Interface({
     Name: 'ChatboxMessageView',
     Extends: [ GObject.Object ],
@@ -58,6 +66,18 @@ const ChatboxMessageView = new Lang.Interface({
         return false;
     }
 });
+
+// applyStyles
+//
+// Apply all given style classes to widget
+function applyStyles(widget, styles) {
+    if (styles) {
+        let context = widget.get_style_context();
+        styles.forEach(function(style) {
+            context.add_class(style);
+        });
+    }
+}
 
 const TextChatboxMessageView = new Lang.Class({
     Name: 'TextChatboxMessageView',
@@ -75,6 +95,7 @@ const TextChatboxMessageView = new Lang.Class({
     _init: function(params) {
         params.wrap = true;
         params.max_width_chars = MAX_WIDTH_CHARS;
+        params.use_markup = true;
         this.parent(params);
 
         this.state.bind_property('text', this, 'label',
@@ -83,7 +104,8 @@ const TextChatboxMessageView = new Lang.Class({
     },
 
     copyToClipboard: function() {
-        this.get_clipbpard().set_text(this.state.text, -1);
+        // We also need to strip any markup before copypasting.
+        ChatboxPrivate.utils_copy_text_to_clipboard(this, stripMarkup(this.state.text));
     },
 
     supportsCopyPaste: function() {
@@ -113,6 +135,8 @@ const ChoiceChatboxMessageView = new Lang.Class({
         params.orientation = Gtk.Orientation.VERTICAL;
 
         this.parent(params);
+
+        applyStyles(this, styles);
         this._buttons = this.state.choices.map(Lang.bind(this, function(choice) {
             let button = new Gtk.Button({
                 visible: true,
@@ -148,19 +172,6 @@ const InputChatboxMessageView = new Lang.Class({
 
         this.parent(params);
     },
-});
-
-const ExternalEventsChatboxMessageView = new Lang.Class({
-    Name: 'ExternalEventsChatboxMessageView',
-    Extends: Gtk.Widget,
-    Implements: [ ChatboxMessageView ],
-    Signals: {
-        'check-events': { }
-    },
-
-    focused: function() {
-        this.emit('check-events');
-    }
 });
 
 const _THUMBNAIL_MIME_TYPES = ['image/png', 'image/jpeg'];
@@ -258,8 +269,10 @@ const AttachmentChatboxMessageView = new Lang.Class({
                                         State.AttachmentChatboxMessage)
     },
 
-    _init: function(params) {
+    _init: function(params, styles) {
         this.parent(params);
+
+        applyStyles(this, styles);
         this.attachment_name.label = this.state.path.get_basename();
         this.attachment_desc.label = this.state.desc;
 
