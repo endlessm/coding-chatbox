@@ -798,7 +798,7 @@ const CodingChatboxApplication = new Lang.Class({
     },
 
     vfunc_dbus_unregister: function(conn, object_path) {
-        if (this._skeleton) {
+        if (this._skeleton && this._skeleton.has_connection(conn)) {
             this._skeleton.unexport();
         }
 
