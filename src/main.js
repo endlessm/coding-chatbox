@@ -639,6 +639,16 @@ const CodingChatboxMainWindow = new Lang.Class({
     _addItem: function(item, actor, location, style, sentBy) {
         let chatContents = this._contentsForActor(actor);
 
+        // Scroll view to the bottom after the child is added. We only
+        // connect to the signal for this one item, to avoid jumping to the
+        // bottom of the view when 'upper' is notified for other reasons.
+        let scrollView = this.chatbox_stack.get_child_by_name(actor);
+        let vadjustment = scrollView.vadjustment;
+        let notifyId = vadjustment.connect('notify::upper', function() {
+            vadjustment.disconnect(notifyId);
+            vadjustment.set_value(vadjustment.upper - vadjustment.page_size);
+        });
+
         // If we can amend the last message, great.
         // Though I'm not really sure if we want this. "amend" currently
         // means 'amend-or-replace'.
