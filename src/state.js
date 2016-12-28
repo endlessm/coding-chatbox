@@ -8,6 +8,7 @@
 //
 
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 
 const Lang = imports.lang;
@@ -289,6 +290,7 @@ const CodingChatboxConversationState = new Lang.Class({
         this.parent();
         this._conversation = [];
         this._message_factories = message_factories;
+        this._unreadNotificationTimeout = 0;
     },
 
     //
@@ -354,7 +356,40 @@ const CodingChatboxConversationState = new Lang.Class({
         }
 
         return this._conversation[this._conversation.length - 1].location;
-    }
+    },
+
+    //
+    // markAllMessagesAsRead
+    //
+    // Marks all messages as read, thereby disconnecting the signal for
+    // unread messages.
+    markAllMessagesAsRead: function() {
+        if (this._unreadNotificationTimeout) {
+            GLib.source_remove(this._unreadNotificationTimeout);
+            this._unreadNotificationTimeout = 0;
+        }
+    },
+
+    //
+    // performActionIfStillUnreadAfter
+    //
+    // Calls callback if messages on this actor are still unread
+    // after a certain amount of time.
+    performActionIfStillUnreadAfter: function(actor, callback, timeoutSeconds) {
+        // If _unreadNotificationTimeout is set, then just keep the old timeout
+        // on-foot instead of removing it and re-adding it. We want the user
+        // to get the notification timeoutSeconds after the first unread message
+        // arrived.
+        if (this._unreadNotificationTimeout)
+            return;
+
+        this._unreadNotificationTimeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
+                                                                   timeoutSeconds,
+                                                                   Lang.bind(this, function() {
+                                                                       callback();
+                                                                       this._unreadNotificationTimeout = 0;
+                                                                   }));
+    },
 });
 
 //
@@ -394,5 +429,15 @@ const CodingChatboxState = new Lang.Class({
         var amendment_spec = spec;
         amendment_spec.sender = sender;
         return this.conversations[actor].amend_last_message(spec);
+    },
+
+    performActionIfStillUnreadAfter: function(actor, callback, timeoutSeconds) {
+        this.load_conversations_for_actor(actor);
+        this.conversations[actor].performActionIfStillUnreadAfter(callback, timeoutSeconds);
+    },
+
+    markAllMessagesByActorAsRead: function(actor) {
+        this.load_conversations_for_actor(actor);
+        this.conversations[actor].markAllMessagesAsRead();
     }
 });
