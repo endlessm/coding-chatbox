@@ -1,8 +1,8 @@
 {
     "actor_details": [
         {
-            "name": "MEME",
-            "img": "meme.png",
+            "name": "Ada",
+            "img": "ada.png",
             "location": "intro::hook"
         },
         {
@@ -26,7 +26,7 @@
             "location": "intro::hook"
         },
         {
-            "name": "CHANGE",
+            "name": "Marlon",
             "location": "intro::hook"
         }
     ]
