@@ -133,6 +133,7 @@ const ChoiceChatboxMessageView = new Lang.Class({
 
     _init: function(params) {
         params.orientation = Gtk.Orientation.VERTICAL;
+        params.spacing = 16;
 
         this.parent(params);
 
@@ -145,9 +146,8 @@ const ChoiceChatboxMessageView = new Lang.Class({
                 this.emit('clicked', choice.name, choice.label);
             }));
             return button;
-        }));
-        this._buttons.forEach(Lang.bind(this, function(button) {
-            this.pack_end(button, true, true, 10);
+        })).forEach(Lang.bind(this, function(button) {
+            this.add(button);
         }));
     }
 });
