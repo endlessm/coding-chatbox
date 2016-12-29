@@ -1,6 +1,6 @@
 [Desktop Entry]
 Version=1.0
-Name=Coding Chatbox
+Name=ChatBox
 Comment=Chat app
 Type=Application
 Exec=com.endlessm.Coding.Chatbox
