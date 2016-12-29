@@ -375,7 +375,7 @@ const CodingChatboxConversationState = new Lang.Class({
     //
     // Calls callback if messages on this actor are still unread
     // after a certain amount of time.
-    performActionIfStillUnreadAfter: function(actor, callback, timeoutSeconds) {
+    performActionIfStillUnreadAfter: function(timeoutSeconds, callback) {
         // If _unreadNotificationTimeout is set, then just keep the old timeout
         // on-foot instead of removing it and re-adding it. We want the user
         // to get the notification timeoutSeconds after the first unread message
@@ -431,9 +431,9 @@ const CodingChatboxState = new Lang.Class({
         return this.conversations[actor].amend_last_message(spec);
     },
 
-    performActionIfStillUnreadAfter: function(actor, callback, timeoutSeconds) {
+    performActionIfStillUnreadAfter: function(actor, timeoutSeconds, callback) {
         this.load_conversations_for_actor(actor);
-        this.conversations[actor].performActionIfStillUnreadAfter(callback, timeoutSeconds);
+        this.conversations[actor].performActionIfStillUnreadAfter(timeoutSeconds, callback);
     },
 
     markAllMessagesByActorAsRead: function(actor) {
