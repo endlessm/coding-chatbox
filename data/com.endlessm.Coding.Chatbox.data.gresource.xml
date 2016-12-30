@@ -8,7 +8,11 @@
     <file preprocess="xml-stripblanks">main.ui</file>
     <file>application.css</file>
     <file>chatbox-data.json</file>
-    <file>img/ada.png</file>
+    <file>img/Leonhard.png</file>
+    <file>img/Theodor.png</file>
+    <file>img/Kaethe.png</file>
+    <file>img/Heinrich.png</file>
+    <file>img/Marie.png</file>
     <file>img/goog.png</file>
     <file>img/fruit.png</file>
     <file>img/summary-counter.svg</file>
