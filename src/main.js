@@ -559,8 +559,12 @@ const CodingChatboxMainWindow = new Lang.Class({
                     switch (item.type) {
                     case 'chat-user':
                     case 'chat-actor':
+                        let wrapWidth = (item.styles && item.styles.indexOf('code') !== -1) ?
+                            Views.CODE_MAX_WIDTH_CHARS :
+                            Views.MAX_WIDTH_CHARS;
                         let spec = { type: 'scrolled',
-                                     text: item.message };
+                                     text: item.message,
+                                     wrap_width: wrapWidth };
                         this._addItem(spec, actor.name, 'none::none', item.styles, false,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER);
