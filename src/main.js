@@ -497,7 +497,8 @@ const CodingChatboxChatScrollView = new Lang.Class({
 
     _init: function(chatContents) {
         this.parent({ visible: true,
-                      width_request: 500 });
+                      width_request: 500,
+                      max_content_width: 750 });
 
         this.chatContents = chatContents;
         this.add(chatContents);
@@ -753,8 +754,11 @@ const CodingChatboxMainWindow = new Lang.Class({
 
     chatMessage: function(actor, message, location, style) {
         let visible = this._actorIsVisible(actor);
+        let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
+                                                       Views.MAX_WIDTH_CHARS;
         let item = { type: 'scrolled',
-                     text: message };
+                     text: message,
+                     wrap_width: wrapWidth };
         this._addItem(item, actor, location, style, !visible, State.SentBy.ACTOR);
         this._notifyItem(item, actor, !visible);
     },

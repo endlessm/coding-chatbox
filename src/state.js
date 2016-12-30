@@ -77,12 +77,21 @@ const TextChatboxMessage = new Lang.Class({
                                 '',
                                 '',
                                 GObject.ParamFlags.READABLE,
-                                '')
+                                ''),
+        wrap_width: GObject.ParamSpec.int('wrap-width',
+                                          '',
+                                          '',
+                                          1,
+                                          -1,
+                                          30,
+                                          GObject.ParamFlags.READABLE |
+                                          GObject.ParamFlags.CONSTRUCT)
     },
 
     _init: function(params, spec) {
         this.parent(params);
         this.text = spec.text;
+        this.wrap_width = spec.wrap_width;
     },
 
     amend: function(spec) {
