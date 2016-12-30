@@ -13,6 +13,8 @@ const GObject = imports.gi.GObject;
 
 const Lang = imports.lang;
 
+const INT32_MAX = (2147483647);
+
 const CodingChatboxMessage = new Lang.Interface({
     Name: 'CodingChatboxMessage',
     GTypeName: 'CodingChatboxMessageType',
@@ -81,11 +83,11 @@ const TextChatboxMessage = new Lang.Class({
         wrap_width: GObject.ParamSpec.int('wrap-width',
                                           '',
                                           '',
-                                          1,
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
                                           -1,
-                                          30,
-                                          GObject.ParamFlags.READABLE |
-                                          GObject.ParamFlags.CONSTRUCT)
+                                          INT32_MAX,
+                                          30)
     },
 
     _init: function(params, spec) {
