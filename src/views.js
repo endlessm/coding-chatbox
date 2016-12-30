@@ -213,6 +213,21 @@ function getPreviewForFile(path, thumbnailFactory) {
     }
 
     let contentType = info.get_content_type();
+    if (Gio.content_type_is_a(contentType, 'application/x-desktop')) {
+        let appInfo = Gio.DesktopAppInfo.new_from_filename(path.get_path());
+        let icon = null;
+        if (appInfo)
+            icon = appInfo.get_icon();
+
+        if (!icon)
+            icon = Gio.Icon.new_for_string('application-x-executable');
+
+        return {
+            thumbnail: null,
+            icon: icon
+        };
+    }
+
     let mimeType = Gio.content_type_get_mime_type(contentType);
     let mtime = info.get_modification_time();
     let uri = path.get_uri();
