@@ -283,10 +283,9 @@ const AttachmentChatboxMessageView = new Lang.Class({
                                         State.AttachmentChatboxMessage)
     },
 
-    _init: function(params, styles) {
+    _init: function(params) {
         this.parent(params);
 
-        applyStyles(this, styles);
         this.attachment_name.label = this.state.path.get_basename();
         this.attachment_desc.label = this.state.desc;
 
