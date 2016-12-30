@@ -542,7 +542,7 @@ const CodingChatboxMainWindow = new Lang.Class({
     _init: function(params) {
         // Force the title of the window to be Coding Chatbox here so that it
         // doesn't get overridden as 'Current Page' later.
-        params.title = _('Coding Chatbox');
+        params.title = _('ChatBox');
         this.parent(params);
 
         this._state = new State.CodingChatboxState(MessageClasses);
@@ -799,7 +799,7 @@ const CodingChatboxApplication = new Lang.Class({
         this._mainWindow = null;
 
         this.parent({ application_id: pkg.name });
-        GLib.set_application_name(_("Coding Chatbox"));
+        GLib.set_application_name(_("ChatBox"));
 
         let chatWithAction = new Gio.SimpleAction({ name: CHAT_WITH_ACTION,
                                                     parameter_type: new GLib.VariantType('s') });
