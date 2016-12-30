@@ -799,7 +799,7 @@ const CodingChatboxApplication = new Lang.Class({
         this._mainWindow = null;
 
         this.parent({ application_id: pkg.name });
-        GLib.set_application_name(_("Coding Chatbox"));
+        GLib.set_application_name(_("ChatBox"));
 
         let chatWithAction = new Gio.SimpleAction({ name: CHAT_WITH_ACTION,
                                                     parameter_type: new GLib.VariantType('s') });
