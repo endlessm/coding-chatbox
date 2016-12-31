@@ -748,10 +748,13 @@ const CodingChatboxMainWindow = new Lang.Class({
             return;
         }
 
-        row.snippet = body;
+        // Strip newlines from body to work around
+        // https://bugzilla.gnome.org/show_bug.cgi?id=776645
+        let stripped = body.replace('\n', ' ');
+        row.snippet = stripped;
 
         if (isNew) {
-            this.application.showNotification(title, body, row.avatar, actor);
+            this.application.showNotification(title, stripped, row.avatar, actor);
             row.highlight = true;
         }
     },
