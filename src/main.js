@@ -750,7 +750,7 @@ const CodingChatboxMainWindow = new Lang.Class({
 
         // Strip newlines from body to work around
         // https://bugzilla.gnome.org/show_bug.cgi?id=776645
-        let stripped = body.replace('\n', ' ');
+        let stripped = body.split('\n').join(' ');
         row.snippet = stripped;
 
         if (isNew) {
