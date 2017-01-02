@@ -49,7 +49,8 @@ const Thumbnailer = (function() {
 //
 // Strip pango markup from text
 function stripMarkup(text) {
-    return Pango.parse_markup(text, -1, '')[2];
+    let escaped = GLib.markup_escape_text(text, -1);
+    return Pango.parse_markup(escaped, -1, '')[2];
 }
 
 const ChatboxMessageView = new Lang.Interface({
