@@ -10,8 +10,9 @@
         <property name="hexpand">True</property>
         <child>
           <object class="GtkBox">
-            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="visible">True</property>
+            <property name="orientation">vertical</property>
             <child>
               <object class="GtkImage" id="attachment-icon">
                 <property name="width-request">64</property>
