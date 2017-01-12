@@ -32,17 +32,76 @@ image.contact-default-image {
     background-color: #5a5b5e;
 }
 
-.chatbox-bubble.by-user {
+.by-user .chatbox-bubble {
     background-color: #3b9fde;
     text-shadow: 1px 1px alpha(black, 0.6);
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 5px;
 }
 
-.chatbox-bubble.by-user:backdrop {
+.by-user .chatbox-bubble:backdrop {
     background-color: #2595da;
     text-shadow: none;
 }
 
-.chatbox-bubble.code {
+.by-user .chatbox-bubble text {
+    background-color: #3b9fde;
+}
+
+.by-user .chatbox-bubble text:backdrop {
+    background-color: #2595da;
+}
+
+.by-user.code .chatbox-bubble:backdrop {
+    background-color: #fff;
+    text-shadow: none;
+}
+
+.by-user .bubble-right-flair {
+    border-top: 10px solid #2595da;
+    border-right: 20px solid transparent;
+}
+
+.by-user.code .bubble-right-flair {
+    border-top: 10px solid #fff;
+}
+
+.by-user .bubble-right-flair:backdrop {
+  border-top: 10px solid #2595da;
+}
+
+.by-user.code .bubble-right-flair:backdrop {
+    border-top: 10px solid #fff;
+}
+
+.bubble-left-flair {
+    border-top: 10px solid #737478;
+    border-left: 20px solid transparent;
+}
+
+.code .bubble-left-flair {
+    border-top: 10px solid #fff;
+}
+
+.bubble-left-flair:backdrop {
+  border-top: 10px solid #5a5b5e;
+}
+
+.code .bubble-left-flair:backdrop {
+    border-top: 10px solid #fff;
+}
+
+.by-user .bubble-left-flair {
+    border-top: 0px solid transparent;
+    border-left: 0px solid transparent;
+}
+
+.by-user.code .bubble-left-flair {
+    border-top: 0px solid transparent;
+    border-left: 0px solid transparent;
+}
+
+.code .chatbox-bubble {
     background-color: #ffffff;
     font-family: monospace;
     text-shadow: none;
@@ -50,11 +109,11 @@ image.contact-default-image {
     font-size: 10pt;
 }
 
-.chatbox-bubble.code:backdrop {
+.code .chatbox-bubble:backdrop {
     background-color: #ffffff;
 }
 
-.chatbox-bubble.code text {
+.code .chatbox-bubble text {
     background-color: #ffffff;
     color: #000000;
 }
@@ -71,20 +130,12 @@ image.contact-default-image {
     background-color: #5a5b5e;
 }
 
-.chatbox-bubble.code:backdrop {
-    background-color: #ffffff;
-}
-
 .chatbox-bubble.message-pending {
     background-color: #737478;
 }
 
 .chatbox-bubble.message-pending:backdrop {
     background-color: #5a5b5e;
-}
-
-.chatbox-bubble.code:backdrop {
-    background-color: #ffffff;
 }
 
 .contact-item .contact-message-preview {
