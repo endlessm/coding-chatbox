@@ -85,7 +85,7 @@ function applyStyles(widget, styles) {
 
 const TextChatboxMessageView = new Lang.Class({
     Name: 'TextChatboxMessageView',
-    Extends: Gtk.TextView,
+    Extends: Gtk.Label,
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
@@ -97,18 +97,15 @@ const TextChatboxMessageView = new Lang.Class({
     },
 
     _init: function(params) {
-        this._textBuffer = new Gtk.TextBuffer();
-        params.buffer = this._textBuffer;
-        params.editable = false;
-        params.wrap_mode = Gtk.WrapMode.WORD;
-        params.expand = true;
-        params.width_request = 250;
-        params.cursor_visible = false;
+        params.wrap = true;
+        params.max_width_chars = params.state.wrap_width;
+        params.use_markup = true;
+        params.selectable = true;
         this.parent(params);
 
-        this._textBuffer.insert_markup(this._textBuffer.get_start_iter(),
-                                       this.state.text,
-                                       -1);
+        this.state.bind_property('text', this, 'label',
+                                 GObject.BindingFlags.DEFAULT |
+                                 GObject.BindingFlags.SYNC_CREATE);
     },
 
     copyToClipboard: function() {
