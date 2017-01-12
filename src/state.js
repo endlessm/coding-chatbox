@@ -80,21 +80,21 @@ const TextChatboxMessage = new Lang.Class({
                                 '',
                                 GObject.ParamFlags.READABLE,
                                 ''),
-        width_request: GObject.ParamSpec.int('width-request',
-                                             '',
-                                             '',
-                                             GObject.ParamFlags.READWRITE |
-                                             GObject.ParamFlags.CONSTRUCT_ONLY,
-                                             -1,
-                                             INT32_MAX,
-                                             250)
+        wrap_width: GObject.ParamSpec.int('wrap-width',
+                                          '',
+                                          '',
+                                          GObject.ParamFlags.READWRITE |
+                                          GObject.ParamFlags.CONSTRUCT_ONLY,
+                                          -1,
+                                          INT32_MAX,
+                                          30)
     },
 
     _init: function(params, spec) {
         this.parent(params);
         this.text = spec.text;
-        if (spec.width_request)
-            this.width_request = spec.width_request;
+        if (spec.wrap_width)
+            this.wrap_width = spec.wrap_width;
     },
 
     amend: function(spec) {
