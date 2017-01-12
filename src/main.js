@@ -376,6 +376,7 @@ function new_message_view_for_state(container,
     let renderRealContent = function() {
         onVisible();
         view_container.content = view;
+        Views.removeStyles(view_container, ['message-pending']);
         container.connect('message-changed', function() {
             view_container.content = container.render_view(responseFunc);
         });
@@ -388,7 +389,7 @@ function new_message_view_for_state(container,
         visible: view.visible,
         content: pending,
         by_user: (container.sender == State.SentBy.USER)
-    }, styles, function() {
+    }, timeout ? styles.concat('message-pending') : styles, function() {
         // Re-render the view in case something changes
         if (timeout > 0) {
             GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,

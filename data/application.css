@@ -38,6 +38,14 @@ image.contact-default-image {
     color: #ccc;
 }
 
+.chatbox-bubble.message-pending {
+    background-color: #737478;
+}
+
+.chatbox-bubble.message-pending:backdrop {
+    background-color: #5a5b5e;
+}
+
 .contact-item .contact-message-preview {
     font-weight: 300; /* light */
 }

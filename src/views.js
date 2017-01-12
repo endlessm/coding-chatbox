@@ -81,6 +81,18 @@ function applyStyles(widget, styles) {
     }
 }
 
+// removeStyles
+//
+// Remove all styles from a widget.
+function removeStyles(widget, styles) {
+    if (styles) {
+        let context = widget.get_style_context();
+        styles.forEach(function(style) {
+            context.remove_class(style);
+        });
+    }
+}
+
 const TextChatboxMessageView = new Lang.Class({
     Name: 'TextChatboxMessageView',
     Extends: Gtk.Label,
