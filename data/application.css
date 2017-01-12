@@ -33,14 +33,13 @@ image.contact-default-image {
 }
 
 .by-user .chatbox-bubble {
-    background-color: #3b9fde;
-    text-shadow: 1px 1px alpha(black, 0.6);
+    background-color: #1c2b31;
     border-bottom-right-radius: 0px;
     border-bottom-left-radius: 5px;
 }
 
 .by-user .chatbox-bubble:backdrop {
-    background-color: #2595da;
+    background-color: #0f171a;
     text-shadow: none;
 }
 
@@ -58,7 +57,7 @@ image.contact-default-image {
 }
 
 .by-user .bubble-right-flair {
-    border-top: 10px solid #2595da;
+    border-top: 10px solid #1c2b31;
     border-right: 20px solid transparent;
 }
 
@@ -67,7 +66,7 @@ image.contact-default-image {
 }
 
 .by-user .bubble-right-flair:backdrop {
-  border-top: 10px solid #2595da;
+  border-top: 10px solid #0f171a;
 }
 
 .by-user.code .bubble-right-flair:backdrop {
