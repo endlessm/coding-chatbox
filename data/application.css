@@ -18,16 +18,8 @@ image.contact-default-image {
     background-color: #5a5b5e;
 }
 
-.chatbox-bubble text {
-    background-color: #737478;
-}
-
 .chatbox-bubble:backdrop {
     text-shadow: none;
-    background-color: #5a5b5e;
-}
-
-.chatbox-bubble text:backdrop {
     background-color: #5a5b5e;
 }
 
@@ -59,11 +51,6 @@ image.contact-default-image {
 
 .chatbox-bubble.code:backdrop {
     background-color: #ffffff;
-}
-
-.chatbox-bubble.code text {
-    background-color: #ffffff;
-    color: #000000;
 }
 
 .chatbox-bubble:backdrop {
