@@ -383,9 +383,9 @@ function new_message_view_for_state(container,
     }, styles.concat('message-pending'), function() {
         // Re-render the view in case something changes
         if (timeout > 0) {
-            GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
-                                     timeout,
-                                     renderRealContent);
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT,
+                             timeout,
+                             renderRealContent);
         } else {
             renderRealContent();
         }
@@ -1011,6 +1011,36 @@ function load_style_sheet(resourcePath) {
                                              Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
+// determineWaitTimeForEvent
+//
+// Examines event and determine how long we should wait before
+// running it. This is to make the chatbox interface a little more
+// realistic.
+function determineMessagePendingTime(type, content) {
+    switch (type) {
+        case 'chat-actor':
+            // Simple message. Assume that the average person
+            // types at 200 character per minute - 3 characters
+            // per second and thus 300 milliseconds per character.
+            // We then divide by 2.5 to make things a little quicker.
+            //
+            // This is capped at 1500 to make sure we're not waiting
+            // too long.
+            return Math.min(content.length * 120, 1500);
+        case 'chat-actor-attachment':
+            // Attachment. Fixed 1.5 second delay + character length
+            // of description
+            return 1500 + Math.min(content.desc.length * 60,
+                                   500);
+        case 'input-user':
+            // User input. Fixed 1 second delay
+            return 1000;
+        default:
+            return 0;
+    }
+}
+
+
 const CodingChatboxApplication = new Lang.Class({
     Name: 'CodingChatboxApplication',
     Extends: Gtk.Application,
@@ -1060,7 +1090,12 @@ const CodingChatboxApplication = new Lang.Class({
 
         this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location, styles) {
             if (this._mainWindow) {
-                this._mainWindow.chatMessage(actor, message, location, styles, State.SentBy.ACTOR, 2);
+                this._mainWindow.chatMessage(actor,
+                                             message,
+                                             location,
+                                             styles,
+                                             State.SentBy.ACTOR,
+                                             determineMessagePendingTime('chat-actor', message));
             } else {
                 let title = 'Message from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
@@ -1070,7 +1105,11 @@ const CodingChatboxApplication = new Lang.Class({
 
         this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location, styles) {
             if (this._mainWindow) {
-                this._mainWindow.chatAttachment(actor, attachment, location, styles, 3);
+                this._mainWindow.chatAttachment(actor,
+                                                attachment,
+                                                location,
+                                                styles,
+                                                determineMessagePendingTime('chat-actor-attachment', attachment));
             } else {
                 let title = 'Attachment from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
