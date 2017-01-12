@@ -352,6 +352,8 @@ function new_message_view_for_state(container,
                                     styles,
                                     timeout,
                                     onVisible) {
+    styles = styles ? styles : [];
+
     let responseFunc = function(response) {
         if (response.showmehow_id) {
             // We evaluate the text of the response here in order to get an 'evaluated'
