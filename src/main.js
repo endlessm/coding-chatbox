@@ -387,7 +387,7 @@ function new_message_view_for_state(container,
         // itself is visible. The assumption here is that the visibility
         // state never changes between renders.
         visible: view.visible,
-        content: pending,
+        content: timeout ? pending : view,
         by_user: (container.sender == State.SentBy.USER)
     }, timeout ? styles.concat('message-pending') : styles, function() {
         // Re-render the view in case something changes
