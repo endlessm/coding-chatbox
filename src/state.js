@@ -343,7 +343,7 @@ const CodingChatboxConversationState = new Lang.Class({
             sender: SentBy.USER,
             location: location,
             message: new this._message_factories[spec.type]({}, spec)
-        });
+        }, this._message_factories);
         return this._userInput;
     },
 
