@@ -9,7 +9,8 @@ image.contact-default-image {
 
 .chatbox-bubble {
     background-color: #737478;
-    border-radius: 20px;
+    border-radius: 5px;
+    border-bottom-left-radius: 0px;
     text-shadow: 1px -1px alpha(black, 0.4);
 }
 
