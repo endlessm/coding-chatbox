@@ -19,46 +19,42 @@ image.contact-default-image {
     background-color: #5a5b5e;
 }
 
-.chatbox-bubble:backdrop {
-    text-shadow: none;
-    background-color: #5a5b5e;
-}
-
-.chatbox-bubble text:backdrop {
-    background-color: #5a5b5e;
-}
-
 .by-user .chatbox-bubble {
-    background-color: #1c2b31;
+    background-color: #343736;
     border-bottom-right-radius: 0px;
     border-bottom-left-radius: 5px;
+    text-shadow: 1px 1px alpha(black, 0.6);
 }
 
 .by-user .chatbox-bubble:backdrop {
-    background-color: #0f171a;
+    background-color: #2a2d2c;
     text-shadow: none;
 }
 
+.by-user.code .chatbox-bubble {
+    background-color: #343736;
+}
+
 .by-user.code .chatbox-bubble:backdrop {
-    background-color: #fff;
+    background-color: #2a2d2c;
     text-shadow: none;
 }
 
 .by-user .bubble-right-flair {
-    border-top: 10px solid #1c2b31;
+    border-top: 10px solid #343736;
     border-right: 20px solid transparent;
 }
 
 .by-user.code .bubble-right-flair {
-    border-top: 10px solid #fff;
+    border-top: 10px solid #2a2d2c;
 }
 
 .by-user .bubble-right-flair:backdrop {
-  border-top: 10px solid #0f171a;
+  border-top: 10px solid #2a2d2c;
 }
 
 .by-user.code .bubble-right-flair:backdrop {
-    border-top: 10px solid #fff;
+    border-top: 10px solid #2a2d2c;
 }
 
 .bubble-left-flair {
@@ -67,7 +63,7 @@ image.contact-default-image {
 }
 
 .code .bubble-left-flair {
-    border-top: 10px solid #fff;
+    border-top: 10px solid #1c2b31;
 }
 
 .bubble-left-flair:backdrop {
@@ -75,7 +71,7 @@ image.contact-default-image {
 }
 
 .code .bubble-left-flair:backdrop {
-    border-top: 10px solid #fff;
+    border-top: 10px solid #162227;
 }
 
 .by-user .bubble-left-flair {
@@ -89,10 +85,10 @@ image.contact-default-image {
 }
 
 .code .chatbox-bubble {
-    background-color: #ffffff;
+    background-color: #1c2b31;
     font-family: monospace;
     text-shadow: none;
-    color: #000000;
+    color: #6ba957;
     font-size: 10pt;
 }
 
@@ -106,6 +102,11 @@ image.contact-default-image {
 
 .chatbox-bubble.message-pending:backdrop {
     background-color: #5a5b5e;
+}
+
+.code .chatbox-bubble:backdrop {
+    background-color: #ffffff;
+    color: #659e51;
 }
 
 .chatbox-bubble.message-pending {
