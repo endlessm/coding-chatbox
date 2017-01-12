@@ -47,9 +47,11 @@ const Thumbnailer = (function() {
 
 // stripMarkup
 //
-// Strip pango markup from text
+// Strip pango markup from text. We also need to strip any embedded
+// links before passing to pango_parse_markup so that the latter does not
+// throw an error
 function stripMarkup(text) {
-    let escaped = GLib.markup_escape_text(text, -1);
+    let escaped = text.replace(/(<\/?\s*a.*?>)/g, '')
     return Pango.parse_markup(escaped, -1, '')[2];
 }
 
