@@ -345,56 +345,24 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 // automatically updates when the underlying state changes.
 //
 function new_message_view_for_state(container,
-                                    content_service,
-                                    game_service,
-                                    main_window,
                                     actor,
                                     styles,
+                                    onResponse,
                                     timeout,
                                     onVisible) {
     styles = styles ? styles : [];
 
     let responseFunc = function(response) {
-        if (response.showmehow_id) {
-            // We evaluate the text of the response here in order to get an 'evaluated'
-            // piece of text to send back to the game service.
-            content_service.evaluate(response.showmehow_id, response.text, function(evaluated) {
-                game_service.respond_to_message(container.location, response.text, evaluated);
-            });
-
-            main_window.chatMessage(actor,
-                                    response.text,
-                                    container.location,
-                                    [],
-                                    State.SentBy.USER,
-                                    0);
-            main_window.hideUserInput(actor);
-        } else if (response.external_event_id) {
-            // Notify that this external event has been triggered
-            game_service.callExternalEvent(response.external_event_id);
-        } else if (response.open_attachment) {
-            // Notify that this external event has been triggered
-            game_service.openAttachment(container.location);
-        } else if (response.evaluate) {
-            // Nothing to evaluate, just send back the pre-determined evaluated response
-            game_service.respond_to_message(container.location, response.text, response.evaluate);
-            main_window.chatMessage(actor,
-                                    response.text,
-                                    container.location,
-                                    [],
-                                    State.SentBy.USER,
-                                    0);
-            main_window.hideUserInput(actor);
-        }
-    };
+        if (onResponse)
+            onResponse(response, actor, container.location);
+    }
 
     let view = container.render_view(responseFunc);
     let pending = new Views.MessagePendingView({ visible: true });
 
     let renderRealContent = function() {
-        if (onVisible) {
+        if (onVisible)
             onVisible();
-        }
 
         /* Update both the content and the styles to reflect that this
          * is now an actual bubble */
@@ -882,11 +850,9 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                       item,
                                                       location);
         chatContents.pushContent(new_message_view_for_state(container,
-                                                            this.service,
-                                                            this.game_service,
-                                                            this,
                                                             actor,
                                                             style,
+                                                            Lang.bind(this, this._handleResponse),
                                                             pendingTime,
                                                             messageBecameVisibleHandler));
 
@@ -912,19 +878,51 @@ const CodingChatboxMainWindow = new Lang.Class({
             });
 
             let view_container = new_message_view_for_state(container,
-                                                        this.service,
-                                                        this.game_service,
-                                                        this,
-                                                        actor,
-                                                        style,
-                                                        0,
-                                                        null);
+                                                            actor,
+                                                            style,
+                                                            Lang.bind(this, this._handleResponse),
+                                                            0,
+                                                            null);
             view_container.showContent();
             inputArea.add(view_container);
             stackChild.scrollToBottomOnUpdate();
             chatContents.showNext();
         }));
         return inputArea;
+    },
+
+    _handleResponse: function(response, actor, location) {
+        if (response.showmehow_id) {
+            // We evaluate the text of the response here in order to get an 'evaluated'
+            // piece of text to send back to the game service.
+            this.service.evaluate(response.showmehow_id, response.text, Lang.bind(this, function(evaluated) {
+                this.game_service.respond_to_message(location, response.text, evaluated);
+            }));
+
+            this.chatMessage(actor,
+                             response.text,
+                             location,
+                             [],
+                             State.SentBy.USER,
+                             0);
+            this.hideUserInput(actor);
+        } else if (response.external_event_id) {
+            // Notify that this external event has been triggered
+            this.game_service.callExternalEvent(response.external_event_id);
+        } else if (response.open_attachment) {
+            // Notify that this external event has been triggered
+            this.game_service.openAttachment(location);
+        } else if (response.evaluate) {
+            // Nothing to evaluate, just send back the pre-determined evaluated response
+            this.game_service.respond_to_message(location, response.text, response.evaluate);
+            this.chatMessage(actor,
+                             response.text,
+                             location,
+                             [],
+                             State.SentBy.USER,
+                             0);
+            this.hideUserInput(actor);
+        }
     },
 
     _notifyItem: function(item, actor, isNew) {
