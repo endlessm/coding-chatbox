@@ -769,7 +769,8 @@ const CodingChatboxMainWindow = new Lang.Class({
         chatContents.get_style_context().add_class('chatbox-chats');
 
         let chatInputArea = new Gtk.Box({
-            visible: true
+            visible: true,
+            expand: false
         });
 
         let chatboxStackChild = new ChatboxStackChild({
