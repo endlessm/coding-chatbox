@@ -142,6 +142,25 @@ image.contact-default-image {
     font-weight: 300; /* light */
 }
 
+row:selected.contact-row {
+    background-color: #49555b;
+    box-shadow: none;
+    outline-style: none;
+}
+
+row:selected:backdrop.contact-row {
+    background-color: #3b454a;
+    box-shadow: none;
+}
+
+.chatbox-contact-list {
+  background-color: #232729;
+}
+
+.chatbox-contact-list:backdrop {
+  background-color: #252a2c;
+}
+
 .new-content {
     font-weight: bold;
 }
