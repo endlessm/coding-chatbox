@@ -533,8 +533,6 @@ const CodingChatboxChatScrollView = new Lang.Class({
                       width_request: 500,
                       expand: true,
                       max_content_width: 750 });
-
-        this.chatContents = chatContents;
         this.add(chatContents);
     }
 });
