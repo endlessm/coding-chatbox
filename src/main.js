@@ -392,9 +392,9 @@ function new_message_view_for_state(container,
         // itself is visible. The assumption here is that the visibility
         // state never changes between renders.
         visible: view.visible,
-        content: timeout ? pending : view,
+        content: pending,
         by_user: (container.sender == State.SentBy.USER)
-    }, timeout ? styles.concat('message-pending') : styles, function() {
+    }, styles.concat('message-pending'), function() {
         // Re-render the view in case something changes
         if (timeout > 0) {
             GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
