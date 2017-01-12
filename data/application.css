@@ -19,10 +19,6 @@ image.contact-default-image {
     background-color: #5a5b5e;
 }
 
-.chatbox-bubble text {
-    background-color: #737478;
-}
-
 .chatbox-bubble:backdrop {
     text-shadow: none;
     background-color: #5a5b5e;
@@ -41,14 +37,6 @@ image.contact-default-image {
 .by-user .chatbox-bubble:backdrop {
     background-color: #0f171a;
     text-shadow: none;
-}
-
-.by-user .chatbox-bubble text {
-    background-color: #3b9fde;
-}
-
-.by-user .chatbox-bubble text:backdrop {
-    background-color: #2595da;
 }
 
 .by-user.code .chatbox-bubble:backdrop {
@@ -106,15 +94,6 @@ image.contact-default-image {
     text-shadow: none;
     color: #000000;
     font-size: 10pt;
-}
-
-.code .chatbox-bubble:backdrop {
-    background-color: #ffffff;
-}
-
-.code .chatbox-bubble text {
-    background-color: #ffffff;
-    color: #000000;
 }
 
 .chatbox-bubble:backdrop {
