@@ -580,6 +580,41 @@ function notificationId(actor) {
     return actor + '-message';
 }
 
+const ChatboxStackChild = new Lang.Class({
+    Name: 'ChatboxStackChild',
+    Extends: Gtk.Box,
+    Properties: {
+        'chat-contents': GObject.ParamSpec.object('chat-contents',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  Gtk.Box),
+        'input-area': GObject.ParamSpec.object('input-area',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT_ONLY,
+                                               Gtk.Box)
+    },
+
+    _init: function(params) {
+        this.parent(params);
+        this._scrollView = new CodingChatboxChatScrollView(this.chat_contents);
+
+        this.pack_start(this._scrollView, true, true, 0);
+        this.pack_start(this.input_area, false, false, 0);
+    },
+
+    scrollToBottomOnUpdate: function() {
+        let vadjustment = this._scrollView.vadjustment;
+        let notifyId = vadjustment.connect('notify::upper', function() {
+            vadjustment.disconnect(notifyId);
+            vadjustment.set_value(vadjustment.upper - vadjustment.page_size);
+        });
+    }
+});
+
 // We'll send a reminder after 20 minutes if the user fails to read a message
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
@@ -709,7 +744,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         // of the chatbox' invariant that an entry in the list box always has
         // a page on the GtkStack and vice versa.
         let row = this._rowForActor(selectedActor);
-        let chatContents = this._contentsForActor(selectedActor);
+        let chatContents = this._contentsForActor(selectedActor).chat_contents;
         let children = chatContents.get_children();
         if (children.length)
             children[children.length - 1].focused();
@@ -725,20 +760,30 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     _contentsForActor: function(actor) {
-        let scrollView = this.chatbox_stack.get_child_by_name(actor);
-        if (scrollView)
-            return scrollView.chatContents;
+        let chatboxStackChild = this.chatbox_stack.get_child_by_name(actor);
+        if (chatboxStackChild)
+            return chatboxStackChild;
 
         let chatContents = new QueueableBox({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
+            valign: Gtk.Align.START
         });
         chatContents.get_style_context().add_class('chatbox-chats');
 
-        scrollView = new CodingChatboxChatScrollView(chatContents);
-        this.chatbox_stack.add_named(scrollView, actor);
+        let chatInputArea = new Gtk.Box({
+            visible: true
+        });
 
-        return chatContents;
+        let chatboxStackChild = new ChatboxStackChild({
+            orientation: Gtk.Orientation.VERTICAL,
+            visible: true,
+            chat_contents: chatContents,
+            input_area: chatInputArea
+        });
+
+        this.chatbox_stack.add_named(chatboxStackChild, actor);
+        return chatboxStackChild;
     },
 
     _rowForActor: function(actor) {
@@ -752,17 +797,13 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     _addItem: function(item, actor, location, style, sentBy, pendingTime, visibleAction) {
-        let chatContents = this._contentsForActor(actor);
+        let chatContents = this._contentsForActor(actor).chat_contents;
 
         // Scroll view to the bottom after the child is added. We only
         // connect to the signal for this one item, to avoid jumping to the
         // bottom of the view when 'upper' is notified for other reasons.
-        let scrollView = this.chatbox_stack.get_child_by_name(actor);
-        let vadjustment = scrollView.vadjustment;
-        let notifyId = vadjustment.connect('notify::upper', function() {
-            vadjustment.disconnect(notifyId);
-            vadjustment.set_value(vadjustment.upper - vadjustment.page_size);
-        });
+        let chatView = this.chatbox_stack.get_child_by_name(actor);
+        chatView.scrollToBottomOnUpdate();
 
         // If we can amend the last message, great.
         // Though I'm not really sure if we want this. "amend" currently
