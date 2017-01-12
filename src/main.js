@@ -838,10 +838,7 @@ const CodingChatboxMainWindow = new Lang.Class({
 
             // Listen for any new changes to the scroll state and scroll
             // to the bottom
-            let notifyId = vadjustment.connect('notify::upper', function() {
-                vadjustment.disconnect(notifyId);
-                vadjustment.set_value(vadjustment.upper - vadjustment.page_size);
-            });
+            chatView.scrollToBottomOnUpdate();
 
             if (visibleAction)
                 visibleAction();
