@@ -868,13 +868,15 @@ const CodingChatboxMainWindow = new Lang.Class({
             child.destroy();
         });
 
-        userInputArea.add(new_message_view_for_state(container,
-                                                     this.service,
-                                                     this.game_service,
-                                                     actor,
-                                                     style,
-                                                     0,
-                                                     null));
+        let view_container = new_message_view_for_state(container,
+                                                    this.service,
+                                                    this.game_service,
+                                                    actor,
+                                                    style,
+                                                    0,
+                                                    null);
+        view_container.showContent();
+        userInputArea.add(view_container);
         return userInputArea;
     },
 
