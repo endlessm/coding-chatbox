@@ -374,7 +374,12 @@ function new_message_view_for_state(container,
     let pending = new Views.MessagePendingView({ visible: true });
 
     let renderRealContent = function() {
-        onVisible();
+        if (onVisible) {
+            onVisible();
+        }
+
+        /* Update both the content and the styles to reflect that this
+         * is now an actual bubble */
         view_container.content = view;
         Views.removeStyles(view_container, ['message-pending']);
         container.connect('message-changed', function() {
