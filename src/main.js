@@ -948,18 +948,13 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
     },
 
-<<<<<<< HEAD
     chatMessage: function(actor, message, location, style, sentBy, pendingTime) {
-=======
-    chatMessage: function(actor, message, location, style) {
         let visible = this._actorIsVisible(actor);
->>>>>>> dcd9d1c... Revert "views: Use a different width-request for code and normal bubbles"
         let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
                                                        Views.MAX_WIDTH_CHARS;
         let item = { type: 'scrolled',
                      text: message,
                      wrap_width: wrapWidth };
-<<<<<<< HEAD
         this._addItem(item,
                       actor,
                       location,
@@ -967,12 +962,8 @@ const CodingChatboxMainWindow = new Lang.Class({
                       sentBy,
                       pendingTime,
                       Lang.bind(this, function() {
-                          this._notifyItem(item, actor, !this._actorIsVisible(actor));
+                          this._notifyItem(item, actor, visible);
                       }));
-=======
-        this._addItem(item, actor, location, style, !visible, State.SentBy.ACTOR);
-        this._notifyItem(item, actor, !visible);
->>>>>>> dcd9d1c... Revert "views: Use a different width-request for code and normal bubbles"
     },
 
     chatAttachment: function(actor, attachment, location, style, pendingTime) {
