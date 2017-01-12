@@ -703,13 +703,10 @@ const CodingChatboxMainWindow = new Lang.Class({
                     history[history.length - 1].input) {
                     let lastMessage = history[history.length - 1];
 
-                    this._addItem(lastMessage.input,
-                                  lastMessage.actor,
-                                  lastMessage.name,
-                                  lastMessage.styles,
-                                  State.SentBy.USER,
-                                  0,
-                                  null);
+                    this._replaceUserInput(lastMessage.input,
+                                           lastMessage.actor,
+                                           lastMessage.styles,
+                                           lastMessage.name);
                 }
             }));
 
@@ -862,6 +859,24 @@ const CodingChatboxMainWindow = new Lang.Class({
         return container;
     },
 
+    _replaceUserInput: function(item, actor, style, location) {
+        let userInputArea = this._contentsForActor(actor).input_area;
+
+        let container = this._state.replaceUserInputWithForActor(actor, item, location);
+        userInputArea.get_children().forEach(function(child) {
+            child.destroy();
+        });
+
+        userInputArea.add(new_message_view_for_state(container,
+                                                     this.service,
+                                                     this.game_service,
+                                                     actor,
+                                                     style,
+                                                     0,
+                                                     null));
+        return userInputArea;
+    },
+
     _notifyItem: function(item, actor, isNew) {
         let body, title;
 
@@ -929,15 +944,7 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     chatUserInput: function(actor, spec, location, style, pendingTime) {
-        this._addItem(spec,
-                      actor,
-                      location,
-                      style,
-                      State.SentBy.USER,
-                      pendingTime,
-                      Lang.bind(this, function() {
-                          this._notifyItem(spec, actor, !this._actorIsVisible(actor));
-                      }));
+        this._replaceUserInput(spec, actor, style, location);
     },
 
     switchToChatWith: function(actor) {
