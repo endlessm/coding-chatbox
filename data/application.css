@@ -19,6 +19,19 @@ image.contact-default-image {
     background-color: #5a5b5e;
 }
 
+.code .chatbox-bubble {
+    background-color: #1c2b31;
+    font-family: monospace;
+    text-shadow: none;
+    color: #6ba957;
+    font-size: 10pt;
+}
+
+.code .chatbox-bubble:backdrop {
+    background-color: #162227;
+    color: #659e51;
+}
+
 .by-user .chatbox-bubble {
     background-color: #343736;
     border-bottom-right-radius: 0px;
@@ -36,6 +49,24 @@ image.contact-default-image {
 }
 
 .by-user.code .chatbox-bubble:backdrop {
+    background-color: #2a2d2c;
+    text-shadow: none;
+}
+
+.input-bubble-container .chatbox-bubble {
+    border-bottom-left-radius: 5px;
+    text-shadow: 1px 1px alpha(black, 0.6);
+}
+
+.input-bubble-container .chatbox-bubble:backdrop {
+    text-shadow: none;
+}
+
+.input-bubble-container.code .chatbox-bubble {
+    background-color: #343736;
+}
+
+.input-bubble-container.code .chatbox-bubble:backdrop {
     background-color: #2a2d2c;
     text-shadow: none;
 }
@@ -62,12 +93,12 @@ image.contact-default-image {
     border-left: 20px solid transparent;
 }
 
-.code .bubble-left-flair {
-    border-top: 10px solid #1c2b31;
-}
-
 .bubble-left-flair:backdrop {
   border-top: 10px solid #5a5b5e;
+}
+
+.code .bubble-left-flair {
+    border-top: 10px solid #1c2b31;
 }
 
 .code .bubble-left-flair:backdrop {
@@ -89,56 +120,8 @@ image.contact-default-image {
     border-left: 0px solid transparent;
 }
 
-.input-bubble-container .chatbox-bubble {
-    border-bottom-left-radius: 5px;
-    background-color: #343736;
-    text-shadow: 1px 1px alpha(black, 0.6);
-}
-
-.input-bubble-container .chatbox-bubble:backdrop {
-    background-color: #2a2d2c;
-    text-shadow: none;
-}
-
-.input-bubble-container.code .chatbox-bubble {
-    background-color: #343736;
-}
-
-.input-bubble-container.code .chatbox-bubble:backdrop {
-    background-color: #2a2d2c;
-}
-
-.code .chatbox-bubble {
-    background-color: #1c2b31;
-    font-family: monospace;
-    text-shadow: none;
-    color: #6ba957;
-    font-size: 10pt;
-}
-
-.chatbox-bubble:backdrop {
-    text-shadow: none;
-}
-
-.chatbox-bubble.message-pending {
-    background-color: #737478;
-}
-
-.chatbox-bubble.message-pending:backdrop {
-    background-color: #5a5b5e;
-}
-
-.code .chatbox-bubble:backdrop {
-    background-color: #2a2d2c;
-    color: #659e51;
-}
-
-.chatbox-bubble.message-pending {
-    background-color: #737478;
-}
-
-.chatbox-bubble.message-pending:backdrop {
-    background-color: #5a5b5e;
+.input-bubble-container.code .bubble-left-flair {
+    border-top: 0px solid transparent;
 }
 
 .chatbox-input-area {
