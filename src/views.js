@@ -151,6 +151,7 @@ const ChoiceChatboxMessageView = new Lang.Class({
     _init: function(params) {
         params.orientation = Gtk.Orientation.VERTICAL;
         params.expand = true;
+        params.halign = Gtk.Align.CENTER;
 
         this.parent(params);
 
