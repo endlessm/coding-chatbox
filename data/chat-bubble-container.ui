@@ -31,12 +31,14 @@
         <child>
           <object class="GtkBox" id="bubble">
             <property name="visible">true</property>
+            <property name="hexpand">true</property>
             <style>
               <class name="chatbox-bubble"/>
             </style>
             <child>
               <object class="GtkEventBox" id="event-box">
                 <property name="visible">true</property>
+                <property name="hexpand">true</property>
                 <child>
                   <object class="GtkBox" id="inner-box">
                     <property name="width_request">250</property>
