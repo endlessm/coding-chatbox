@@ -211,7 +211,8 @@ const InputChatboxMessageView = new Lang.Class({
         this._button = new Gtk.Button({
             visible: true,
             label: 'Send',
-            halign: Gtk.Align.END
+            halign: Gtk.Align.END,
+            valign: Gtk.Align.CENTER
         });
         this.pack_start(this._button, false, false, 0);
         this._button.connect('clicked', Lang.bind(this, function() {
