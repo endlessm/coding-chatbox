@@ -175,9 +175,13 @@ const ChoiceChatboxMessageView = new Lang.Class({
 
         this._buttons = this.state.choices.map(Lang.bind(this, function(choice) {
             let button = new Gtk.Button({
-                visible: true,
-                label: choice.label
+                visible: true
             });
+            button.add(new Gtk.Label({
+                visible: true,
+                label: choice.label,
+                use_markup: true
+            }));
             button.connect('clicked', Lang.bind(this, function() {
                 this.emit('clicked', choice.name, choice.label);
             }));
