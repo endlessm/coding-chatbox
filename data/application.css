@@ -97,6 +97,11 @@ image.contact-default-image {
   color: #659e51;
 }
 
+.input-hint {
+  color: #979797;
+  text-shadow: none;
+}
+
 .by-user .bubble-right-flair {
     border-top: 10px solid #343736;
     border-right: 20px solid transparent;

@@ -161,6 +161,7 @@ const ChoiceChatboxMessageView = new Lang.Class({
             visible: true,
             label: 'What do you think?'
         });
+        this._label.get_style_context().add_class('input-hint');
         this.pack_start(this._label, true, true, 18);
 
         this._buttonsBox = new Gtk.Box({
