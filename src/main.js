@@ -260,7 +260,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     Name: 'CodingChatboxChatBubbleContainer',
     Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/Coding/Chatbox/chat-bubble-container.ui',
-    Children: ['inner-box', 'event-box'],
+    Children: ['inner-box', 'event-box', 'user-image-container'],
     Properties: {
         'content': GObject.ParamSpec.object('content',
                                             '',
@@ -274,7 +274,13 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         State.SentBy.USER,
                                         State.SentBy.INPUT,
-                                        State.SentBy.USER)
+                                        State.SentBy.USER),
+        'display-image': GObject.ParamSpec.object('display-image',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  GdkPixbuf.Pixbuf)
     },
 
     _init: function(params, styles, showContentHandler) {
@@ -290,6 +296,16 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
         switch (params.sender) {
             case State.SentBy.ACTOR:
                 [margin_prop, halign, containerStyle] = ['margin-start', Gtk.Align.START, 'by-actor'];
+
+                // Add the user's icon to the left hand side of the box
+                // as well
+                this.user_image_container.pack_start(new RoundedImage({
+                    visible: true,
+                    pixbuf: this.display_image.scale_simple(18,
+                                                            18,
+                                                            GdkPixbuf.InterpType.BILINEAR),
+                    halign: Gtk.Align.CENTER,
+                }), true, true, 0);
                 break;
             case State.SentBy.USER:
                 [margin_prop, halign, containerStyle] = ['margin-end', Gtk.Align.END, 'by-user'];
@@ -360,7 +376,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 // automatically updates when the underlying state changes.
 //
 function new_message_view_for_state(container,
-                                    actor,
+                                    actorObj,
                                     styles,
                                     onResponse,
                                     timeout,
@@ -369,7 +385,7 @@ function new_message_view_for_state(container,
 
     let responseFunc = function(response) {
         if (onResponse)
-            onResponse(response, actor, container.location);
+            onResponse(response, actorObj.name, container.location);
     }
 
     let view = container.render_view(responseFunc);
@@ -395,7 +411,8 @@ function new_message_view_for_state(container,
         visible: view.visible,
         content: pending,
         sender: container.sender,
-        expand: true
+        expand: true,
+        display_image: actorObj.avatar
     }, styles.concat('message-pending'), function() {
         // Re-render the view in case something changes
         if (timeout > 0) {
@@ -861,7 +878,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                       item,
                                                       location);
         chatContents.pushContent(new_message_view_for_state(container,
-                                                            actor,
+                                                            this.actor_model.getByName(actor),
                                                             style,
                                                             Lang.bind(this, this._handleResponse, style),
                                                             pendingTime,
@@ -889,7 +906,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             });
 
             let view_container = new_message_view_for_state(container,
-                                                            actor,
+                                                            this.actor_model.getByName(actor),
                                                             style,
                                                             Lang.bind(this, this._handleResponse, style),
                                                             0,
