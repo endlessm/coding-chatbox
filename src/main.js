@@ -202,7 +202,6 @@ const CodingChatboxContactListItem = new Lang.Class({
         this.parent(params);
 
         this.contact_name_label.set_text(this.actor.name);
-        this._contact_image_pixbuf = null;
         this._contact_image_widget = new RoundedImage({ visible: true,
                                                         margin: 8 });
 
