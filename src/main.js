@@ -846,7 +846,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         chatContents.pushContent(new_message_view_for_state(container,
                                                             actor,
                                                             style,
-                                                            Lang.bind(this, this._handleResponse),
+                                                            Lang.bind(this, this._handleResponse, style),
                                                             pendingTime,
                                                             messageBecameVisibleHandler));
 
@@ -874,7 +874,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             let view_container = new_message_view_for_state(container,
                                                             actor,
                                                             style,
-                                                            Lang.bind(this, this._handleResponse),
+                                                            Lang.bind(this, this._handleResponse, style),
                                                             0,
                                                             null);
             view_container.showContent();
@@ -885,7 +885,10 @@ const CodingChatboxMainWindow = new Lang.Class({
         return inputArea;
     },
 
-    _handleResponse: function(response, actor, location) {
+    // style is the first argument here since it needs to be passed
+    // in by _replaceUserInput and _addItem so that we know
+    // what style of bubble to create later if we need to create any.
+    _handleResponse: function(response, actor, location, style) {
         if (response.showmehow_id) {
             // We evaluate the text of the response here in order to get an 'evaluated'
             // piece of text to send back to the game service.
@@ -896,7 +899,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             this.chatMessage(actor,
                              response.text,
                              location,
-                             [],
+                             style,
                              State.SentBy.USER,
                              0);
             this.hideUserInput(actor);
@@ -912,7 +915,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             this.chatMessage(actor,
                              response.text,
                              location,
-                             [],
+                             style,
                              State.SentBy.USER,
                              0);
             this.hideUserInput(actor);
