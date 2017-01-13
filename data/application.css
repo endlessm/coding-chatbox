@@ -54,11 +54,13 @@ image.contact-default-image {
 }
 
 .input-bubble-container .chatbox-bubble {
+    background-color: #343736;
     border-bottom-left-radius: 5px;
     text-shadow: 1px 1px alpha(black, 0.6);
 }
 
 .input-bubble-container .chatbox-bubble:backdrop {
+    background-color: #2a2d2c;
     text-shadow: none;
 }
 
