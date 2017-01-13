@@ -889,6 +889,8 @@ const CodingChatboxMainWindow = new Lang.Class({
     // in by _replaceUserInput and _addItem so that we know
     // what style of bubble to create later if we need to create any.
     _handleResponse: function(response, actor, location, style) {
+        style = style ? style : [];
+
         if (response.showmehow_id) {
             // We evaluate the text of the response here in order to get an 'evaluated'
             // piece of text to send back to the game service.
