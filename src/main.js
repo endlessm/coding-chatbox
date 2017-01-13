@@ -878,7 +878,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                             0,
                                                             null);
             view_container.showContent();
-            inputArea.add(view_container);
+            inputArea.pack_end(view_container, true, true, 0);
             stackChild.scrollToBottomOnUpdate();
             chatContents.showNext();
         }));
