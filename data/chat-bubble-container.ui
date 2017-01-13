@@ -8,7 +8,6 @@
         <property name="visible">true</property>
         <child>
           <object class="GtkBox" id="bubble-detail-left">
-            <property name="visible">true</property>
             <property name="orientation">vertical</property>
             <child>
               <object class="GtkBox" id="user-image-container">
@@ -67,7 +66,6 @@
         </child>
         <child>
           <object class="GtkBox" id="bubble-detail-right">
-            <property name="visible">true</property>
             <property name="orientation">vertical</property>
             <child>
               <object class="GtkBox">

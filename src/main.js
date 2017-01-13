@@ -259,7 +259,13 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     Name: 'CodingChatboxChatBubbleContainer',
     Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/Coding/Chatbox/chat-bubble-container.ui',
-    Children: ['inner-box', 'event-box', 'user-image-container'],
+    Children: [
+        'inner-box',
+        'event-box',
+        'user-image-container',
+        'bubble-detail-left',
+        'bubble-detail-right'
+    ],
     Properties: {
         'content': GObject.ParamSpec.object('content',
                                             '',
@@ -305,9 +311,11 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
                                                             GdkPixbuf.InterpType.BILINEAR),
                     halign: Gtk.Align.CENTER,
                 }), true, true, 0);
+                this.bubble_detail_left.visible = true;
                 break;
             case State.SentBy.USER:
                 [margin_prop, halign, containerStyle] = ['margin-end', Gtk.Align.END, 'by-user'];
+                this.bubble_detail_right.visible = true;
                 break;
             case State.SentBy.INPUT:
                 [margin_prop, halign, containerStyle] = [null, Gtk.Align.FILL, 'input-bubble-container'];

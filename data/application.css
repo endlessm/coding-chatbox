@@ -107,25 +107,6 @@ image.contact-default-image {
     border-top: 10px solid #162227;
 }
 
-.by-user .bubble-left-flair {
-    border-top: 0px solid transparent;
-    border-left: 0px solid transparent;
-}
-
-.by-user.code .bubble-left-flair {
-    border-top: 0px solid transparent;
-    border-left: 0px solid transparent;
-}
-
-.input-bubble-container .bubble-left-flair {
-    border-top: 0px solid transparent;
-    border-left: 0px solid transparent;
-}
-
-.input-bubble-container.code .bubble-left-flair {
-    border-top: 0px solid transparent;
-}
-
 .chatbox-input-area {
   box-shadow: 3px 1px 5px 5px #2a2d2d;
 }
