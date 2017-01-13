@@ -52,7 +52,8 @@ const CodingChatboxMessage = new Lang.Interface({
 
 const SentBy = {
     USER: 0,
-    ACTOR: 1
+    ACTOR: 1,
+    INPUT: 2
 };
 
 const AmendmentResult = {
@@ -207,7 +208,7 @@ const CodingChatboxMessageContainer = new Lang.Class({
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         SentBy.USER,
-                                        SentBy.ACTOR,
+                                        SentBy.INPUT,
                                         SentBy.USER)
     },
     Signals: {
@@ -340,7 +341,7 @@ const CodingChatboxConversationState = new Lang.Class({
     //
     replaceUserInputWith: function(spec, location) {
         this._userInput = new CodingChatboxMessageContainer({
-            sender: SentBy.USER,
+            sender: SentBy.INPUT,
             location: location,
             message: new this._message_factories[spec.type]({}, spec)
         }, this._message_factories);

@@ -267,12 +267,14 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
                                             '',
                                             GObject.ParamFlags.READWRITE,
                                             Gtk.Widget),
-        'by-user': GObject.ParamSpec.boolean('by-user',
-                                             '',
-                                             '',
-                                             GObject.ParamFlags.READWRITE |
-                                             GObject.ParamFlags.CONSTRUCT_ONLY,
-                                             false)
+        'sender': GObject.ParamSpec.int('sender',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        State.SentBy.USER,
+                                        State.SentBy.INPUT,
+                                        State.SentBy.USER)
     },
 
     _init: function(params, styles, showContentHandler) {
@@ -284,16 +286,29 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
             this._popover.hide();
         }));
 
-        let [margin_prop, halign] = params.by_user ? ['margin-end', Gtk.Align.END] :
-                                                     ['margin-start', Gtk.Align.START];
+        let margin_prop, halign, containerStyle;
+        switch (params.sender) {
+            case State.SentBy.ACTOR:
+                [margin_prop, halign, containerStyle] = ['margin-start', Gtk.Align.START, 'by-actor'];
+                break;
+            case State.SentBy.USER:
+                [margin_prop, halign, containerStyle] = ['margin-end', Gtk.Align.END, 'by-user'];
+                break;
+            case State.SentBy.INPUT:
+                [margin_prop, halign, containerStyle] = [null, Gtk.Align.FILL, 'input-bubble-container'];
+                break;
+            default:
+                throw new Error('Don\'t know how to handle sender type ' + params.sender);
+        }
 
-        this[margin_prop] = 10;
+        if (margin_prop) {
+            this[margin_prop] = 10;
+        }
+
         this.halign = halign;
+        this.get_style_context().add_class(containerStyle);
 
-        if (this.by_user)
-            this.get_style_context().add_class('by-user');
-
-        this.inner_box.pack_start(this.content, false, false, 0);
+        this.inner_box.pack_start(this.content, true, true, 0);
         this.event_box.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
                                   Gdk.EventMask.BUTTON_RELEASE_MASK);
 
@@ -379,7 +394,8 @@ function new_message_view_for_state(container,
         // state never changes between renders.
         visible: view.visible,
         content: pending,
-        by_user: (container.sender == State.SentBy.USER)
+        sender: container.sender,
+        expand: true
     }, styles.concat('message-pending'), function() {
         // Re-render the view in case something changes
         if (timeout > 0) {
