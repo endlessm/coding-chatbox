@@ -9,6 +9,7 @@ image.contact-default-image {
 
 .chatbox-bubble {
     background-color: #737478;
+    padding: 20px;
     border-radius: 5px;
     border-bottom-left-radius: 0px;
     text-shadow: 1px -1px alpha(black, 0.4);
@@ -54,6 +55,7 @@ image.contact-default-image {
 }
 
 .input-bubble-container .chatbox-bubble {
+    padding: 5px;
     background-color: #343736;
     border-bottom-left-radius: 5px;
     text-shadow: 1px 1px alpha(black, 0.6);
