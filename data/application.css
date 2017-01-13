@@ -84,6 +84,30 @@ image.contact-default-image {
     border-left: 0px solid transparent;
 }
 
+.input-bubble-container .bubble-left-flair {
+    border-top: 0px solid transparent;
+    border-left: 0px solid transparent;
+}
+
+.input-bubble-container .chatbox-bubble {
+    border-bottom-left-radius: 5px;
+    background-color: #343736;
+    text-shadow: 1px 1px alpha(black, 0.6);
+}
+
+.input-bubble-container .chatbox-bubble:backdrop {
+    background-color: #2a2d2c;
+    text-shadow: none;
+}
+
+.input-bubble-container.code .chatbox-bubble {
+    background-color: #343736;
+}
+
+.input-bubble-container.code .chatbox-bubble:backdrop {
+    background-color: #2a2d2c;
+}
+
 .code .chatbox-bubble {
     background-color: #1c2b31;
     font-family: monospace;
