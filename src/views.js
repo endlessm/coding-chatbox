@@ -130,6 +130,8 @@ const TextChatboxMessageView = new Lang.Class({
     }
 });
 
+const _HORIZONTAL_TEXT_SIZE_LIMIT_CHARS = 15;
+
 const ChoiceChatboxMessageView = new Lang.Class({
     Name: 'ChoiceChatboxMessageView',
     Extends: Gtk.Box,
@@ -159,7 +161,16 @@ const ChoiceChatboxMessageView = new Lang.Class({
             visible: true,
             label: 'What do you think?'
         });
-        this.pack_start(this._label, true, true, 24);
+        this.pack_start(this._label, true, true, 18);
+
+        this._buttonsBox = new Gtk.Box({
+            visible: true,
+            /* If the text is small enough, make the orientation of the box
+             * horizontal, otherwise make it vertical */
+            orientation: params.state.choices.some(function(choice) {
+                return choice.label.length > _HORIZONTAL_TEXT_SIZE_LIMIT_CHARS;
+            }) ? Gtk.Orientation.VERTICAL : Gtk.Orientation.HORIZONTAL
+        });
 
         this._buttons = this.state.choices.map(Lang.bind(this, function(choice) {
             let button = new Gtk.Button({
@@ -171,8 +182,10 @@ const ChoiceChatboxMessageView = new Lang.Class({
             }));
             return button;
         })).forEach(Lang.bind(this, function(button) {
-            this.pack_start(button, true, true, 8);
+            this._buttonsBox.pack_start(button, true, true, 6);
         }));
+
+        this.pack_start(this._buttonsBox, true, true, 12);
     }
 });
 
