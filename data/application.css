@@ -141,6 +141,10 @@ image.contact-default-image {
     background-color: #5a5b5e;
 }
 
+.chatbox-input-area {
+  box-shadow: 3px 1px 5px 5px #2a2d2d;
+}
+
 .contact-item .contact-message-preview {
     font-weight: 300; /* light */
 }
