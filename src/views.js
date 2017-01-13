@@ -100,6 +100,7 @@ const TextChatboxMessageView = new Lang.Class({
         params.wrap = true;
         params.max_width_chars = params.state.wrap_width;
         params.use_markup = true;
+        params.selectable = true;
         this.parent(params);
 
         this.state.bind_property('text', this, 'label',
