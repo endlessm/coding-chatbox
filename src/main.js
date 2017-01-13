@@ -949,7 +949,6 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     chatMessage: function(actor, message, location, style, sentBy, pendingTime) {
-        let visible = this._actorIsVisible(actor);
         let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
                                                        Views.MAX_WIDTH_CHARS;
         let item = { type: 'scrolled',
@@ -962,7 +961,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                       sentBy,
                       pendingTime,
                       Lang.bind(this, function() {
-                          this._notifyItem(item, actor, visible);
+                          this._notifyItem(item, actor, !this._actorIsVisible(actor));
                       }));
     },
 
