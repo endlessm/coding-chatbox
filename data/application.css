@@ -144,11 +144,12 @@ row:selected:backdrop.contact-row {
     font-weight: bold;
 }
 
-.new-content frame.contact-image-overlay {
-    background-image: url('resource:////com/endlessm/Coding/Chatbox/img/summary-counter.svg');
-    background-size: 22px;
-    background-position: 85% 15%;
-    background-repeat: no-repeat;
+.contact-message-notification {
+  background-color: #e16f38;
+  color: #fff;
+  padding: 3px;
+  border-radius: 2px;
+  font-size: 9pt;
 }
 
 .attachment-button {

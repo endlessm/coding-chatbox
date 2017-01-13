@@ -188,7 +188,7 @@ const CodingChatboxContactListItem = new Lang.Class({
     Name: 'CodingChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
     Template: 'resource:///com/endlessm/Coding/Chatbox/contact.ui',
-    Children: ['content-grid', 'contact-name-label', 'contact-message-snippit-label'],
+    Children: ['content-grid', 'contact-name-label', 'contact-message-snippit-label', 'contact-message-notification'],
     Properties: {
         'actor': GObject.ParamSpec.object('actor',
                                           '',
@@ -225,13 +225,13 @@ const CodingChatboxContactListItem = new Lang.Class({
 
     set highlight(v) {
         if (!v) {
-            this.get_style_context().remove_class('new-content');
+            this.contact_message_notification.visible = false;
             return;
         }
 
         // If highlight was set, then it means that we were not
         // considered to be visible, so show a highlight here.
-        this.get_style_context().add_class('new-content');
+        this.contact_message_notification.visible = true;
     },
 
     get avatar() {

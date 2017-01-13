@@ -20,9 +20,26 @@
               <class name="contact-item"/>
             </style>
             <child>
-              <object class="GtkLabel" id="contact-name-label">
+              <object class="GtkBox">
                 <property name="visible">True</property>
-                <property name="xalign">0</property>
+                <child>
+                  <object class="GtkLabel" id="contact-name-label">
+                    <property name="visible">True</property>
+                    <property name="xalign">0</property>
+                    <property name="hexpand">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="contact-message-notification">
+                    <property name="visible">False</property>
+                    <property name="label">NEW</property>
+                    <property name="hexpand">False</property>
+                    <property name="margin_end">30</property>
+                    <style>
+                      <class name="contact-message-notification"/>
+                    </style>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="fill">False</property>
