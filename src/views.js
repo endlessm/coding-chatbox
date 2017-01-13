@@ -171,7 +171,7 @@ const ChoiceChatboxMessageView = new Lang.Class({
             }));
             return button;
         })).forEach(Lang.bind(this, function(button) {
-            this.add(button);
+            this.pack_start(button, true, true, 8);
         }));
     }
 });
