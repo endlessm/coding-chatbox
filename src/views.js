@@ -214,7 +214,7 @@ const InputChatboxMessageView = new Lang.Class({
             halign: Gtk.Align.END,
             valign: Gtk.Align.CENTER
         });
-        this.pack_start(this._button, false, false, 0);
+        this.pack_start(this._button, false, false, 10);
         this._button.connect('clicked', Lang.bind(this, function() {
             let text = this._textBuffer.get_text(this._textBuffer.get_start_iter(),
                                                  this._textBuffer.get_end_iter(),
