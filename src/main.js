@@ -927,6 +927,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                             0,
                                                             null);
             view_container.showContent();
+            view_container.margin = 10;
             inputArea.pack_end(view_container, true, true, 0);
             stackChild.scrollToBottomOnUpdate();
             messageQueue.showNext();
