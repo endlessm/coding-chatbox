@@ -172,7 +172,7 @@ const ChoiceChatboxMessageView = new Lang.Class({
 
 const InputChatboxMessageView = new Lang.Class({
     Name: 'InputChatboxMessageView',
-    Extends: Gtk.Entry,
+    Extends: Gtk.Box,
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
@@ -182,12 +182,38 @@ const InputChatboxMessageView = new Lang.Class({
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         State.InputChatboxMessage)
     },
+    Signals: {
+        'activate': {
+            param_types: [ GObject.TYPE_STRING ]
+        }
+    },
 
     _init: function(params) {
         params.margin = 10;
         params.width_request = MAX_WIDTH_CHARS * 5;
-
+        params.expand = true;
         this.parent(params);
+
+        this._textBuffer = new Gtk.TextBuffer();
+        this._textView = new Gtk.TextView({
+            visible: true,
+            buffer: this._textBuffer,
+            expand: true,
+            halign: Gtk.Align.FILL
+        });
+        this.pack_start(this._textView, true, true, 0);
+        this._button = new Gtk.Button({
+            visible: true,
+            label: 'Send',
+            halign: Gtk.Align.END
+        });
+        this.pack_start(this._button, false, false, 0);
+        this._button.connect('clicked', Lang.bind(this, function() {
+            let text = this._textBuffer.get_text(this._textBuffer.get_start_iter(),
+                                                 this._textBuffer.get_end_iter(),
+                                                 false);
+            this.emit('activate', text);
+        }));
     },
 });
 
