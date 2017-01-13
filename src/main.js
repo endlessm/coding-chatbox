@@ -359,7 +359,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
         this.inner_box.get_children().forEach(Lang.bind(this, function(child) {
             this.inner_box.remove(child);
         }));
-        this.inner_box.pack_start(this._content, false, false, 0);
+        this.inner_box.pack_start(this._content, true, true, 0);
     },
 
     get content() {
