@@ -155,6 +155,12 @@ const ChoiceChatboxMessageView = new Lang.Class({
 
         this.parent(params);
 
+        this._label = new Gtk.Label({
+            visible: true,
+            label: 'What do you think?'
+        });
+        this.pack_start(this._label, true, true, 24);
+
         this._buttons = this.state.choices.map(Lang.bind(this, function(choice) {
             let button = new Gtk.Button({
                 visible: true,
