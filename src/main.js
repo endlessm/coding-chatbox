@@ -375,6 +375,155 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     }
 });
 
+const _MILLISECONDS_TO_MINUTE = 1000 * 60;
+const _FIVE_MINUTES_IN_MS = _MILLISECONDS_TO_MINUTE * 5;
+const _MESSAGE_GROUP_LIMIT = 10;
+
+// isCloseEnoughInTime
+//
+// Return true if the given date of the income chat bubble is close enough
+// in time to the most recent one in this group
+function isCloseEnoughInTime(lastMessageDate, currentMessageDate) {
+    let delta = currentMessageDate.getTime() - lastMessageDate.getTime();
+    return delta < _FIVE_MINUTES_IN_MS;
+}
+
+function calculateMessageReceivedTextFromDate(date) {
+    /* Sanity check for clock skew. In this case, we just display
+     * "In the future" */
+    if (date.getTime() > Date.now()) {
+        return "In the future";
+    }
+
+    let dateSinceEpoch = new Date(Date.now() - date.getTime());
+    let epochDate = new Date(0);
+
+    /* Compare deltas between the dates until we can determine a
+     * string to show */
+    let yearDelta = dateSinceEpoch.getFullYear() - epochDate.getFullYear();
+    if (yearDelta > 0) {
+        if (yearDelta === 1) {
+            return "Last year";
+        }
+
+        return ["About", yearDelta, "years ago"].join(" ");
+    }
+
+    let monthDelta = dateSinceEpoch.getMonth() - epochDate.getMonth();
+    if (monthDelta > 0) {
+        if (monthDelta === 1) {
+            return "Last month";
+        }
+
+        return ["About", monthDelta, "months ago"].join(" ");
+    }
+
+    let dayDelta = dateSinceEpoch.getDate() - epochDate.getDate();
+    if (dayDelta > 0) {
+        if (dayDelta > 7) {
+            let weekDelta = Math.floor(dayDelta / 7);
+
+            if (weekDelta === 1) {
+                return "Last week";
+            }
+
+            return ["About", weekDelta, "weeks ago"].join(" ");
+        }
+
+        if (dayDelta === 1) {
+            return "Yesterday";
+        }
+
+        return ["About", dayDelta, "days ago"].join(" ");
+    }
+
+    let hourDelta = dateSinceEpoch.getHours() - epochDate.getHours();
+    if (hourDelta > 0) {
+        if (hourDelta === 1) {
+            return "About an hour ago";
+        }
+
+        return ["About", hourDelta, "hours ago"].join(" ");
+    }
+
+    let minutesDelta = dateSinceEpoch.getMinutes() - epochDate.getMinutes();
+    if (minutesDelta > 0) {
+        if (minutesDelta === 1) {
+            return "About a minute ago";
+        }
+
+        return ["About", minutesDelta, "minutes ago"].join(" ");
+    }
+
+    let secondsDelta = dateSinceEpoch.getSeconds() - epochDate.getSeconds();
+    if (secondsDelta > 30) {
+        return ["About", secondsDelta, "seconds ago"].join(" ");
+    }
+
+    return "Just now";
+}
+
+const CodingChatboxMessageGroup = new Lang.Class({
+    Name: 'CodingChatboxMessageGroup',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/Coding/Chatbox/chatbox-message-group.ui',
+    Children: [
+        'message-received-date-container',
+        'message-received-date-label',
+        'chatbox-bubbles'
+    ],
+
+    _init: function(params) {
+        params.orientation = Gtk.Orientation.VERTICAL;
+        this.parent(params);
+
+        this._messageDates = [];
+        this._actorName = null;
+    },
+
+    addBubble: function(bubbleView, date, actorName) {
+        // Different actors don't have the same message group. Note that the
+        // convention here is that user bubbles have an actorName of 'user'
+        if (this._actorName && actorName !== this._actorName) {
+            return false;
+        }
+
+        // Limit of 10 bubbles per message group, just to add some
+        // distinction between bubbles.
+        if (this._messageDates.length > _MESSAGE_GROUP_LIMIT) {
+            return false;
+        }
+
+        // If the incoming message is too new, it does not belong in the
+        // same message group
+        if (this._messageDates.length !== 0 &&
+            !isCloseEnoughInTime(this._messageDates[this._messageDates.length - 1],
+                                 date)) {
+            return false;
+        }
+
+        if (!this._actorName && actorName === 'user') {
+            this.message_received_date_container.halign = Gtk.Align.END;
+            this.message_received_date_container.margin_end = 40;
+        }
+
+        this._messageDates.push(date);
+        this._actorName = actorName;
+        this.chatbox_bubbles.pack_start(bubbleView, true, true, 5);
+        this.updateMessageReceivedDate();
+
+        return true;
+    },
+
+    updateMessageReceivedDate: function() {
+        if (!this._messageDates.length) {
+            return;
+        }
+
+        let date = this._messageDates[this._messageDates.length - 1];
+        this.message_received_date_label.label = calculateMessageReceivedTextFromDate(date);
+    }
+});
 
 //
 // new_message_view_for_state
@@ -657,6 +806,9 @@ const ChatboxStackChild = new Lang.Class({
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
 
+// Update every five minutes
+const CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS = 300;
+
 const CodingChatboxMainWindow = new Lang.Class({
     Name: 'CodingChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
@@ -709,7 +861,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                         let spec = { type: 'scrolled',
                                      text: item.message,
                                      wrap_width: wrapWidth };
-                        this._addItem(spec, actor.name, 'none::none', item.styles,
+                        this._addItem(spec, actor.name, 'none::none', item.timestamp, item.styles,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER,
                                       0, null);
@@ -719,7 +871,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                     case 'chat-actor-attachment':
                         spec = { type: 'attachment',
                                  attachment: item.attachment };
-                        this._addItem(spec, actor.name, item.name, item.styles,
+                        this._addItem(spec, actor.name, item.name, item.timestamp, item.styles,
                                       item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
                                                                               State.SentBy.USER,
                                       0, null);
@@ -760,6 +912,18 @@ const CodingChatboxMainWindow = new Lang.Class({
         }));
 
         this.connect('notify::is-active', Lang.bind(this, this._markVisibleActorAsRead));
+
+        // Add a new timeout which periodically traverses all message groups
+        // and updates the message received label
+        GLib.timeout_add_seconds(GLib.PRIORITY_LOW, CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS, Lang.bind(this, function() {
+            this.chatbox_stack.get_children().forEach(function(child) {
+                child.chat_contents.get_children().forEach(function(group) {
+                    group.updateMessageReceivedDate();
+                });
+            });
+
+            return true;
+        }));
     },
 
     _markVisibleActorAsRead: function() {
@@ -777,9 +941,11 @@ const CodingChatboxMainWindow = new Lang.Class({
         // a page on the GtkStack and vice versa.
         let row = this._rowForActor(selectedActor);
         let chatContents = this._contentsForActor(selectedActor).chat_contents;
-        let children = chatContents.get_children();
-        if (children.length)
+        let groups = chatContents.get_children();
+        if (groups.length) {
+            let children = groups[groups.length - 1].chatbox_bubbles.get_children();
             children[children.length - 1].focused();
+        }
 
         row.highlight = false;
         this._state.markAllMessagesByActorAsRead(selectedActor);
@@ -807,8 +973,22 @@ const CodingChatboxMainWindow = new Lang.Class({
             if (typeof(item) === 'function') {
                 item();
             } else {
-                chatContents.pack_start(item, false, false, 0);
-                item.showContent();
+                /* Check to see if there are any groups that will accept
+                 * this item to start with */
+                let groups = chatContents.get_children();
+                if (!groups.length ||
+                    !groups[groups.length - 1].addBubble(item.view,
+                                                         item.date,
+                                                         item.actor)) {
+                    let newGroup = new CodingChatboxMessageGroup({
+                        visible: true,
+                        expand: true
+                    });
+                    newGroup.addBubble(item.view, item.date, item.actor);
+                    chatContents.pack_start(newGroup, true, true, 15);
+                }
+
+                item.view.showContent();
             }
         });
 
@@ -840,7 +1020,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         return null;
     },
 
-    _addItem: function(item, actor, location, style, sentBy, pendingTime, visibleAction) {
+    _addItem: function(item, actor, location, timestamp, style, sentBy, pendingTime, visibleAction) {
         let messageQueue = this._contentsForActor(actor).message_queue;
 
         // Scroll view to the bottom after the child is added. We only
@@ -892,12 +1072,16 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                       sentBy,
                                                       item,
                                                       location);
-        messageQueue.push(new_message_view_for_state(container,
-                                                     this.actor_model.getByName(actor),
-                                                     style,
-                                                     Lang.bind(this, this._handleResponse, style),
-                                                     pendingTime,
-                                                     messageBecameVisibleHandler));
+        messageQueue.push({
+            view: new_message_view_for_state(container,
+                                             this.actor_model.getByName(actor),
+                                             style,
+                                             Lang.bind(this, this._handleResponse, style),
+                                             pendingTime,
+                                             messageBecameVisibleHandler),
+            date: new Date(timestamp),
+            actor: sentBy == State.SentBy.USER ? 'user' : actor
+        });
 
         return container;
     },
@@ -951,6 +1135,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             this.chatMessage(actor,
                              response.text,
                              location,
+                             (new Date()).toString(),
                              style,
                              State.SentBy.USER,
                              0);
@@ -967,6 +1152,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             this.chatMessage(actor,
                              response.text,
                              location,
+                             (new Date()).toString(),
                              style,
                              State.SentBy.USER,
                              0);
@@ -1003,7 +1189,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
     },
 
-    chatMessage: function(actor, message, location, style, sentBy, pendingTime) {
+    chatMessage: function(actor, message, location, timestamp, style, sentBy, pendingTime) {
         let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
                                                        Views.MAX_WIDTH_CHARS;
         let item = { type: 'scrolled',
@@ -1012,6 +1198,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         this._addItem(item,
                       actor,
                       location,
+                      timestamp,
                       style,
                       sentBy,
                       pendingTime,
@@ -1020,12 +1207,13 @@ const CodingChatboxMainWindow = new Lang.Class({
                       }));
     },
 
-    chatAttachment: function(actor, attachment, location, style, pendingTime) {
+    chatAttachment: function(actor, attachment, location, timestamp, style, pendingTime) {
         let item = { type: 'attachment',
                      attachment: attachment };
         this._addItem(item,
                       actor,
                       location,
+                      timestamp,
                       style,
                       State.SentBy.ACTOR,
                       pendingTime,
@@ -1137,11 +1325,12 @@ const CodingChatboxApplication = new Lang.Class({
         this._skeleton = new Service.ChatboxReceiverService();
         this._skeleton.export(conn, object_path);
 
-        this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location, styles) {
+        this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location, timestamp, styles) {
             if (this._mainWindow) {
                 this._mainWindow.chatMessage(actor,
                                              message,
                                              location,
+                                             timestamp,
                                              styles,
                                              State.SentBy.ACTOR,
                                              determineMessagePendingTime('chat-actor', message));
@@ -1152,11 +1341,12 @@ const CodingChatboxApplication = new Lang.Class({
             }
         }));
 
-        this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location, styles) {
+        this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location, timestamp, styles) {
             if (this._mainWindow) {
                 this._mainWindow.chatAttachment(actor,
                                                 attachment,
                                                 location,
+                                                timestamp,
                                                 styles,
                                                 determineMessagePendingTime('chat-actor-attachment', attachment));
             } else {
