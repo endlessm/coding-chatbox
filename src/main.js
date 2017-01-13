@@ -562,55 +562,48 @@ const CodingChatboxChatScrollView = new Lang.Class({
     }
 });
 
-// This class implements a queue of widgets which could be addd
-// to the box progressively. The first item always gets added
-// straight away, but is pushed to the back of the queue. While
-// the queue has items in it, queuing more items will just cause
-// them to be added to the queue. Calling the 'showNext' method will
+
+// This class implements a queue of items which could be passed
+// to a consumer progressively according to the needs of the application.
+// The first item always gets added straight away, but is pushed to the back
+// of the queue. While the queue has items in it, queuing more items will just
+// cause them to be added to the queue. Calling the 'showNext' method will
 // cause the front of the queue to be popped and the widget at the
 // front of the queue to be added to the box.
 //
-// Once a widget is displayed, the showContent handler will be called
-// on the widget so that it can display any animations necessary to
-// show its contents.
-const QueueableBox = new Lang.Class({
-    Name: 'QueueableBox',
-    Extends: Gtk.Box,
+// This class is used by the chatbox view to show pending animations
+// for already-received messages and otherwise show messages in the order
+// that they were received. When a message is done "showing", it can call
+// showNext on the queue to start the animation for the next message. 
+const TriggerableEventQueue = new Lang.Class({
+    Name: 'TriggerableEventQueue',
+    Extends: GObject.Object,
 
-    _init: function(params) {
-        this.parent(params);
+    _init: function(itemConsumer) {
+        this.parent({});
         this._queue = [];
+        this._itemConsumer = itemConsumer;
     },
 
-    _showContent: function(content) {
-        if (typeof(content) === 'function') {
-            content();
-        } else {
-            this.pack_start(content, false, false, 0);
-            content.showContent();
-        }
-    },
-
-    // pushContent
-    //
-    // pushContent accepts either a widget or a function. If the passed in
-    // content is a function, then it will be called when showNext
-    // is called. Whilst a widget is pending, a pending bubble will
-    // be shown for it.
-    pushContent: function(content) {
-        let hadLength = this._queue.length > 0;
-        this._queue.push(content);
-
-        if (!hadLength) {
-            this._showContent(content);
-        }
-    },
-
-    showNext: function(widget) {
+    showNext: function() {
         this._queue.shift();
         if (this._queue.length) {
-            let content = this._queue[0];
-            this._showContent(content);
+            let item = this._queue[0];
+            this._itemConsumer(item);
+        }
+    },
+
+    // push
+    //
+    // push accepts anything. If it would be the first item on the queue
+    // we immediately pass it to the consumer otherwise we keep it on the
+    // queue and pass it to the consumer when showNext is called.
+    push: function(item) {
+        let hadLength = this._queue.length > 0;
+        this._queue.push(item);
+
+        if (!hadLength) {
+            this._itemConsumer(item);
         }
     }
 });
@@ -629,6 +622,12 @@ const ChatboxStackChild = new Lang.Class({
                                                   GObject.ParamFlags.READWRITE |
                                                   GObject.ParamFlags.CONSTRUCT_ONLY,
                                                   Gtk.Box),
+        'message-queue': GObject.ParamSpec.object('message-queue',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  TriggerableEventQueue.$gtype),
         'input-area': GObject.ParamSpec.object('input-area',
                                                '',
                                                '',
@@ -797,12 +796,21 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (chatboxStackChild)
             return chatboxStackChild;
 
-        let chatContents = new QueueableBox({
+        let chatContents = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
             valign: Gtk.Align.START
         });
         chatContents.get_style_context().add_class('chatbox-chats');
+
+        let messageQueue = new TriggerableEventQueue(function(item) {
+            if (typeof(item) === 'function') {
+                item();
+            } else {
+                chatContents.pack_start(item, false, false, 0);
+                item.showContent();
+            }
+        });
 
         let chatInputArea = new Gtk.Box({
             visible: true,
@@ -814,7 +822,8 @@ const CodingChatboxMainWindow = new Lang.Class({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
             chat_contents: chatContents,
-            input_area: chatInputArea
+            input_area: chatInputArea,
+            message_queue: messageQueue
         });
 
         this.chatbox_stack.add_named(chatboxStackChild, actor);
@@ -832,7 +841,7 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     _addItem: function(item, actor, location, style, sentBy, pendingTime, visibleAction) {
-        let chatContents = this._contentsForActor(actor).chat_contents;
+        let messageQueue = this._contentsForActor(actor).message_queue;
 
         // Scroll view to the bottom after the child is added. We only
         // connect to the signal for this one item, to avoid jumping to the
@@ -876,36 +885,36 @@ const CodingChatboxMainWindow = new Lang.Class({
 
             if (visibleAction)
                 visibleAction();
-            chatContents.showNext();
+            messageQueue.showNext();
         });
 
         container = this._state.add_message_for_actor(actor,
                                                       sentBy,
                                                       item,
                                                       location);
-        chatContents.pushContent(new_message_view_for_state(container,
-                                                            this.actor_model.getByName(actor),
-                                                            style,
-                                                            Lang.bind(this, this._handleResponse, style),
-                                                            pendingTime,
-                                                            messageBecameVisibleHandler));
+        messageQueue.push(new_message_view_for_state(container,
+                                                     this.actor_model.getByName(actor),
+                                                     style,
+                                                     Lang.bind(this, this._handleResponse, style),
+                                                     pendingTime,
+                                                     messageBecameVisibleHandler));
 
         return container;
     },
 
     _replaceUserInput: function(item, actor, style, location) {
         let stackChild = this._contentsForActor(actor);
-        let chatContents = stackChild.chat_contents;
+        let messageQueue = stackChild.message_queue;
         let inputArea = stackChild.input_area;
 
-        // Here we push a function to chatContents which gets called when
+        // Here we push a function to messageQueue which gets called when
         // it becomes the first item on the queue. When it is called, we
         // replace the currently active user input and then show the next
         // message.
         //
         // Doing it this way ensures that the input is always shown after
         // the last message was shown.
-        chatContents.pushContent(Lang.bind(this, function() {
+        messageQueue.push(Lang.bind(this, function() {
             let container = this._state.replaceUserInputWithForActor(actor, item, location);
             inputArea.get_children().forEach(function(child) {
                 child.destroy();
@@ -920,7 +929,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             view_container.showContent();
             inputArea.pack_end(view_container, true, true, 0);
             stackChild.scrollToBottomOnUpdate();
-            chatContents.showNext();
+            messageQueue.showNext();
         }));
         return inputArea;
     },
