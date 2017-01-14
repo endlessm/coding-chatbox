@@ -225,12 +225,14 @@ const CodingChatboxContactListItem = new Lang.Class({
     set highlight(v) {
         if (!v) {
             this.contact_message_notification.visible = false;
+            this.get_style_context().remove_class('new-content');
             return;
         }
 
         // If highlight was set, then it means that we were not
         // considered to be visible, so show a highlight here.
         this.contact_message_notification.visible = true;
+        this.get_style_context().add_class('new-content');
     },
 
     get avatar() {
