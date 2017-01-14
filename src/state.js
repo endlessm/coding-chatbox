@@ -298,9 +298,21 @@ const CodingChatboxMessageContainer = new Lang.Class({
 //
 const CodingChatboxConversationState = new Lang.Class({
     Name: 'CodingChatboxConversationState',
+    Extends: GObject.Object,
+    Properties: {
+        unread_messages: GObject.ParamSpec.int('unread-messages',
+                                               '',
+                                               '',
+                                               GObject.ParamFlags.READWRITE,
+                                               0,
+                                               INT32_MAX,
+                                               0)
+    },
 
     _init: function(message_factories) {
-        this.parent();
+        this.parent({
+            unread_messages: 0
+        });
         this._conversation = [];
         this._userInput = null;
         this._message_factories = message_factories;
@@ -392,6 +404,7 @@ const CodingChatboxConversationState = new Lang.Class({
     // Marks all messages as read, thereby disconnecting the signal for
     // unread messages.
     markAllMessagesAsRead: function() {
+        this.unread_messages = 0;
         if (this._unreadNotificationTimeout) {
             GLib.source_remove(this._unreadNotificationTimeout);
             this._unreadNotificationTimeout = 0;
@@ -399,11 +412,16 @@ const CodingChatboxConversationState = new Lang.Class({
     },
 
     //
-    // performActionIfStillUnreadAfter
+    // mesageBecameVisibleAndNotRead
     //
-    // Calls callback if messages on this actor are still unread
+    // Increment the number of unread messages.
+    //
+    // Calls stillUnreadHandler if messages on this actor are still unread
     // after a certain amount of time.
-    performActionIfStillUnreadAfter: function(timeoutSeconds, callback) {
+    mesageBecameVisibleAndNotRead: function(timeoutSeconds, callback) {
+        // We always want to increment _unreadMessages
+        this.set_property('unread-messages', this.unread_messages + 1);
+
         // If _unreadNotificationTimeout is set, then just keep the old timeout
         // on-foot instead of removing it and re-adding it. We want the user
         // to get the notification timeoutSeconds after the first unread message
@@ -470,13 +488,45 @@ const CodingChatboxState = new Lang.Class({
         return this.conversations[actor].amend_last_message(spec);
     },
 
-    performActionIfStillUnreadAfter: function(actor, timeoutSeconds, callback) {
+    mesageBecameVisibleAndNotRead: function(actor, timeoutSeconds, callback) {
         this.load_conversations_for_actor(actor);
-        this.conversations[actor].performActionIfStillUnreadAfter(timeoutSeconds, callback);
+        this.conversations[actor].mesageBecameVisibleAndNotRead(timeoutSeconds, callback);
     },
 
     markAllMessagesByActorAsRead: function(actor) {
         this.load_conversations_for_actor(actor);
         this.conversations[actor].markAllMessagesAsRead();
+    },
+
+    //
+    // bindPropertyForActorState
+    //
+    // Create a GBinding between a property on the state of actor and
+    // targetObject, using flags to control the binding.
+    bindPropertyForActorState: function(actor,
+                                        actorStateProp,
+                                        targetObject,
+                                        targetProp,
+                                        flags,
+                                        transformFrom,
+                                        transformTo) {
+        this.load_conversations_for_actor(actor);
+        if (transformFrom && transformTo) {
+            // g_object_bind_property_full does not seem to work here, so
+            // simulate it by connecting on 'notify'
+            let realActorStateProp = actorStateProp.replace('-', '_');
+            this.conversations[actor].connect('notify::' + actorStateProp,
+                                              Lang.bind(this, function() {
+                let value = this.conversations[actor][realActorStateProp];
+                targetObject[targetProp] = transformFrom(value);
+            }));
+            let value = this.conversations[actor][realActorStateProp];
+            targetObject[targetProp] = transformFrom(value);
+        } else {
+            this.conversations[actor].bind_property(actorStateProp,
+                                                    targetObject,
+                                                    targetProp,
+                                                    flags);
+        }
     }
 });

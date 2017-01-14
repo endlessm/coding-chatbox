@@ -897,10 +897,26 @@ const CodingChatboxMainWindow = new Lang.Class({
                 }
             }));
 
-            return new CodingChatboxContactListItem({
+            let contactListItem = new CodingChatboxContactListItem({
                 visible: true,
                 actor: actor
             });
+
+            this._state.bindPropertyForActorState(actor.name,
+                                                  'unread-messages',
+                                                  contactListItem.contact_message_notification,
+                                                  'label',
+                                                  GObject.BindingFlags.SYNC_CREATE |
+                                                  GObject.BindingFlags.DEFAULT,
+                                                  function(value) {
+                                                      return String(value);
+                                                  },
+                                                  function(value) {
+                                                      let val = Number.parseInt(value);
+                                                      return (val ? val : 0);
+                                                  });
+
+            return contactListItem;
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
@@ -1044,9 +1060,9 @@ const CodingChatboxMainWindow = new Lang.Class({
             // notifications to show an unread-notification on this actor in a
             // given time period.
             if (!this._actorIsVisible(actor)) {
-                this._state.performActionIfStillUnreadAfter(actor,
-                                                            CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
-                                                            Lang.bind(this, function() {
+                this._state.mesageBecameVisibleAndNotRead(actor,
+                                                          CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
+                                                          Lang.bind(this, function() {
                     let row = this._rowForActor(actor);
                     if (!row)
                         throw new Error('Couldn\'t find row matching actor ' + actor);
