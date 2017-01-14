@@ -157,12 +157,18 @@ const ChoiceChatboxMessageView = new Lang.Class({
 
         this.parent(params);
 
-        this._label = new Gtk.Label({
+        this.prompt = new Gtk.Label({
             visible: true,
-            label: 'What do you think?'
+            label: ''
         });
-        this._label.get_style_context().add_class('input-hint');
-        this.pack_start(this._label, true, true, 18);
+        this.prompt.get_style_context().add_class('input-hint');
+        this.pack_start(this.prompt, true, true, 18);
+
+        this.state.bind_property('prompt',
+                                 this.prompt,
+                                 'label',
+                                 GObject.BindingFlags.SYNC_CREATE |
+                                 GObject.BindingFlags.DEFAULT);
 
         this._buttonsBox = new Gtk.Box({
             visible: true,

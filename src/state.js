@@ -106,8 +106,17 @@ const TextChatboxMessage = new Lang.Class({
 const ChoiceChatboxMessage = new Lang.Class({
     Name: 'ChoiceChatboxMessage',
     Extends: CodingChatboxMessageBase,
+    Properties: {
+        'prompt': GObject.ParamSpec.string('prompt',
+                                           '',
+                                           '',
+                                           GObject.ParamFlags.READWRITE |
+                                           GObject.ParamFlags.CONSTRUCT_ONLY,
+                                           '')
+    },
 
     _init: function(params, spec) {
+        params.prompt = spec.settings.prompt;
         this.parent(params);
         this.choices = Object.keys(spec.settings.choices).map(function(key) {
             return {
