@@ -275,7 +275,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
                                              false)
     },
 
-    _init: function(params, styles) {
+    _init: function(params, styles, showContentHandler) {
         this.parent(params);
 
         Views.applyStyles(this, styles);
@@ -306,6 +306,8 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
                 this._popover.show();
             }
         }));
+
+        this._showContentHandler = showContentHandler;
     },
 
     set content(val) {
@@ -328,6 +330,10 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 
     focused: function() {
         this._content.focused();
+    },
+
+    showContent: function() {
+        this._showContentHandler();
     }
 });
 
@@ -338,7 +344,13 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 // Creates a new message view container for a message state container, which
 // automatically updates when the underlying state changes.
 //
-function new_message_view_for_state(container, content_service, game_service, actor, styles) {
+function new_message_view_for_state(container,
+                                    content_service,
+                                    game_service,
+                                    actor,
+                                    styles,
+                                    timeout,
+                                    onVisible) {
     let responseFunc = function(response) {
         if (response.showmehow_id) {
             // We evaluate the text of the response here in order to get an 'evaluated'
@@ -359,19 +371,35 @@ function new_message_view_for_state(container, content_service, game_service, ac
     };
 
     let view = container.render_view(responseFunc);
+    let pending = new Views.MessagePendingView({ visible: true });
+
+    let renderRealContent = function() {
+        onVisible();
+        view_container.content = view;
+        Views.removeStyles(view_container, ['message-pending']);
+        container.connect('message-changed', function() {
+            view_container.content = container.render_view(responseFunc);
+        });
+    };
+
     let view_container = new CodingChatboxChatBubbleContainer({
         // We only want to display the container if the underlying view
         // itself is visible. The assumption here is that the visibility
         // state never changes between renders.
         visible: view.visible,
-        content: view,
+        content: pending,
         by_user: (container.sender == State.SentBy.USER)
-    }, styles);
-
-    // Re-render the view in case something changes
-    container.connect('message-changed', function() {
-        view_container.content = container.render_view(responseFunc);
+    }, timeout ? styles.concat('message-pending') : styles, function() {
+        // Re-render the view in case something changes
+        if (timeout > 0) {
+            GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
+                                     timeout,
+                                     renderRealContent);
+        } else {
+            renderRealContent();
+        }
     });
+
     return view_container;
 }
 
@@ -505,6 +533,45 @@ const CodingChatboxChatScrollView = new Lang.Class({
     }
 });
 
+// This class implements a queue of widgets which could be addd
+// to the box progressively. The first item always gets added
+// straight away, but is pushed to the back of the queue. While
+// the queue has items in it, queuing more items will just cause
+// them to be added to the queue. Calling the 'showNext' method will
+// cause the front of the queue to be popped and the widget at the
+// front of the queue to be added to the box.
+//
+// Once a widget is displayed, the showContent handler will be called
+// on the widget so that it can display any animations necessary to
+// show its contents.
+const QueueableBox = new Lang.Class({
+    Name: 'QueueableBox',
+    Extends: Gtk.Box,
+
+    _init: function(params) {
+        this.parent(params);
+        this._queue = [];
+    },
+
+    pushWidget: function(widget) {
+        let hadLength = this._queue.length > 0;
+        this._queue.push(widget);
+
+        if (!hadLength) {
+            this.pack_start(widget, false, false, 0);
+            widget.showContent();
+        }
+    },
+
+    showNext: function(widget) {
+        this._queue.shift();
+        if (this._queue.length) {
+            this.pack_start(this._queue[0], false, false, 0);
+            this._queue[0].showContent();
+        }
+    }
+});
+
 function notificationId(actor) {
     return actor + '-message';
 }
@@ -565,18 +632,20 @@ const CodingChatboxMainWindow = new Lang.Class({
                         let spec = { type: 'scrolled',
                                      text: item.message,
                                      wrap_width: wrapWidth };
-                        this._addItem(spec, actor.name, 'none::none', item.styles, false,
+                        this._addItem(spec, actor.name, 'none::none', item.styles,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
-                                                                   State.SentBy.USER);
+                                                                   State.SentBy.USER,
+                                      0, null);
                         this._notifyItem(spec, actor.name, false);
                         break;
                     case 'chat-user-attachment':
                     case 'chat-actor-attachment':
                         spec = { type: 'attachment',
                                  attachment: item.attachment };
-                        this._addItem(spec, actor.name, item.name, item.styles, false,
+                        this._addItem(spec, actor.name, item.name, item.styles,
                                       item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
-                                                                              State.SentBy.USER);
+                                                                              State.SentBy.USER,
+                                      0, null);
                         this._notifyItem(spec, actor.name, false);
                         break;
                     default:
@@ -596,8 +665,9 @@ const CodingChatboxMainWindow = new Lang.Class({
                                   lastMessage.actor,
                                   lastMessage.name,
                                   lastMessage.styles,
-                                  !this._actorIsVisible(actor.name),
-                                  State.SentBy.USER);
+                                  State.SentBy.USER,
+                                  0,
+                                  null);
                 }
             }));
 
@@ -652,7 +722,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (scrollView)
             return scrollView.chatContents;
 
-        let chatContents = new Gtk.Box({
+        let chatContents = new QueueableBox({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
         });
@@ -674,7 +744,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         return null;
     },
 
-    _addItem: function(item, actor, location, style, isNew, sentBy) {
+    _addItem: function(item, actor, location, style, sentBy, pendingTime, visibleAction) {
         let chatContents = this._contentsForActor(actor);
 
         // Scroll view to the bottom after the child is added. We only
@@ -697,35 +767,49 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (amended)
             return container;
 
+        let messageBecameVisibleHandler = Lang.bind(this, function() {
+            // If actorIsVisible is false here, then we should listen for
+            // notifications to show an unread-notification on this actor in a
+            // given time period.
+            if (!this._actorIsVisible(actor)) {
+                this._state.performActionIfStillUnreadAfter(actor,
+                                                            CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
+                                                            Lang.bind(this, function() {
+                    let row = this._rowForActor(actor);
+                    if (!row)
+                        throw new Error('Couldn\'t find row matching actor ' + actor);
+
+                    // TODO: Translations
+                    this.application.showNotification('Waiting on your input',
+                                                      actor + ' is still waiting on your response!',
+                                                      row.avatar,
+                                                      actor);
+                }));
+            }
+
+            // Listen for any new changes to the scroll state and scroll
+            // to the bottom
+            let notifyId = vadjustment.connect('notify::upper', function() {
+                vadjustment.disconnect(notifyId);
+                vadjustment.set_value(vadjustment.upper - vadjustment.page_size);
+            });
+
+            if (visibleAction)
+                visibleAction();
+            chatContents.showNext();
+        });
+
         container = this._state.add_message_for_actor(actor,
                                                       sentBy,
                                                       item,
                                                       location);
-        chatContents.pack_start(new_message_view_for_state(container,
+        chatContents.pushWidget(new_message_view_for_state(container,
                                                            this.service,
                                                            this.game_service,
                                                            actor,
-                                                           style),
-                                false, false, 10);
-
-        // If isNew is true, then we should listen for notifications
-        // to show an unread-notification on this actor in a given time
-        // period.
-        if (isNew) {
-            this._state.performActionIfStillUnreadAfter(actor,
-                                                        CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
-                                                        Lang.bind(this, function() {
-                let row = this._rowForActor(actor);
-                if (!row)
-                    throw new Error('Couldn\'t find row matching actor ' + actor);
-
-                // TODO: Translations
-                this.application.showNotification('Waiting on your input',
-                                                  actor + ' is still waiting on your response!',
-                                                  row.avatar,
-                                                  actor);
-            }));
-        }
+                                                           style,
+                                                           pendingTime,
+                                                           messageBecameVisibleHandler));
 
         return container;
     },
@@ -759,28 +843,47 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
     },
 
-    chatMessage: function(actor, message, location, style) {
-        let visible = this._actorIsVisible(actor);
+    chatMessage: function(actor, message, location, style, pendingTime) {
         let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
                                                        Views.MAX_WIDTH_CHARS;
         let item = { type: 'scrolled',
                      text: message,
                      wrap_width: wrapWidth };
-        this._addItem(item, actor, location, style, !visible, State.SentBy.ACTOR);
-        this._notifyItem(item, actor, !visible);
+        this._addItem(item,
+                      actor,
+                      location,
+                      style,
+                      State.SentBy.ACTOR,
+                      pendingTime,
+                      Lang.bind(this, function() {
+                          this._notifyItem(item, actor, !this._actorIsVisible(actor));
+                      }));
     },
 
-    chatAttachment: function(actor, attachment, location, style) {
-        let visible = this._actorIsVisible(actor);
+    chatAttachment: function(actor, attachment, location, style, pendingTime) {
         let item = { type: 'attachment',
                      attachment: attachment };
-        this._addItem(item, actor, location, style, !visible, State.SentBy.ACTOR);
-        this._notifyItem(item, actor, !visible);
+        this._addItem(item,
+                      actor,
+                      location,
+                      style,
+                      State.SentBy.ACTOR,
+                      pendingTime,
+                      Lang.bind(this, function() {
+                          this._notifyItem(item, actor, !this._actorIsVisible(actor));
+                      }));
     },
 
-    chatUserInput: function(actor, spec, location, style) {
-        let visible = this._actorIsVisible(actor);
-        this._addItem(spec, actor, location, style, !visible, State.SentBy.USER);
+    chatUserInput: function(actor, spec, location, style, pendingTime) {
+        this._addItem(spec,
+                      actor,
+                      location,
+                      style,
+                      State.SentBy.USER,
+                      pendingTime,
+                      Lang.bind(this, function() {
+                          this._notifyItem(spec, actor, !this._actorIsVisible(actor));
+                      }));
     },
 
     switchToChatWith: function(actor) {
@@ -847,7 +950,7 @@ const CodingChatboxApplication = new Lang.Class({
 
         this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location, styles) {
             if (this._mainWindow) {
-                this._mainWindow.chatMessage(actor, message, location, styles);
+                this._mainWindow.chatMessage(actor, message, location, styles, 2);
             } else {
                 let title = 'Message from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
@@ -857,7 +960,7 @@ const CodingChatboxApplication = new Lang.Class({
 
         this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location, styles) {
             if (this._mainWindow) {
-                this._mainWindow.chatAttachment(actor, attachment, location, styles);
+                this._mainWindow.chatAttachment(actor, attachment, location, styles, 3);
             } else {
                 let title = 'Attachment from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
@@ -867,7 +970,7 @@ const CodingChatboxApplication = new Lang.Class({
 
         this._skeleton.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location, styles) {
             if (this._mainWindow)
-                this._mainWindow.chatUserInput(actor, spec, location, styles);
+                this._mainWindow.chatUserInput(actor, spec, location, styles, 1);
         }));
 
         return true;

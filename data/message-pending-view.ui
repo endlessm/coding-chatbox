@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="Gjs_MessagePendingView" parent="GtkBox">
+    <style>
+      <class name="message-pending"/>
+    </style>
+    <child>
+      <object class="GtkImage" id="animation">
+        <property name="width-request">64</property>
+        <property name="height-request">32</property>
+        <property name="visible">True</property>
+      </object>
+    </child>
+  </template>
+</interface>
