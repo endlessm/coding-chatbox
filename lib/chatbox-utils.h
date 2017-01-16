@@ -11,12 +11,7 @@
 
 #include <gtk/gtk.h>
 
-typedef void (*ChatboxUtilsPangoAttrListCallback)(PangoAttr *, gpointer);
-
 void chatbox_utils_copy_file_to_clipboard (GtkWidget *widget, GFile *file);
 void chatbox_utils_copy_text_to_clipboard (GtkWidget *widget, char *text);
-void chatbox_utils_pango_attr_list_foreach (PangoAttrList *attrs,
-                                            ChatboxUtilsPangoAttrListCallback func,
-                                            gpointer user_data);
 
 #endif
