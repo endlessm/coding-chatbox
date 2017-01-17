@@ -40,6 +40,22 @@ image.contact-default-image {
     background-color: #ffffff;
 }
 
+.chatbox-bubble:backdrop {
+    text-shadow: none;
+}
+
+.chatbox-bubble.message-pending {
+    background-color: #737478;
+}
+
+.chatbox-bubble.message-pending:backdrop {
+    background-color: #5a5b5e;
+}
+
+.chatbox-bubble.code:backdrop {
+    background-color: #ffffff;
+}
+
 .chatbox-bubble.message-pending {
     background-color: #737478;
 }

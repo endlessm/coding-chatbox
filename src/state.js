@@ -301,6 +301,7 @@ const CodingChatboxConversationState = new Lang.Class({
     _init: function(message_factories) {
         this.parent();
         this._conversation = [];
+        this._userInput = null;
         this._message_factories = message_factories;
         this._unreadNotificationTimeout = 0;
     },
@@ -330,6 +331,20 @@ const CodingChatboxConversationState = new Lang.Class({
         }, this._message_factories);
         this._conversation.push(container);
         return container;
+    },
+
+    //
+    // replaceUserInputWith
+    //
+    // Replace the currently active user input.
+    //
+    replaceUserInputWith: function(spec, location) {
+        this._userInput = new CodingChatboxMessageContainer({
+            sender: SentBy.USER,
+            location: location,
+            message: new this._message_factories[spec.type]({}, spec)
+        }, this._message_factories);
+        return this._userInput;
     },
 
     //
@@ -434,6 +449,17 @@ const CodingChatboxState = new Lang.Class({
     add_message_for_actor: function(actor, sender, spec, location) {
         this.load_conversations_for_actor(actor);
         return this.conversations[actor].add_from_service(sender, spec, location);
+    },
+
+    //
+    // replaceUserInputWithForActor
+    //
+    // Replace the currently active user input with the given spec
+    // for the given actor.
+    //
+    replaceUserInputWithForActor: function(actor, spec, location) {
+        this.load_conversations_for_actor(actor);
+        return this.conversations[actor].replaceUserInputWith(spec, location);
     },
 
     amend_last_message_for_actor: function(actor, sender, spec) {
