@@ -83,6 +83,18 @@ function applyStyles(widget, styles) {
     }
 }
 
+// removeStyles
+//
+// Remove all styles from a widget.
+function removeStyles(widget, styles) {
+    if (styles) {
+        let context = widget.get_style_context();
+        styles.forEach(function(style) {
+            context.remove_class(style);
+        });
+    }
+}
+
 const TextChatboxMessageView = new Lang.Class({
     Name: 'TextChatboxMessageView',
     Extends: Gtk.Label,
@@ -176,6 +188,40 @@ const InputChatboxMessageView = new Lang.Class({
 
         this.parent(params);
     },
+});
+
+const MessagePendingView = new Lang.Class({
+    Name: 'MessagePendingView',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/Coding/Chatbox/message-pending-view.ui',
+    Children: ['animation'],
+    Implements: [ ChatboxMessageView ],
+
+    _init: function(params) {
+        this.parent(params);
+        this._dotTimings = [0, -15, -30];
+        this.animation.connect('draw', Lang.bind(this, function(widget, cr) {
+            this._dotTimings = this._dotTimings.map(function(timing) {
+                return timing + 1 > 30 ? -50 : timing + 1;
+            });
+
+            this._dotTimings.forEach(function(timing, index) {
+                cr.setSourceRGBA(1.0,
+                                 1.0,
+                                 1.0,
+                                 Math.sin(Math.max(0, timing) * 0.104) * 0.7 + 0.3);
+                cr.arc(10 + index * 15,
+                       16,
+                       5,
+                       0,
+                       2 * Math.PI);
+                cr.fill();
+            });
+            cr.$dispose();
+            widget.queue_draw();
+        }));
+        this.animation.queue_draw();
+    }
 });
 
 const _THUMBNAIL_MIME_TYPES = ['image/png', 'image/jpeg'];
