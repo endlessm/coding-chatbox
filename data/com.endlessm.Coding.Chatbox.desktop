@@ -8,3 +8,4 @@ Icon=coding-chatbox
 Categories=Utility;
 DBusActivatable=true
 StartupNotify=true
+NoDisplay=true
