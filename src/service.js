@@ -37,10 +37,10 @@ const CodingGameService = new Lang.Class({
 
     chatboxLogForActor: function(actor, callback) {
         this._service.call_chat_history(actor, null, Lang.bind(this, function(source, result) {
-            let success, returnValue;
+            let returnValue;
 
             try {
-                [success, returnValue] = this._service.call_chat_history_finish(result);
+                returnValue = this._service.call_chat_history_finish(result)[1];
             } catch (e) {
                 logError(e, 'Failed to get chat service history for ' + actor);
                 return;
@@ -67,10 +67,8 @@ const CodingGameService = new Lang.Class({
         this._service.call_open_attachment(location,
                                            null,
                                            Lang.bind(this, function(source, result) {
-            let success, returnValue;
-
             try {
-                [success, returnValue] = this._service.call_open_attachment_finish(result);
+                this._service.call_open_attachment_finish(result);
             } catch(e) {
                 logError(e, 'Failed to send attachment open notification to ' + location);
             }
@@ -83,10 +81,8 @@ const CodingGameService = new Lang.Class({
                                          response_name,
                                          null,
                                          Lang.bind(this, function(source, result) {
-            let success, returnValue;
-
             try {
-                [success, returnValue] = this._service.call_chat_response_finish(result);
+                this._service.call_chat_response_finish(result);
             } catch(e) {
                 logError(e, 'Failed to repond to message ' + location + ' with response ' + response_name);
             }
