@@ -1255,7 +1255,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                       }));
     },
 
-    chatUserInput: function(actor, spec, location, style, pendingTime) {
+    chatUserInput: function(actor, spec, location, style) {
         this._replaceUserInput(spec, actor, style, location);
     },
 
