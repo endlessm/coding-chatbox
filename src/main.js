@@ -877,8 +877,10 @@ const CodingChatboxMainWindow = new Lang.Class({
                         break;
                     case 'chat-user-attachment':
                     case 'chat-actor-attachment':
-                        spec = { type: 'attachment',
-                                 attachment: item.attachment };
+                        spec = {
+                            type: 'attachment',
+                            attachment: item.attachment
+                        };
                         this._addItem(spec, actor.name, item.name, item.timestamp, item.styles,
                                       item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
                                                                               State.SentBy.USER,
