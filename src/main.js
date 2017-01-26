@@ -1288,25 +1288,25 @@ function load_style_sheet(resourcePath) {
 // realistic.
 function determineMessagePendingTime(type, content) {
     switch (type) {
-        case 'chat-actor':
-            // Simple message. Assume that the average person
-            // types at 200 character per minute - 3 characters
-            // per second and thus 300 milliseconds per character.
-            // We then divide by 2.5 to make things a little quicker.
-            //
-            // This is capped at 1500 to make sure we're not waiting
-            // too long.
-            return Math.min(content.length * 120, 1500);
-        case 'chat-actor-attachment':
-            // Attachment. Fixed 1.5 second delay + character length
-            // of description
-            return 1500 + Math.min(content.desc.length * 60,
-                                   500);
-        case 'input-user':
-            // User input. Fixed 1 second delay
-            return 1000;
-        default:
-            return 0;
+    case 'chat-actor':
+        // Simple message. Assume that the average person
+        // types at 200 character per minute - 3 characters
+        // per second and thus 300 milliseconds per character.
+        // We then divide by 2.5 to make things a little quicker.
+        //
+        // This is capped at 1500 to make sure we're not waiting
+        // too long.
+        return Math.min(content.length * 120, 1500);
+    case 'chat-actor-attachment':
+        // Attachment. Fixed 1.5 second delay + character length
+        // of description
+        return 1500 + Math.min(content.desc.length * 60,
+                               500);
+    case 'input-user':
+        // User input. Fixed 1 second delay
+        return 1000;
+    default:
+        return 0;
     }
 }
 
