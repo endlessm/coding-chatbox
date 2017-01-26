@@ -301,29 +301,29 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 
         let margin_prop, halign, containerStyle;
         switch (params.sender) {
-            case State.SentBy.ACTOR:
-                [margin_prop, halign, containerStyle] = ['margin-start', Gtk.Align.START, 'by-actor'];
+        case State.SentBy.ACTOR:
+            [margin_prop, halign, containerStyle] = ['margin-start', Gtk.Align.START, 'by-actor'];
 
-                // Add the user's icon to the left hand side of the box
-                // as well
-                this.user_image_container.pack_start(new RoundedImage({
-                    visible: true,
-                    pixbuf: this.display_image.scale_simple(28,
-                                                            28,
-                                                            GdkPixbuf.InterpType.BILINEAR),
-                    halign: Gtk.Align.START,
-                }), true, true, 0);
-                this.bubble_detail_left.visible = true;
-                break;
-            case State.SentBy.USER:
-                [margin_prop, halign, containerStyle] = ['margin-end', Gtk.Align.END, 'by-user'];
-                this.bubble_detail_right.visible = true;
-                break;
-            case State.SentBy.INPUT:
-                [margin_prop, halign, containerStyle] = [null, Gtk.Align.FILL, 'input-bubble-container'];
-                break;
-            default:
-                throw new Error('Don\'t know how to handle sender type ' + params.sender);
+            // Add the user's icon to the left hand side of the box
+            // as well
+            this.user_image_container.pack_start(new RoundedImage({
+                visible: true,
+                pixbuf: this.display_image.scale_simple(28,
+                                                        28,
+                                                        GdkPixbuf.InterpType.BILINEAR),
+                halign: Gtk.Align.START,
+            }), true, true, 0);
+            this.bubble_detail_left.visible = true;
+            break;
+        case State.SentBy.USER:
+            [margin_prop, halign, containerStyle] = ['margin-end', Gtk.Align.END, 'by-user'];
+            this.bubble_detail_right.visible = true;
+            break;
+        case State.SentBy.INPUT:
+            [margin_prop, halign, containerStyle] = [null, Gtk.Align.FILL, 'input-bubble-container'];
+            break;
+        default:
+            throw new Error('Don\'t know how to handle sender type ' + params.sender);
         }
 
         if (margin_prop) {
