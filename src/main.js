@@ -725,7 +725,7 @@ const CodingChatboxChatScrollView = new Lang.Class({
 // This class is used by the chatbox view to show pending animations
 // for already-received messages and otherwise show messages in the order
 // that they were received. When a message is done "showing", it can call
-// showNext on the queue to start the animation for the next message. 
+// showNext on the queue to start the animation for the next message.
 const TriggerableEventQueue = new Lang.Class({
     Name: 'TriggerableEventQueue',
     Extends: GObject.Object,
