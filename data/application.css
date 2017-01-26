@@ -9,7 +9,6 @@ image.contact-default-image {
 
 .chatbox-bubble {
   background-color: #737478;
-  padding: 20px;
   border-radius: 5px;
   border-bottom-left-radius: 0px;
   text-shadow: 1px -1px alpha(black, 0.4);
@@ -134,6 +133,16 @@ image.contact-default-image {
 
 .code .bubble-left-flair:backdrop {
   border-top: 10px solid #162227;
+}
+
+.chatbox-bubble-contents {
+  padding: 15px;
+}
+
+.chatbox-bubble-contents.thumbnail,
+.chatbox-bubble-contents.choice,
+.chatbox-bubble-contents.input {
+  padding: 0px;
 }
 
 .message-received-date {
