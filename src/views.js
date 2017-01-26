@@ -8,7 +8,6 @@
 
 const ChatboxPrivate = imports.gi.ChatboxPrivate;
 const GnomeDesktop = imports.gi.GnomeDesktop;
-const Gdk = imports.gi.Gdk;
 const GdkPixbuf = imports.gi.GdkPixbuf;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
