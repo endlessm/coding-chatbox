@@ -155,9 +155,9 @@ const CodingChatboxTextService = new Lang.Class({
         let [name, position] = showmehow_id.split('::');
 
         this._service.call_attempt_lesson_remote(-1, name, position, text, null, Lang.bind(this, function(source, result) {
-            let success, returnValue;
+            let returnValue;
             try {
-                [success, returnValue] = this._service.call_attempt_lesson_remote_finish(result);
+                returnValue = this._service.call_attempt_lesson_remote_finish(result)[1];
             } catch (e) {
                 logError(e, 'Failed to get showmehow response for ' +
                          showmehow_id + ' with response ' +
