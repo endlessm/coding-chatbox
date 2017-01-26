@@ -8,7 +8,7 @@
 //
 
 const ChatboxService = imports.gi.ChatboxService;
-const CodingGameDBUSService = imports.gi.CodingGameService
+const CodingGameDBUSService = imports.gi.CodingGameService;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
