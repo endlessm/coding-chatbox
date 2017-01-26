@@ -184,7 +184,7 @@ const CodingChatboxContactListItem = new Lang.Class({
     Name: 'CodingChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
     Template: 'resource:///com/endlessm/Coding/Chatbox/contact.ui',
-    Children: ['content-grid', 'contact-name-label', 'contact-message-snippit-label', 'contact-message-notification'],
+    Children: ['content-grid', 'contact-name-label', 'contact-message-notification'],
     Properties: {
         'actor': GObject.ParamSpec.object('actor',
                                           '',
@@ -216,10 +216,6 @@ const CodingChatboxContactListItem = new Lang.Class({
         this.content_grid.attach_next_to(this._contact_image_overlay, null, Gtk.PositionType.LEFT,
                                          1, 1);
         this._contact_image_widget.pixbuf = this.actor.avatar;
-    },
-
-    set snippet(v) {
-        this.contact_message_snippit_label.label = v;
     },
 
     set highlight(v) {
@@ -1210,8 +1206,6 @@ const CodingChatboxMainWindow = new Lang.Class({
         // Strip newlines from body to work around
         // https://bugzilla.gnome.org/show_bug.cgi?id=776645
         let stripped = body.split('\n').join(' ');
-        row.snippet = stripped;
-
         if (isNew) {
             this.application.showNotification(title, stripped, row.avatar, actor);
             row.highlight = true;
