@@ -1226,6 +1226,16 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
     },
 
+    clearConversations: function() {
+        this._state.clearConversations();
+        this.chatbox_stack.get_children().forEach(function(child) {
+            child.destroy();
+        });
+        this.actor_model.items().forEach(Lang.bind(this, function(actor) {
+            this._contentsForActor(actor.name);
+        }));
+    },
+
     chatMessage: function(actor, message, location, timestamp, style, sentBy, pendingTime) {
         let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
                                                        Views.MAX_WIDTH_CHARS;
@@ -1404,6 +1414,11 @@ const CodingChatboxApplication = new Lang.Class({
         this._skeleton.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location, styles) {
             if (this._mainWindow)
                 this._mainWindow.chatUserInput(actor, spec, location, styles, 1);
+        }));
+
+        this._skeleton.connect('reset', Lang.bind(this, function() {
+            if (this._mainWindow)
+                this._mainWindow.clearConversations();
         }));
 
         return true;
