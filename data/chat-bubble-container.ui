@@ -14,14 +14,14 @@
                 <property name="vexpand">true</property>
                 <property name="hexpand">true</property>
                 <property name="valign">end</property>
-                <property name="width-request">30</property>
+                <property name="width-request">40</property>
                 <property name="margin-bottom">10</property>
               </object>
             </child>
             <child>
               <object class="GtkBox">
                 <property name="visible">true</property>
-                <property name="width-request">30</property>
+                <property name="width-request">40</property>
                 <child>
                   <object class="GtkBox" id="bubble-left-flair">
                     <property name="halign">end</property>

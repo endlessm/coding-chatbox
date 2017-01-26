@@ -308,10 +308,10 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
                 // as well
                 this.user_image_container.pack_start(new RoundedImage({
                     visible: true,
-                    pixbuf: this.display_image.scale_simple(18,
-                                                            18,
+                    pixbuf: this.display_image.scale_simple(28,
+                                                            28,
                                                             GdkPixbuf.InterpType.BILINEAR),
-                    halign: Gtk.Align.CENTER,
+                    halign: Gtk.Align.START,
                 }), true, true, 0);
                 this.bubble_detail_left.visible = true;
                 break;
@@ -983,7 +983,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         let chatContents = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
-            valign: Gtk.Align.START
+            valign: Gtk.Align.CENTER
         });
         chatContents.get_style_context().add_class('chatbox-chats');
 
