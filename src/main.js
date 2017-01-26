@@ -950,6 +950,7 @@ const CodingChatboxMainWindow = new Lang.Class({
 
             return true;
         }));
+        this._destroy_children_timeout = -1;
     },
 
     _markVisibleActorAsRead: function() {
@@ -1141,7 +1142,12 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                             null);
             view_container.showContent();
             view_container.margin = 10;
+            if (this._destroy_children_timeout !== -1) {
+                GLib.source_remove(this._destroy_children_timeout);
+                this._destroy_children_timeout = -1;
+            }
             inputArea.pack_end(view_container, true, true, 0);
+            inputArea.get_style_context().remove_class('hide');
             stackChild.scrollToBottomOnUpdate();
             messageQueue.showNext();
         }));
@@ -1260,10 +1266,20 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     hideUserInput: function(actor) {
+        // Before doing this, play an animation by adding the hide
+        // class to the input area. Then after a second, destroy the
+        // contents
         let userInputArea = this._contentsForActor(actor).input_area;
-        userInputArea.get_children().forEach(function(child) {
-            child.destroy();
+        let destroyChildrenFunc = Lang.bind(this, function() {
+            userInputArea.get_children().forEach(function(child) {
+                child.destroy();
+            });
+            this._destroy_children_timeout = -1;
         });
+        this._destroy_children_timeout = GLib.timeout_add(GLib.PRIORITY_LOW,
+                                                          210,
+                                                          destroyChildrenFunc);
+        userInputArea.get_style_context().add_class('hide');
     },
 
     switchToChatWith: function(actor) {

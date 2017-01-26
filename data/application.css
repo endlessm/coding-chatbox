@@ -143,6 +143,13 @@ image.contact-default-image {
 
 .chatbox-input-area {
   box-shadow: 3px 1px 5px 5px #2a2d2d;
+  transition-property: margin-bottom, opacity;
+  transition-duration: 0.2s;
+}
+
+.chatbox-input-area.hide {
+  margin-bottom: -25px;
+  opacity: 0.0;
 }
 
 .contact-item .contact-message-preview {
