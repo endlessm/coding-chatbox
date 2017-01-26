@@ -1347,10 +1347,12 @@ const CodingChatboxApplication = new Lang.Class({
 
     vfunc_activate: function() {
         if (!this._mainWindow)
-            this._mainWindow = new CodingChatboxMainWindow({ application: this,
-                                                             actor_model: this._actorModel,
-                                                             service: this._service,
-                                                             game_service: this._gameService });
+            this._mainWindow = new CodingChatboxMainWindow({
+                application: this,
+                actor_model: this._actorModel,
+                service: this._service,
+                game_service: this._gameService
+            });
 
         this._mainWindow.present();
     },
