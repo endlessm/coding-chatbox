@@ -1321,8 +1321,10 @@ const CodingChatboxApplication = new Lang.Class({
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_("ChatBox"));
 
-        let chatWithAction = new Gio.SimpleAction({ name: CHAT_WITH_ACTION,
-                                                    parameter_type: new GLib.VariantType('s') });
+        let chatWithAction = new Gio.SimpleAction({
+            name: CHAT_WITH_ACTION,
+            parameter_type: new GLib.VariantType('s')
+        });
         chatWithAction.connect('activate', Lang.bind(this, function(action, parameter) {
             this.activate();
 
