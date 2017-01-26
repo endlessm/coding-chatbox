@@ -524,8 +524,7 @@ const CodingChatboxState = new Lang.Class({
             // g_object_bind_property_full does not seem to work here, so
             // simulate it by connecting on 'notify'
             let realActorStateProp = actorStateProp.replace('-', '_');
-            this.conversations[actor].connect('notify::' + actorStateProp,
-                                              Lang.bind(this, function() {
+            this.conversations[actor].connect('notify::' + actorStateProp, Lang.bind(this, function() {
                 let value = this.conversations[actor][realActorStateProp];
                 targetObject[targetProp] = transformFrom(value);
             }));
