@@ -856,15 +856,19 @@ const CodingChatboxMainWindow = new Lang.Class({
                     return item.type.indexOf('chat') == 0;
                 }).forEach(Lang.bind(this, function(item) {
                     // We always treat messages obtained through the log as "read"
+                    let wrapWidth, spec;
+
                     switch (item.type) {
                     case 'chat-user':
                     case 'chat-actor':
-                        let wrapWidth = (item.styles && item.styles.indexOf('code') !== -1) ?
+                        wrapWidth = (item.styles && item.styles.indexOf('code') !== -1) ?
                              Views.CODE_MAX_WIDTH_CHARS :
                              Views.MAX_WIDTH_CHARS;
-                        let spec = { type: 'scrolled',
-                                     text: item.message,
-                                     wrap_width: wrapWidth };
+                        spec = {
+                            type: 'scrolled',
+                            text: item.message,
+                            wrap_width: wrapWidth
+                        };
                         this._addItem(spec, actor.name, 'none::none', item.timestamp, item.styles,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER,
