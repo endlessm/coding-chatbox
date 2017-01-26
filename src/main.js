@@ -441,20 +441,9 @@ function calculateMessageReceivedTextFromDate(date) {
 
     let hourDelta = dateSinceEpoch.getHours() - epochDate.getHours();
     if (hourDelta > 0) {
-        if (hourDelta === 1) {
-            return "About an hour ago";
-        }
-
-        return ["About", hourDelta, "hours ago"].join(" ");
-    }
-
-    let minutesDelta = dateSinceEpoch.getMinutes() - epochDate.getMinutes();
-    if (minutesDelta > 0) {
-        if (minutesDelta === 1) {
-            return "About a minute ago";
-        }
-
-        return ["About", minutesDelta, "minutes ago"].join(" ");
+        /* For N hours and M minutes apart, display the timestamp
+         * in the hours / minutes format */
+        return 'At ' + [date.getHours(), date.getMinutes()].join(':');
     }
 
     let secondsDelta = dateSinceEpoch.getSeconds() - epochDate.getSeconds();
