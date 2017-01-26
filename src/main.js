@@ -14,9 +14,7 @@ pkg.require({
     Gtk: '3.0',
     Gio: '2.0',
     GLib: '2.0',
-    GObject: '2.0',
-    Pango: '1.0',
-    PangoCairo: '1.0'
+    GObject: '2.0'
 });
 
 const Cairo = imports.cairo;
@@ -26,8 +24,6 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
-const Pango = imports.gi.Pango;
-const PangoCairo = imports.gi.PangoCairo;
 
 const Lang = imports.lang;
 const Service = imports.service;
