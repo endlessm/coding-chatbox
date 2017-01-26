@@ -255,15 +255,15 @@ const CodingChatboxMessageContainer = new Lang.Class({
 
         let messageAmendResult = this.message.amend(spec);
         switch (messageAmendResult) {
-            case AmendmentResult.ADD_TO_CONTAINER:
-            case AmendmentResult.DID_AMENDMENT:
-                // Unimplemented for now
-                this.emit('message-changed', this.message);
-                return true;
-            default:
-                // In any other case, return false, as we
-                // could not do an amendment here.
-                return false;
+        case AmendmentResult.ADD_TO_CONTAINER:
+        case AmendmentResult.DID_AMENDMENT:
+            // Unimplemented for now
+            this.emit('message-changed', this.message);
+            return true;
+        default:
+            // In any other case, return false, as we
+            // could not do an amendment here.
+            return false;
         }
     },
 
