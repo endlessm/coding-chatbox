@@ -64,9 +64,7 @@ const CodingGameService = new Lang.Class({
     },
 
     openAttachment: function(location) {
-        this._service.call_open_attachment(location,
-                                           null,
-                                           Lang.bind(this, function(source, result) {
+        this._service.call_open_attachment(location, null, Lang.bind(this, function(source, result) {
             try {
                 this._service.call_open_attachment_finish(result);
             } catch(e) {
