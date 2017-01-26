@@ -1024,7 +1024,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         });
         chatInputArea.get_style_context().add_class('chatbox-input-area');
 
-        let chatboxStackChild = new ChatboxStackChild({
+        chatboxStackChild = new ChatboxStackChild({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
             chat_contents: chatContents,
