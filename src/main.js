@@ -705,10 +705,12 @@ const CodingChatboxChatScrollView = new Lang.Class({
     Extends: Gtk.ScrolledWindow,
 
     _init: function(chatContents) {
-        this.parent({ visible: true,
-                      width_request: 500,
-                      expand: true,
-                      max_content_width: 750 });
+        this.parent({
+            visible: true,
+            width_request: 500,
+            expand: true,
+            max_content_width: 750
+        });
         this.add(chatContents);
     }
 });
