@@ -1221,9 +1221,11 @@ const CodingChatboxMainWindow = new Lang.Class({
     chatMessage: function(actor, message, location, timestamp, style, sentBy, pendingTime) {
         let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
                                                        Views.MAX_WIDTH_CHARS;
-        let item = { type: 'scrolled',
-                     text: message,
-                     wrap_width: wrapWidth };
+        let item = {
+            type: 'scrolled',
+            text: message,
+            wrap_width: wrapWidth
+        };
         this._addItem(item,
                       actor,
                       location,
