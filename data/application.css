@@ -195,3 +195,26 @@ row:selected:backdrop.contact-row {
   outline-width: 0px;
   box-shadow: none;
 }
+
+.thumbnail-image {
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.icon-container {
+  background-color: #5c6868;
+  border-radius: 24px;
+  padding: 7px;
+}
+
+.attachment-details.thumbnail {
+  padding: 5px;
+}
+
+.filename {
+  font-style: italic;
+}
+
+.desc {
+  font-size: 14px;
+}

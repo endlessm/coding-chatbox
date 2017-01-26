@@ -388,7 +388,14 @@ const AttachmentChatboxMessageView = new Lang.Class({
     Name: 'AttachmentChatboxMessageView',
     Extends: Gtk.Button,
     Template: 'resource:///com/endlessm/Coding/Chatbox/attachment-view.ui',
-    Children: ['attachment-icon', 'attachment-name', 'attachment-desc'],
+    Children: [
+        'attachment-icon',
+        'attachment-icon-container',
+        'attachment-details',
+        'attachment-name',
+        'attachment-desc',
+        'attachment-contents'
+    ],
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
@@ -407,10 +414,22 @@ const AttachmentChatboxMessageView = new Lang.Class({
 
         let thumbnailFactory = Thumbnailer.forSize(GnomeDesktop.DesktopThumbnailSize.LARGE);
         let preview = getPreviewForFile(this.state.path, thumbnailFactory);
-        if (preview.thumbnail)
+        if (preview.thumbnail) {
             this.attachment_icon.set_from_pixbuf(preview.thumbnail);
-        else
-            this.attachment_icon.set_from_gicon(preview.icon, Gtk.IconSize.DIALOG);
+            this.attachment_contents.orientation = Gtk.Orientation.VERTICAL;
+            this.get_style_context().add_class('thumbnail');
+            this.attachment_details.get_style_context().add_class('thumbnail');
+            this.attachment_icon.get_style_context().add_class('thumbnail');
+        }
+        else {
+            this.attachment_icon.set_from_gicon(preview.icon, Gtk.IconSize.DND);
+            this.attachment_contents.orientation = Gtk.Orientation.HORIZONTAL;
+            this.get_style_context().add_class('icon');
+            this.attachment_icon_container.get_style_context().add_class('icon-container');
+        }
+
+        this.get_style_context().add_class('chatbox-bubble-contents');
+        this.get_style_context().add_class('attachment');
     },
     copyToClipboard: function() {
         ChatboxPrivate.utils_copy_file_to_clipboard(this, this.state.path);
