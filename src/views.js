@@ -304,12 +304,12 @@ function getPreviewForFile(path, thumbnailFactory) {
     try {
         // XXX: In general, it isn't great that we're doing synchronous
         // IO here, though it is done for now to avoid too much churn.
-        info = path.query_info([Gio.FILE_ATTRIBUTE_STANDARD_ICON,
-                                Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
-                                Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
-                                Gio.FILE_ATTRIBUTE_TIME_MODIFIED].join(','),
-                               Gio.FileQueryInfoFlags.NONE,
-                               null);
+        info = path.query_info([
+            Gio.FILE_ATTRIBUTE_STANDARD_ICON,
+            Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
+            Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
+            Gio.FILE_ATTRIBUTE_TIME_MODIFIED
+        ].join(','), Gio.FileQueryInfoFlags.NONE, null);
     } catch (e) {
         logError(e,
                  'Failed to query info for file, ' +
