@@ -117,6 +117,8 @@ const TextChatboxMessageView = new Lang.Class({
         this.state.bind_property('text', this, 'label',
                                  GObject.BindingFlags.DEFAULT |
                                  GObject.BindingFlags.SYNC_CREATE);
+        this.get_style_context().add_class('chatbox-bubble-contents');
+        this.get_style_context().add_class('text');
     },
 
     copyToClipboard: function() {
@@ -196,6 +198,8 @@ const ChoiceChatboxMessageView = new Lang.Class({
         }));
 
         this.pack_start(this._buttonsBox, true, true, 12);
+        this.get_style_context().add_class('chatbox-bubble-contents');
+        this.get_style_context().add_class('choice');
     }
 });
 
@@ -244,6 +248,8 @@ const InputChatboxMessageView = new Lang.Class({
                                                  false);
             this.emit('activate', text);
         }));
+        this.get_style_context().add_class('chatbox-bubble-contents');
+        this.get_style_context().add_class('input');
     },
 });
 
@@ -278,6 +284,8 @@ const MessagePendingView = new Lang.Class({
             widget.queue_draw();
         }));
         this.animation.queue_draw();
+        this.get_style_context().add_class('chatbox-bubble-contents');
+        this.get_style_context().add_class('pending');
     }
 });
 
