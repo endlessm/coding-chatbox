@@ -98,7 +98,7 @@ const TextChatboxMessage = new Lang.Class({
             this.wrap_width = spec.wrap_width;
     },
 
-    amend: function(spec) {
+    amend: function() {
         return AmendmentResult.NONE;
     }
 });
