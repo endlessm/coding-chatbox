@@ -1,3 +1,12 @@
+/* Remove outlines https://phabricator.endlessm.com/T15283 */
+scrolledwindow undershoot.bottom {
+    background-image: none;
+}
+
+scrolledwindow undershoot.top {
+    background-image: none;
+}
+
 image.contact-default-image {
   font-family: 'Sans';
   font-size: 27px;
