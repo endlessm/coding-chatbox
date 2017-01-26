@@ -35,6 +35,7 @@
                     <property name="label">NEW</property>
                     <property name="hexpand">False</property>
                     <property name="margin_end">30</property>
+                    <property name="width-chars">2</property>
                     <style>
                       <class name="contact-message-notification"/>
                     </style>
