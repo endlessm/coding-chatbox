@@ -544,7 +544,7 @@ function new_message_view_for_state(container,
     let responseFunc = function(response) {
         if (onResponse)
             onResponse(response, actorObj.name, container.location);
-    }
+    };
 
     let view = container.render_view(responseFunc);
     let pending = new Views.MessagePendingView({ visible: true });
