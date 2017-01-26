@@ -1069,20 +1069,23 @@ const CodingChatboxMainWindow = new Lang.Class({
             // If actorIsVisible is false here, then we should listen for
             // notifications to show an unread-notification on this actor in a
             // given time period.
+            let showReminder = Lang.bind(this, function() {
+                let row = this._rowForActor(actor);
+                if (!row)
+                    throw new Error('Couldn\'t find row matching actor ' + actor);
+
+                // TODO: Translations
+                this.application.showNotification('Waiting on your input',
+                                                  actor + ' is still waiting on your response!',
+                                                  row.avatar,
+                                                  actor);
+            });
+
+
             if (!this._actorIsVisible(actor)) {
                 this._state.mesageBecameVisibleAndNotRead(actor,
                                                           CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
-                                                          Lang.bind(this, function() {
-                    let row = this._rowForActor(actor);
-                    if (!row)
-                        throw new Error('Couldn\'t find row matching actor ' + actor);
-
-                    // TODO: Translations
-                    this.application.showNotification('Waiting on your input',
-                                                      actor + ' is still waiting on your response!',
-                                                      row.avatar,
-                                                      actor);
-                }));
+                                                          showReminder);
             }
 
             // Listen for any new changes to the scroll state and scroll
