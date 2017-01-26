@@ -50,7 +50,7 @@ const Thumbnailer = (function() {
 // links before passing to pango_parse_markup so that the latter does not
 // throw an error
 function stripMarkup(text) {
-    let escaped = text.replace(/(<\/?\s*a.*?>)/g, '')
+    let escaped = text.replace(/(<\/?\s*a.*?>)/g, '');
     return Pango.parse_markup(escaped, -1, '')[2];
 }
 
