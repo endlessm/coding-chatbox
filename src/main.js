@@ -1239,8 +1239,10 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     chatAttachment: function(actor, attachment, location, timestamp, style, pendingTime) {
-        let item = { type: 'attachment',
-                     attachment: attachment };
+        let item = {
+            type: 'attachment',
+            attachment: attachment
+        };
         this._addItem(item,
                       actor,
                       location,
