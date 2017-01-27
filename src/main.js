@@ -439,22 +439,12 @@ function calculateMessageReceivedTextFromDate(date) {
         return ["About", dayDelta, "days ago"].join(" ");
     }
 
-    let hourDelta = dateSinceEpoch.getHours() - epochDate.getHours();
-    if (hourDelta > 0) {
-        /* For N hours and M minutes apart, display the timestamp
-         * in the hours / minutes format */
-        let hours = date.getHours() % 12 || 12;
-        let minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
-        let time = [hours, minutes].join(':')
-        return 'At ' + time  + (date.getHours() >= 12 ? ' AM' : ' PM');
-    }
-
-    let secondsDelta = dateSinceEpoch.getSeconds() - epochDate.getSeconds();
-    if (secondsDelta > 30) {
-        return ["About", secondsDelta, "seconds ago"].join(" ");
-    }
-
-    return "Just now";
+    /* On the same day, display the timestamp
+     * in the hours / minutes format */
+    let hours = date.getHours() % 12 || 12;
+    let minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+    let time = [hours, minutes].join(':')
+    return 'At ' + time  + (date.getHours() >= 12 ? ' AM' : ' PM');
 }
 
 const CodingChatboxMessageGroup = new Lang.Class({
