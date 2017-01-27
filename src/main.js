@@ -439,12 +439,13 @@ function calculateMessageReceivedTextFromDate(date) {
         return ["About", dayDelta, "days ago"].join(" ");
     }
 
+    /* In this case we convert to GLib.DateTime and use the localisation
+     * functions there to display the time */
+    let datetime = GLib.DateTime.new_from_unix_local(date.getTime() / 1000);
+
     /* On the same day, display the timestamp
      * in the hours / minutes format */
-    let hours = date.getHours() % 12 || 12;
-    let minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
-    let time = [hours, minutes].join(':')
-    return 'At ' + time  + (date.getHours() >= 12 ? ' AM' : ' PM');
+    return 'At ' + datetime.format('%l:%M %p');
 }
 
 const CodingChatboxMessageGroup = new Lang.Class({
