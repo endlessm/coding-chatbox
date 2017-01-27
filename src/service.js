@@ -8,7 +8,7 @@
 //
 
 const ChatboxService = imports.gi.ChatboxService;
-const CodingGameDBUSService = imports.gi.CodingGameService
+const CodingGameDBUSService = imports.gi.CodingGameService;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
@@ -37,10 +37,10 @@ const CodingGameService = new Lang.Class({
 
     chatboxLogForActor: function(actor, callback) {
         this._service.call_chat_history(actor, null, Lang.bind(this, function(source, result) {
-            let success, returnValue;
+            let returnValue;
 
             try {
-                [success, returnValue] = this._service.call_chat_history_finish(result);
+                returnValue = this._service.call_chat_history_finish(result)[1];
             } catch (e) {
                 logError(e, 'Failed to get chat service history for ' + actor);
                 return;
@@ -64,13 +64,9 @@ const CodingGameService = new Lang.Class({
     },
 
     openAttachment: function(location) {
-        this._service.call_open_attachment(location,
-                                           null,
-                                           Lang.bind(this, function(source, result) {
-            let success, returnValue;
-
+        this._service.call_open_attachment(location, null, Lang.bind(this, function(source, result) {
             try {
-                [success, returnValue] = this._service.call_open_attachment_finish(result);
+                this._service.call_open_attachment_finish(result);
             } catch(e) {
                 logError(e, 'Failed to send attachment open notification to ' + location);
             }
@@ -78,19 +74,19 @@ const CodingGameService = new Lang.Class({
     },
 
     respond_to_message: function(location, response_contents, response_name) {
+        let chatResponseHandler = Lang.bind(this, function(source, result) {
+            try {
+                this._service.call_chat_response_finish(result);
+            } catch(e) {
+                logError(e, 'Failed to repond to message ' + location + ' with response ' + response_name);
+            }
+        });
+
         this._service.call_chat_response(location,
                                          response_contents,
                                          response_name,
                                          null,
-                                         Lang.bind(this, function(source, result) {
-            let success, returnValue;
-
-            try {
-                [success, returnValue] = this._service.call_chat_response_finish(result);
-            } catch(e) {
-                logError(e, 'Failed to repond to message ' + location + ' with response ' + response_name);
-            }
-        }));
+                                         chatResponseHandler);
     }
 });
 
@@ -109,11 +105,25 @@ const ChatboxReceiverService = new Lang.Class({
             let decodedMessage = JSON.parse(message);
 
             if (decodedMessage.message) {
-                this.emit('chat-message', decodedMessage.actor, decodedMessage.message, decodedMessage.name, decodedMessage.styles);
+                this.emit('chat-message',
+                          decodedMessage.actor,
+                          decodedMessage.message,
+                          decodedMessage.name,
+                          decodedMessage.timestamp,
+                          decodedMessage.styles);
             } else if (decodedMessage.input) {
-                this.emit('user-input-bubble', decodedMessage.actor, decodedMessage.input, decodedMessage.name, decodedMessage.styles);
+                this.emit('user-input-bubble',
+                          decodedMessage.actor,
+                          decodedMessage.input,
+                          decodedMessage.name,
+                          decodedMessage.styles);
             } else if (decodedMessage.attachment) {
-                this.emit('chat-attachment', decodedMessage.actor, decodedMessage.attachment, decodedMessage.name, decodedMessage.styles);
+                this.emit('chat-attachment',
+                          decodedMessage.actor,
+                          decodedMessage.attachment,
+                          decodedMessage.name,
+                          decodedMessage.timestamp,
+                          decodedMessage.styles);
             }
             this.complete_receive_message(method);
         } catch (e) {
@@ -144,11 +154,10 @@ const CodingChatboxTextService = new Lang.Class({
     evaluate: function(showmehow_id, text, callback) {
         let [name, position] = showmehow_id.split('::');
 
-        this._service.call_attempt_lesson_remote(-1, name, position, text, null,
-                                                 Lang.bind(this, function(source, result) {
-            let success, returnValue;
+        this._service.call_attempt_lesson_remote(-1, name, position, text, null, Lang.bind(this, function(source, result) {
+            let returnValue;
             try {
-                [success, returnValue] = this._service.call_attempt_lesson_remote_finish(result);
+                returnValue = this._service.call_attempt_lesson_remote_finish(result)[1];
             } catch (e) {
                 logError(e, 'Failed to get showmehow response for ' +
                          showmehow_id + ' with response ' +

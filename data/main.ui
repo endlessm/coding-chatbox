@@ -19,6 +19,9 @@
                 <property name="width-request">300</property>
                 <child>
                   <object class="GtkListBox" id="chatbox-list-box">
+                    <style>
+                      <class name="chatbox-contact-list"/>
+                    </style>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="vexpand">True</property>

@@ -14,9 +14,7 @@ pkg.require({
     Gtk: '3.0',
     Gio: '2.0',
     GLib: '2.0',
-    GObject: '2.0',
-    Pango: '1.0',
-    PangoCairo: '1.0'
+    GObject: '2.0'
 });
 
 const Cairo = imports.cairo;
@@ -26,8 +24,6 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
-const Pango = imports.gi.Pango;
-const PangoCairo = imports.gi.PangoCairo;
 
 const Lang = imports.lang;
 const Service = imports.service;
@@ -188,7 +184,7 @@ const CodingChatboxContactListItem = new Lang.Class({
     Name: 'CodingChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
     Template: 'resource:///com/endlessm/Coding/Chatbox/contact.ui',
-    Children: ['content-grid', 'contact-name-label', 'contact-message-snippit-label'],
+    Children: ['content-grid', 'contact-name-label', 'contact-message-snippit-label', 'contact-message-notification'],
     Properties: {
         'actor': GObject.ParamSpec.object('actor',
                                           '',
@@ -202,15 +198,18 @@ const CodingChatboxContactListItem = new Lang.Class({
         this.parent(params);
 
         this.contact_name_label.set_text(this.actor.name);
-        this._contact_image_pixbuf = null;
-        this._contact_image_widget = new RoundedImage({ visible: true,
-                                                        margin: 8 });
+        this._contact_image_widget = new RoundedImage({
+            visible: true,
+            margin: 8
+        });
 
         this._contact_image_overlay = new Gtk.Overlay({ visible: true });
         this._contact_image_overlay.add(this._contact_image_widget);
 
-        let frame = new Gtk.Frame({ visible: true,
-                                    shadow_type: Gtk.ShadowType.NONE });
+        let frame = new Gtk.Frame({
+            visible: true,
+            shadow_type: Gtk.ShadowType.NONE
+        });
         this._contact_image_overlay.add_overlay(frame);
         frame.get_style_context().add_class('contact-image-overlay');
 
@@ -225,12 +224,14 @@ const CodingChatboxContactListItem = new Lang.Class({
 
     set highlight(v) {
         if (!v) {
+            this.contact_message_notification.visible = false;
             this.get_style_context().remove_class('new-content');
             return;
         }
 
         // If highlight was set, then it means that we were not
         // considered to be visible, so show a highlight here.
+        this.contact_message_notification.visible = true;
         this.get_style_context().add_class('new-content');
     },
 
@@ -260,19 +261,33 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     Name: 'CodingChatboxChatBubbleContainer',
     Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/Coding/Chatbox/chat-bubble-container.ui',
-    Children: ['inner-box', 'event-box'],
+    Children: [
+        'inner-box',
+        'event-box',
+        'user-image-container',
+        'bubble-detail-left',
+        'bubble-detail-right'
+    ],
     Properties: {
         'content': GObject.ParamSpec.object('content',
                                             '',
                                             '',
                                             GObject.ParamFlags.READWRITE,
                                             Gtk.Widget),
-        'by-user': GObject.ParamSpec.boolean('by-user',
-                                             '',
-                                             '',
-                                             GObject.ParamFlags.READWRITE |
-                                             GObject.ParamFlags.CONSTRUCT_ONLY,
-                                             false)
+        'sender': GObject.ParamSpec.int('sender',
+                                        '',
+                                        '',
+                                        GObject.ParamFlags.READWRITE |
+                                        GObject.ParamFlags.CONSTRUCT_ONLY,
+                                        State.SentBy.USER,
+                                        State.SentBy.INPUT,
+                                        State.SentBy.USER),
+        'display-image': GObject.ParamSpec.object('display-image',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  GdkPixbuf.Pixbuf)
     },
 
     _init: function(params, styles, showContentHandler) {
@@ -284,16 +299,41 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
             this._popover.hide();
         }));
 
-        let [margin_prop, halign] = params.by_user ? ['margin-end', Gtk.Align.END] :
-                                                     ['margin-start', Gtk.Align.START];
+        let margin_prop, halign, containerStyle;
+        switch (params.sender) {
+        case State.SentBy.ACTOR:
+            [margin_prop, halign, containerStyle] = ['margin-start', Gtk.Align.START, 'by-actor'];
 
-        this[margin_prop] = 10;
+            // Add the user's icon to the left hand side of the box
+            // as well
+            this.user_image_container.pack_start(new RoundedImage({
+                visible: true,
+                pixbuf: this.display_image.scale_simple(28,
+                                                        28,
+                                                        GdkPixbuf.InterpType.BILINEAR),
+                halign: Gtk.Align.START,
+            }), true, true, 0);
+            this.bubble_detail_left.visible = true;
+            break;
+        case State.SentBy.USER:
+            [margin_prop, halign, containerStyle] = ['margin-end', Gtk.Align.END, 'by-user'];
+            this.bubble_detail_right.visible = true;
+            break;
+        case State.SentBy.INPUT:
+            [margin_prop, halign, containerStyle] = [null, Gtk.Align.FILL, 'input-bubble-container'];
+            break;
+        default:
+            throw new Error('Don\'t know how to handle sender type ' + params.sender);
+        }
+
+        if (margin_prop) {
+            this[margin_prop] = 10;
+        }
+
         this.halign = halign;
+        this.get_style_context().add_class(containerStyle);
 
-        if (this.by_user)
-            this.get_style_context().add_class('by-user');
-
-        this.inner_box.pack_start(this.content, false, false, 0);
+        this.inner_box.pack_start(this.content, true, true, 0);
         this.event_box.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
                                   Gdk.EventMask.BUTTON_RELEASE_MASK);
 
@@ -321,7 +361,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
         this.inner_box.get_children().forEach(Lang.bind(this, function(child) {
             this.inner_box.remove(child);
         }));
-        this.inner_box.pack_start(this._content, false, false, 0);
+        this.inner_box.pack_start(this._content, true, true, 0);
     },
 
     get content() {
@@ -337,6 +377,155 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     }
 });
 
+const _MILLISECONDS_TO_MINUTE = 1000 * 60;
+const _FIVE_MINUTES_IN_MS = _MILLISECONDS_TO_MINUTE * 5;
+const _MESSAGE_GROUP_LIMIT = 10;
+
+// isCloseEnoughInTime
+//
+// Return true if the given date of the income chat bubble is close enough
+// in time to the most recent one in this group
+function isCloseEnoughInTime(lastMessageDate, currentMessageDate) {
+    let delta = currentMessageDate.getTime() - lastMessageDate.getTime();
+    return delta < _FIVE_MINUTES_IN_MS;
+}
+
+function calculateMessageReceivedTextFromDate(date) {
+    /* Sanity check for clock skew. In this case, we just display
+     * "In the future" */
+    if (date.getTime() > Date.now()) {
+        return "In the future";
+    }
+
+    let dateSinceEpoch = new Date(Date.now() - date.getTime());
+    let epochDate = new Date(0);
+
+    /* Compare deltas between the dates until we can determine a
+     * string to show */
+    let yearDelta = dateSinceEpoch.getFullYear() - epochDate.getFullYear();
+    if (yearDelta > 0) {
+        if (yearDelta === 1) {
+            return "Last year";
+        }
+
+        return ["About", yearDelta, "years ago"].join(" ");
+    }
+
+    let monthDelta = dateSinceEpoch.getMonth() - epochDate.getMonth();
+    if (monthDelta > 0) {
+        if (monthDelta === 1) {
+            return "Last month";
+        }
+
+        return ["About", monthDelta, "months ago"].join(" ");
+    }
+
+    let dayDelta = dateSinceEpoch.getDate() - epochDate.getDate();
+    if (dayDelta > 0) {
+        if (dayDelta > 7) {
+            let weekDelta = Math.floor(dayDelta / 7);
+
+            if (weekDelta === 1) {
+                return "Last week";
+            }
+
+            return ["About", weekDelta, "weeks ago"].join(" ");
+        }
+
+        if (dayDelta === 1) {
+            return "Yesterday";
+        }
+
+        return ["About", dayDelta, "days ago"].join(" ");
+    }
+
+    let hourDelta = dateSinceEpoch.getHours() - epochDate.getHours();
+    if (hourDelta > 0) {
+        if (hourDelta === 1) {
+            return "About an hour ago";
+        }
+
+        return ["About", hourDelta, "hours ago"].join(" ");
+    }
+
+    let minutesDelta = dateSinceEpoch.getMinutes() - epochDate.getMinutes();
+    if (minutesDelta > 0) {
+        if (minutesDelta === 1) {
+            return "About a minute ago";
+        }
+
+        return ["About", minutesDelta, "minutes ago"].join(" ");
+    }
+
+    let secondsDelta = dateSinceEpoch.getSeconds() - epochDate.getSeconds();
+    if (secondsDelta > 30) {
+        return ["About", secondsDelta, "seconds ago"].join(" ");
+    }
+
+    return "Just now";
+}
+
+const CodingChatboxMessageGroup = new Lang.Class({
+    Name: 'CodingChatboxMessageGroup',
+    Extends: Gtk.Box,
+    Template: 'resource:///com/endlessm/Coding/Chatbox/chatbox-message-group.ui',
+    Children: [
+        'message-received-date-container',
+        'message-received-date-label',
+        'chatbox-bubbles'
+    ],
+
+    _init: function(params) {
+        params.orientation = Gtk.Orientation.VERTICAL;
+        this.parent(params);
+
+        this._messageDates = [];
+        this._actorName = null;
+    },
+
+    addBubble: function(bubbleView, date, actorName) {
+        // Different actors don't have the same message group. Note that the
+        // convention here is that user bubbles have an actorName of 'user'
+        if (this._actorName && actorName !== this._actorName) {
+            return false;
+        }
+
+        // Limit of 10 bubbles per message group, just to add some
+        // distinction between bubbles.
+        if (this._messageDates.length > _MESSAGE_GROUP_LIMIT) {
+            return false;
+        }
+
+        // If the incoming message is too new, it does not belong in the
+        // same message group
+        if (this._messageDates.length !== 0 &&
+            !isCloseEnoughInTime(this._messageDates[this._messageDates.length - 1],
+                                 date)) {
+            return false;
+        }
+
+        if (!this._actorName && actorName === 'user') {
+            this.message_received_date_container.halign = Gtk.Align.END;
+            this.message_received_date_container.margin_end = 40;
+        }
+
+        this._messageDates.push(date);
+        this._actorName = actorName;
+        this.chatbox_bubbles.pack_start(bubbleView, true, true, 5);
+        this.updateMessageReceivedDate();
+
+        return true;
+    },
+
+    updateMessageReceivedDate: function() {
+        if (!this._messageDates.length) {
+            return;
+        }
+
+        let date = this._messageDates[this._messageDates.length - 1];
+        this.message_received_date_label.label = calculateMessageReceivedTextFromDate(date);
+    }
+});
 
 //
 // new_message_view_for_state
@@ -345,7 +534,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 // automatically updates when the underlying state changes.
 //
 function new_message_view_for_state(container,
-                                    actor,
+                                    actorObj,
                                     styles,
                                     onResponse,
                                     timeout,
@@ -354,8 +543,8 @@ function new_message_view_for_state(container,
 
     let responseFunc = function(response) {
         if (onResponse)
-            onResponse(response, actor, container.location);
-    }
+            onResponse(response, actorObj.name, container.location);
+    };
 
     let view = container.render_view(responseFunc);
     let pending = new Views.MessagePendingView({ visible: true });
@@ -379,7 +568,9 @@ function new_message_view_for_state(container,
         // state never changes between renders.
         visible: view.visible,
         content: pending,
-        by_user: (container.sender == State.SentBy.USER)
+        sender: container.sender,
+        expand: true,
+        display_image: actorObj.avatar
     }, styles.concat('message-pending'), function() {
         // Re-render the view in case something changes
         if (timeout > 0) {
@@ -440,8 +631,7 @@ const RenderableInputChatboxMessage = new Lang.Class({
             state: this,
             visible: true
         });
-        view.connect('activate', Lang.bind(this, function(view) {
-            let msg = view.text;
+        view.connect('activate', Lang.bind(this, function(widget, msg) {
             listener({
                 response: {
                     showmehow_id: this.showmehow_id,
@@ -515,63 +705,58 @@ const CodingChatboxChatScrollView = new Lang.Class({
     Extends: Gtk.ScrolledWindow,
 
     _init: function(chatContents) {
-        this.parent({ visible: true,
-                      width_request: 500,
-                      expand: true,
-                      max_content_width: 750 });
+        this.parent({
+            visible: true,
+            width_request: 500,
+            expand: true,
+            max_content_width: 750
+        });
         this.add(chatContents);
     }
 });
 
-// This class implements a queue of widgets which could be addd
-// to the box progressively. The first item always gets added
-// straight away, but is pushed to the back of the queue. While
-// the queue has items in it, queuing more items will just cause
-// them to be added to the queue. Calling the 'showNext' method will
+
+// This class implements a queue of items which could be passed
+// to a consumer progressively according to the needs of the application.
+// The first item always gets added straight away, but is pushed to the back
+// of the queue. While the queue has items in it, queuing more items will just
+// cause them to be added to the queue. Calling the 'showNext' method will
 // cause the front of the queue to be popped and the widget at the
 // front of the queue to be added to the box.
 //
-// Once a widget is displayed, the showContent handler will be called
-// on the widget so that it can display any animations necessary to
-// show its contents.
-const QueueableBox = new Lang.Class({
-    Name: 'QueueableBox',
-    Extends: Gtk.Box,
+// This class is used by the chatbox view to show pending animations
+// for already-received messages and otherwise show messages in the order
+// that they were received. When a message is done "showing", it can call
+// showNext on the queue to start the animation for the next message.
+const TriggerableEventQueue = new Lang.Class({
+    Name: 'TriggerableEventQueue',
+    Extends: GObject.Object,
 
-    _init: function(params) {
-        this.parent(params);
+    _init: function(itemConsumer) {
+        this.parent({});
         this._queue = [];
+        this._itemConsumer = itemConsumer;
     },
 
-    _showContent: function(content) {
-        if (typeof(content) === 'function') {
-            content();
-        } else {
-            this.pack_start(content, false, false, 0);
-            content.showContent();
-        }
-    },
-
-    // pushContent
-    //
-    // pushContent accepts either a widget or a function. If the passed in
-    // content is a function, then it will be called when showNext
-    // is called. Whilst a widget is pending, a pending bubble will
-    // be shown for it.
-    pushContent: function(content) {
-        let hadLength = this._queue.length > 0;
-        this._queue.push(content);
-
-        if (!hadLength) {
-            this._showContent(content);
-        }
-    },
-
-    showNext: function(widget) {
+    showNext: function() {
         this._queue.shift();
         if (this._queue.length) {
-            let content = this._queue[0];
-            this._showContent(content);
+            let item = this._queue[0];
+            this._itemConsumer(item);
+        }
+    },
+
+    // push
+    //
+    // push accepts anything. If it would be the first item on the queue
+    // we immediately pass it to the consumer otherwise we keep it on the
+    // queue and pass it to the consumer when showNext is called.
+    push: function(item) {
+        let hadLength = this._queue.length > 0;
+        this._queue.push(item);
+
+        if (!hadLength) {
+            this._itemConsumer(item);
         }
     }
 });
@@ -590,6 +775,12 @@ const ChatboxStackChild = new Lang.Class({
                                                   GObject.ParamFlags.READWRITE |
                                                   GObject.ParamFlags.CONSTRUCT_ONLY,
                                                   Gtk.Box),
+        'message-queue': GObject.ParamSpec.object('message-queue',
+                                                  '',
+                                                  '',
+                                                  GObject.ParamFlags.READWRITE |
+                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
+                                                  TriggerableEventQueue.$gtype),
         'input-area': GObject.ParamSpec.object('input-area',
                                                '',
                                                '',
@@ -618,6 +809,9 @@ const ChatboxStackChild = new Lang.Class({
 // We'll send a reminder after 20 minutes if the user fails to read a message
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
+
+// Update every five minutes
+const CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS = 300;
 
 const CodingChatboxMainWindow = new Lang.Class({
     Name: 'CodingChatboxMainWindow',
@@ -662,16 +856,20 @@ const CodingChatboxMainWindow = new Lang.Class({
                     return item.type.indexOf('chat') == 0;
                 }).forEach(Lang.bind(this, function(item) {
                     // We always treat messages obtained through the log as "read"
+                    let wrapWidth, spec;
+
                     switch (item.type) {
                     case 'chat-user':
                     case 'chat-actor':
-                        let wrapWidth = (item.styles && item.styles.indexOf('code') !== -1) ?
+                        wrapWidth = (item.styles && item.styles.indexOf('code') !== -1) ?
                              Views.CODE_MAX_WIDTH_CHARS :
                              Views.MAX_WIDTH_CHARS;
-                        let spec = { type: 'scrolled',
-                                     text: item.message,
-                                     wrap_width: wrapWidth };
-                        this._addItem(spec, actor.name, 'none::none', item.styles,
+                        spec = {
+                            type: 'scrolled',
+                            text: item.message,
+                            wrap_width: wrapWidth
+                        };
+                        this._addItem(spec, actor.name, 'none::none', item.timestamp, item.styles,
                                       item.type === 'chat-actor' ? State.SentBy.ACTOR :
                                                                    State.SentBy.USER,
                                       0, null);
@@ -679,9 +877,11 @@ const CodingChatboxMainWindow = new Lang.Class({
                         break;
                     case 'chat-user-attachment':
                     case 'chat-actor-attachment':
-                        spec = { type: 'attachment',
-                                 attachment: item.attachment };
-                        this._addItem(spec, actor.name, item.name, item.styles,
+                        spec = {
+                            type: 'attachment',
+                            attachment: item.attachment
+                        };
+                        this._addItem(spec, actor.name, item.name, item.timestamp, item.styles,
                                       item.type === 'chat-actor-attachment' ? State.SentBy.ACTOR :
                                                                               State.SentBy.USER,
                                       0, null);
@@ -707,10 +907,26 @@ const CodingChatboxMainWindow = new Lang.Class({
                 }
             }));
 
-            return new CodingChatboxContactListItem({
+            let contactListItem = new CodingChatboxContactListItem({
                 visible: true,
                 actor: actor
             });
+
+            this._state.bindPropertyForActorState(actor.name,
+                                                  'unread-messages',
+                                                  contactListItem.contact_message_notification,
+                                                  'label',
+                                                  GObject.BindingFlags.SYNC_CREATE |
+                                                  GObject.BindingFlags.DEFAULT,
+                                                  function(value) {
+                                                      return String(value);
+                                                  },
+                                                  function(value) {
+                                                      let val = Number.parseInt(value);
+                                                      return (val ? val : 0);
+                                                  });
+
+            return contactListItem;
         }));
 
         this.chatbox_list_box.connect('row-selected', Lang.bind(this, function(list_box, row) {
@@ -722,6 +938,18 @@ const CodingChatboxMainWindow = new Lang.Class({
         }));
 
         this.connect('notify::is-active', Lang.bind(this, this._markVisibleActorAsRead));
+
+        // Add a new timeout which periodically traverses all message groups
+        // and updates the message received label
+        GLib.timeout_add_seconds(GLib.PRIORITY_LOW, CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS, Lang.bind(this, function() {
+            this.chatbox_stack.get_children().forEach(function(child) {
+                child.chat_contents.get_children().forEach(function(group) {
+                    group.updateMessageReceivedDate();
+                });
+            });
+
+            return true;
+        }));
     },
 
     _markVisibleActorAsRead: function() {
@@ -739,9 +967,11 @@ const CodingChatboxMainWindow = new Lang.Class({
         // a page on the GtkStack and vice versa.
         let row = this._rowForActor(selectedActor);
         let chatContents = this._contentsForActor(selectedActor).chat_contents;
-        let children = chatContents.get_children();
-        if (children.length)
+        let groups = chatContents.get_children();
+        if (groups.length) {
+            let children = groups[groups.length - 1].chatbox_bubbles.get_children();
             children[children.length - 1].focused();
+        }
 
         row.highlight = false;
         this._state.markAllMessagesByActorAsRead(selectedActor);
@@ -758,23 +988,48 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (chatboxStackChild)
             return chatboxStackChild;
 
-        let chatContents = new QueueableBox({
+        let chatContents = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
-            valign: Gtk.Align.START
+            valign: Gtk.Align.CENTER
         });
         chatContents.get_style_context().add_class('chatbox-chats');
+
+        let messageQueue = new TriggerableEventQueue(function(item) {
+            if (typeof(item) === 'function') {
+                item();
+            } else {
+                /* Check to see if there are any groups that will accept
+                 * this item to start with */
+                let groups = chatContents.get_children();
+                if (!groups.length ||
+                    !groups[groups.length - 1].addBubble(item.view,
+                                                         item.date,
+                                                         item.actor)) {
+                    let newGroup = new CodingChatboxMessageGroup({
+                        visible: true,
+                        expand: true
+                    });
+                    newGroup.addBubble(item.view, item.date, item.actor);
+                    chatContents.pack_start(newGroup, true, true, 15);
+                }
+
+                item.view.showContent();
+            }
+        });
 
         let chatInputArea = new Gtk.Box({
             visible: true,
             expand: false
         });
+        chatInputArea.get_style_context().add_class('chatbox-input-area');
 
-        let chatboxStackChild = new ChatboxStackChild({
+        chatboxStackChild = new ChatboxStackChild({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
             chat_contents: chatContents,
-            input_area: chatInputArea
+            input_area: chatInputArea,
+            message_queue: messageQueue
         });
 
         this.chatbox_stack.add_named(chatboxStackChild, actor);
@@ -791,8 +1046,8 @@ const CodingChatboxMainWindow = new Lang.Class({
         return null;
     },
 
-    _addItem: function(item, actor, location, style, sentBy, pendingTime, visibleAction) {
-        let chatContents = this._contentsForActor(actor).chat_contents;
+    _addItem: function(item, actor, location, timestamp, style, sentBy, pendingTime, visibleAction) {
+        let messageQueue = this._contentsForActor(actor).message_queue;
 
         // Scroll view to the bottom after the child is added. We only
         // connect to the signal for this one item, to avoid jumping to the
@@ -814,20 +1069,23 @@ const CodingChatboxMainWindow = new Lang.Class({
             // If actorIsVisible is false here, then we should listen for
             // notifications to show an unread-notification on this actor in a
             // given time period.
-            if (!this._actorIsVisible(actor)) {
-                this._state.performActionIfStillUnreadAfter(actor,
-                                                            CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
-                                                            Lang.bind(this, function() {
-                    let row = this._rowForActor(actor);
-                    if (!row)
-                        throw new Error('Couldn\'t find row matching actor ' + actor);
+            let showReminder = Lang.bind(this, function() {
+                let row = this._rowForActor(actor);
+                if (!row)
+                    throw new Error('Couldn\'t find row matching actor ' + actor);
 
-                    // TODO: Translations
-                    this.application.showNotification('Waiting on your input',
-                                                      actor + ' is still waiting on your response!',
-                                                      row.avatar,
-                                                      actor);
-                }));
+                // TODO: Translations
+                this.application.showNotification('Waiting on your input',
+                                                  actor + ' is still waiting on your response!',
+                                                  row.avatar,
+                                                  actor);
+            });
+
+
+            if (!this._actorIsVisible(actor)) {
+                this._state.mesageBecameVisibleAndNotRead(actor,
+                                                          CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS,
+                                                          showReminder);
             }
 
             // Listen for any new changes to the scroll state and scroll
@@ -836,56 +1094,66 @@ const CodingChatboxMainWindow = new Lang.Class({
 
             if (visibleAction)
                 visibleAction();
-            chatContents.showNext();
+            messageQueue.showNext();
         });
 
         container = this._state.add_message_for_actor(actor,
                                                       sentBy,
                                                       item,
                                                       location);
-        chatContents.pushContent(new_message_view_for_state(container,
-                                                            actor,
-                                                            style,
-                                                            Lang.bind(this, this._handleResponse),
-                                                            pendingTime,
-                                                            messageBecameVisibleHandler));
+        messageQueue.push({
+            view: new_message_view_for_state(container,
+                                             this.actor_model.getByName(actor),
+                                             style,
+                                             Lang.bind(this, this._handleResponse, style),
+                                             pendingTime,
+                                             messageBecameVisibleHandler),
+            date: new Date(timestamp),
+            actor: sentBy == State.SentBy.USER ? 'user' : actor
+        });
 
         return container;
     },
 
     _replaceUserInput: function(item, actor, style, location) {
         let stackChild = this._contentsForActor(actor);
-        let chatContents = stackChild.chat_contents;
+        let messageQueue = stackChild.message_queue;
         let inputArea = stackChild.input_area;
 
-        // Here we push a function to chatContents which gets called when
+        // Here we push a function to messageQueue which gets called when
         // it becomes the first item on the queue. When it is called, we
         // replace the currently active user input and then show the next
         // message.
         //
         // Doing it this way ensures that the input is always shown after
         // the last message was shown.
-        chatContents.pushContent(Lang.bind(this, function() {
+        messageQueue.push(Lang.bind(this, function() {
             let container = this._state.replaceUserInputWithForActor(actor, item, location);
             inputArea.get_children().forEach(function(child) {
                 child.destroy();
             });
 
             let view_container = new_message_view_for_state(container,
-                                                            actor,
+                                                            this.actor_model.getByName(actor),
                                                             style,
-                                                            Lang.bind(this, this._handleResponse),
+                                                            Lang.bind(this, this._handleResponse, style),
                                                             0,
                                                             null);
             view_container.showContent();
-            inputArea.add(view_container);
+            view_container.margin = 10;
+            inputArea.pack_end(view_container, true, true, 0);
             stackChild.scrollToBottomOnUpdate();
-            chatContents.showNext();
+            messageQueue.showNext();
         }));
         return inputArea;
     },
 
-    _handleResponse: function(response, actor, location) {
+    // style is the first argument here since it needs to be passed
+    // in by _replaceUserInput and _addItem so that we know
+    // what style of bubble to create later if we need to create any.
+    _handleResponse: function(response, actor, location, style) {
+        style = style ? style : [];
+
         if (response.showmehow_id) {
             // We evaluate the text of the response here in order to get an 'evaluated'
             // piece of text to send back to the game service.
@@ -896,7 +1164,8 @@ const CodingChatboxMainWindow = new Lang.Class({
             this.chatMessage(actor,
                              response.text,
                              location,
-                             [],
+                             (new Date()).toString(),
+                             style,
                              State.SentBy.USER,
                              0);
             this.hideUserInput(actor);
@@ -912,7 +1181,8 @@ const CodingChatboxMainWindow = new Lang.Class({
             this.chatMessage(actor,
                              response.text,
                              location,
-                             [],
+                             (new Date()).toString(),
+                             style,
                              State.SentBy.USER,
                              0);
             this.hideUserInput(actor);
@@ -948,15 +1218,18 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
     },
 
-    chatMessage: function(actor, message, location, style, sentBy, pendingTime) {
+    chatMessage: function(actor, message, location, timestamp, style, sentBy, pendingTime) {
         let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
                                                        Views.MAX_WIDTH_CHARS;
-        let item = { type: 'scrolled',
-                     text: message,
-                     wrap_width: wrapWidth };
+        let item = {
+            type: 'scrolled',
+            text: message,
+            wrap_width: wrapWidth
+        };
         this._addItem(item,
                       actor,
                       location,
+                      timestamp,
                       style,
                       sentBy,
                       pendingTime,
@@ -965,12 +1238,15 @@ const CodingChatboxMainWindow = new Lang.Class({
                       }));
     },
 
-    chatAttachment: function(actor, attachment, location, style, pendingTime) {
-        let item = { type: 'attachment',
-                     attachment: attachment };
+    chatAttachment: function(actor, attachment, location, timestamp, style, pendingTime) {
+        let item = {
+            type: 'attachment',
+            attachment: attachment
+        };
         this._addItem(item,
                       actor,
                       location,
+                      timestamp,
                       style,
                       State.SentBy.ACTOR,
                       pendingTime,
@@ -979,7 +1255,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                       }));
     },
 
-    chatUserInput: function(actor, spec, location, style, pendingTime) {
+    chatUserInput: function(actor, spec, location, style) {
         this._replaceUserInput(spec, actor, style, location);
     },
 
@@ -1012,25 +1288,25 @@ function load_style_sheet(resourcePath) {
 // realistic.
 function determineMessagePendingTime(type, content) {
     switch (type) {
-        case 'chat-actor':
-            // Simple message. Assume that the average person
-            // types at 200 character per minute - 3 characters
-            // per second and thus 300 milliseconds per character.
-            // We then divide by 2.5 to make things a little quicker.
-            //
-            // This is capped at 1500 to make sure we're not waiting
-            // too long.
-            return Math.min(content.length * 120, 1500);
-        case 'chat-actor-attachment':
-            // Attachment. Fixed 1.5 second delay + character length
-            // of description
-            return 1500 + Math.min(content.desc.length * 60,
-                                   500);
-        case 'input-user':
-            // User input. Fixed 1 second delay
-            return 1000;
-        default:
-            return 0;
+    case 'chat-actor':
+        // Simple message. Assume that the average person
+        // types at 200 character per minute - 3 characters
+        // per second and thus 300 milliseconds per character.
+        // We then divide by 2.5 to make things a little quicker.
+        //
+        // This is capped at 1500 to make sure we're not waiting
+        // too long.
+        return Math.min(content.length * 120, 1500);
+    case 'chat-actor-attachment':
+        // Attachment. Fixed 1.5 second delay + character length
+        // of description
+        return 1500 + Math.min(content.desc.length * 60,
+                               500);
+    case 'input-user':
+        // User input. Fixed 1 second delay
+        return 1000;
+    default:
+        return 0;
     }
 }
 
@@ -1045,8 +1321,10 @@ const CodingChatboxApplication = new Lang.Class({
         this.parent({ application_id: pkg.name });
         GLib.set_application_name(_("ChatBox"));
 
-        let chatWithAction = new Gio.SimpleAction({ name: CHAT_WITH_ACTION,
-                                                    parameter_type: new GLib.VariantType('s') });
+        let chatWithAction = new Gio.SimpleAction({
+            name: CHAT_WITH_ACTION,
+            parameter_type: new GLib.VariantType('s')
+        });
         chatWithAction.connect('activate', Lang.bind(this, function(action, parameter) {
             this.activate();
 
@@ -1069,10 +1347,12 @@ const CodingChatboxApplication = new Lang.Class({
 
     vfunc_activate: function() {
         if (!this._mainWindow)
-            this._mainWindow = new CodingChatboxMainWindow({ application: this,
-                                                             actor_model: this._actorModel,
-                                                             service: this._service,
-                                                             game_service: this._gameService });
+            this._mainWindow = new CodingChatboxMainWindow({
+                application: this,
+                actor_model: this._actorModel,
+                service: this._service,
+                game_service: this._gameService
+            });
 
         this._mainWindow.present();
     },
@@ -1082,11 +1362,12 @@ const CodingChatboxApplication = new Lang.Class({
         this._skeleton = new Service.ChatboxReceiverService();
         this._skeleton.export(conn, object_path);
 
-        this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location, styles) {
+        this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location, timestamp, styles) {
             if (this._mainWindow) {
                 this._mainWindow.chatMessage(actor,
                                              message,
                                              location,
+                                             timestamp,
                                              styles,
                                              State.SentBy.ACTOR,
                                              determineMessagePendingTime('chat-actor', message));
@@ -1097,11 +1378,12 @@ const CodingChatboxApplication = new Lang.Class({
             }
         }));
 
-        this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location, styles) {
+        this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location, timestamp, styles) {
             if (this._mainWindow) {
                 this._mainWindow.chatAttachment(actor,
                                                 attachment,
                                                 location,
+                                                timestamp,
                                                 styles,
                                                 determineMessagePendingTime('chat-actor-attachment', attachment));
             } else {

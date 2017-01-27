@@ -2,20 +2,83 @@
 <interface>
   <template class="Gjs_CodingChatboxChatBubbleContainer" parent="GtkBox">
     <property name="hexpand">true</property>
-    <property name="margin">10</property>
-    <style>
-      <class name="chatbox-bubble"/>
-    </style>
     <child>
-      <object class="GtkEventBox" id="event-box">
+      <object class="GtkBox">
         <property name="visible">true</property>
         <child>
-          <object class="GtkBox" id="inner-box">
-            <property name="width_request">250</property>
-            <property name="visible">true</property>
-            <property name="margin">20</property>
+          <object class="GtkBox" id="bubble-detail-left">
+            <property name="orientation">vertical</property>
             <child>
-              <placeholder/>
+              <object class="GtkBox" id="user-image-container">
+                <property name="visible">true</property>
+                <property name="vexpand">true</property>
+                <property name="hexpand">true</property>
+                <property name="valign">end</property>
+                <property name="width-request">40</property>
+                <property name="margin-bottom">10</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">true</property>
+                <property name="width-request">40</property>
+                <child>
+                  <object class="GtkBox" id="bubble-left-flair">
+                    <property name="halign">end</property>
+                    <property name="hexpand">true</property>
+                    <style>
+                      <class name="bubble-left-flair"/>
+                    </style>
+                    <property name="visible">true</property>
+                    <property name="height_request">10</property>
+                    <property name="width_request">10</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="bubble">
+            <property name="visible">true</property>
+            <property name="hexpand">true</property>
+            <style>
+              <class name="chatbox-bubble"/>
+            </style>
+            <child>
+              <object class="GtkEventBox" id="event-box">
+                <property name="visible">true</property>
+                <property name="hexpand">true</property>
+                <child>
+                  <object class="GtkBox" id="inner-box">
+                    <property name="visible">true</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="bubble-detail-right">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">true</property>
+                <property name="vexpand">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="bubble-right-flair">
+                <style>
+                  <class name="bubble-right-flair"/>
+                </style>
+                <property name="height_request">10</property>
+                <property name="width_request">10</property>
+                <property name="visible">true</property>
+              </object>
             </child>
           </object>
         </child>

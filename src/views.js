@@ -8,7 +8,6 @@
 
 const ChatboxPrivate = imports.gi.ChatboxPrivate;
 const GnomeDesktop = imports.gi.GnomeDesktop;
-const Gdk = imports.gi.Gdk;
 const GdkPixbuf = imports.gi.GdkPixbuf;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
@@ -51,7 +50,7 @@ const Thumbnailer = (function() {
 // links before passing to pango_parse_markup so that the latter does not
 // throw an error
 function stripMarkup(text) {
-    let escaped = text.replace(/(<\/?\s*a.*?>)/g, '')
+    let escaped = text.replace(/(<\/?\s*a.*?>)/g, '');
     return Pango.parse_markup(escaped, -1, '')[2];
 }
 
@@ -130,6 +129,8 @@ const TextChatboxMessageView = new Lang.Class({
     }
 });
 
+const _HORIZONTAL_TEXT_SIZE_LIMIT_CHARS = 15;
+
 const ChoiceChatboxMessageView = new Lang.Class({
     Name: 'ChoiceChatboxMessageView',
     Extends: Gtk.Box,
@@ -150,28 +151,57 @@ const ChoiceChatboxMessageView = new Lang.Class({
 
     _init: function(params) {
         params.orientation = Gtk.Orientation.VERTICAL;
-        params.spacing = 16;
+        params.expand = true;
+        params.halign = Gtk.Align.CENTER;
 
         this.parent(params);
 
+        this.prompt = new Gtk.Label({
+            visible: true,
+            label: ''
+        });
+        this.prompt.get_style_context().add_class('input-hint');
+        this.pack_start(this.prompt, true, true, 18);
+
+        this.state.bind_property('prompt',
+                                 this.prompt,
+                                 'label',
+                                 GObject.BindingFlags.SYNC_CREATE |
+                                 GObject.BindingFlags.DEFAULT);
+
+        this._buttonsBox = new Gtk.Box({
+            visible: true,
+            /* If the text is small enough, make the orientation of the box
+             * horizontal, otherwise make it vertical */
+            orientation: params.state.choices.some(function(choice) {
+                return choice.label.length > _HORIZONTAL_TEXT_SIZE_LIMIT_CHARS;
+            }) ? Gtk.Orientation.VERTICAL : Gtk.Orientation.HORIZONTAL
+        });
+
         this._buttons = this.state.choices.map(Lang.bind(this, function(choice) {
             let button = new Gtk.Button({
-                visible: true,
-                label: choice.label
+                visible: true
             });
+            button.add(new Gtk.Label({
+                visible: true,
+                label: choice.label,
+                use_markup: true
+            }));
             button.connect('clicked', Lang.bind(this, function() {
                 this.emit('clicked', choice.name, choice.label);
             }));
             return button;
         })).forEach(Lang.bind(this, function(button) {
-            this.add(button);
+            this._buttonsBox.pack_start(button, true, true, 6);
         }));
+
+        this.pack_start(this._buttonsBox, true, true, 12);
     }
 });
 
 const InputChatboxMessageView = new Lang.Class({
     Name: 'InputChatboxMessageView',
-    Extends: Gtk.Entry,
+    Extends: Gtk.Box,
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
@@ -181,12 +211,39 @@ const InputChatboxMessageView = new Lang.Class({
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
                                         State.InputChatboxMessage)
     },
+    Signals: {
+        'activate': {
+            param_types: [ GObject.TYPE_STRING ]
+        }
+    },
 
     _init: function(params) {
         params.margin = 10;
         params.width_request = MAX_WIDTH_CHARS * 5;
-
+        params.expand = true;
         this.parent(params);
+
+        this._textBuffer = new Gtk.TextBuffer();
+        this._textView = new Gtk.TextView({
+            visible: true,
+            buffer: this._textBuffer,
+            expand: true,
+            halign: Gtk.Align.FILL
+        });
+        this.pack_start(this._textView, true, true, 0);
+        this._button = new Gtk.Button({
+            visible: true,
+            label: 'Send',
+            halign: Gtk.Align.END,
+            valign: Gtk.Align.CENTER
+        });
+        this.pack_start(this._button, false, false, 10);
+        this._button.connect('clicked', Lang.bind(this, function() {
+            let text = this._textBuffer.get_text(this._textBuffer.get_start_iter(),
+                                                 this._textBuffer.get_end_iter(),
+                                                 false);
+            this.emit('activate', text);
+        }));
     },
 });
 
@@ -247,12 +304,12 @@ function getPreviewForFile(path, thumbnailFactory) {
     try {
         // XXX: In general, it isn't great that we're doing synchronous
         // IO here, though it is done for now to avoid too much churn.
-        info = path.query_info([Gio.FILE_ATTRIBUTE_STANDARD_ICON,
-                                Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
-                                Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
-                                Gio.FILE_ATTRIBUTE_TIME_MODIFIED].join(','),
-                               Gio.FileQueryInfoFlags.NONE,
-                               null);
+        info = path.query_info([
+            Gio.FILE_ATTRIBUTE_STANDARD_ICON,
+            Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
+            Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
+            Gio.FILE_ATTRIBUTE_TIME_MODIFIED
+        ].join(','), Gio.FileQueryInfoFlags.NONE, null);
     } catch (e) {
         logError(e,
                  'Failed to query info for file, ' +

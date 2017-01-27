@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="Gjs_CodingChatboxMessageGroup" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkBox" id="message-received-date-container">
+        <property name="visible">true</property>
+        <child>
+          <object class="GtkBox">
+            <property name="margin-left">40</property>
+            <property name="visible">true</property>
+            <child>
+              <object class="GtkLabel" id="message-received-date-label">
+                <property name="visible">true</property>
+                <property name="xalign">0</property>
+                <style>
+                  <class name="message-received-date"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="chatbox-bubbles">
+        <property name="orientation">vertical</property>
+        <property name="visible">true</property>
+      </object>
+    </child>
+  </template>
+</interface>
