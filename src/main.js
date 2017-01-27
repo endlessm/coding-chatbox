@@ -150,14 +150,6 @@ const ActorModel = new Lang.Class({
         }));
     },
 
-    items: function() {
-        let list = [];
-        for (let idx = 0; idx < this.get_n_items(); idx++) {
-            list.push(this.get_item(idx));
-        }
-        return list;
-    },
-
     getByName: function(name) {
         for (let idx = 0; idx < this.get_n_items(); idx++) {
             let actor = this.get_item(idx);
@@ -623,31 +615,6 @@ const ChatboxStackChild = new Lang.Class({
     }
 });
 
-// createChatContentsWidget
-//
-// Create a widget containing contents and an input box for this
-// part of the chatbox stack.
-function createChatContentsWidget() {
-    let chatContents = new QueueableBox({
-        orientation: Gtk.Orientation.VERTICAL,
-        visible: true,
-        valign: Gtk.Align.START
-    });
-    chatContents.get_style_context().add_class('chatbox-chats');
-
-    let chatInputArea = new Gtk.Box({
-        visible: true,
-        expand: false
-    });
-
-    return new ChatboxStackChild({
-        orientation: Gtk.Orientation.VERTICAL,
-        visible: true,
-        chat_contents: chatContents,
-        input_area: chatInputArea
-    });
-}
-
 // We'll send a reminder after 20 minutes if the user fails to read a message
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
@@ -791,7 +758,25 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (chatboxStackChild)
             return chatboxStackChild;
 
-        chatboxStackChild = createChatContentsWidget();
+        let chatContents = new QueueableBox({
+            orientation: Gtk.Orientation.VERTICAL,
+            visible: true,
+            valign: Gtk.Align.START
+        });
+        chatContents.get_style_context().add_class('chatbox-chats');
+
+        let chatInputArea = new Gtk.Box({
+            visible: true,
+            expand: false
+        });
+
+        let chatboxStackChild = new ChatboxStackChild({
+            orientation: Gtk.Orientation.VERTICAL,
+            visible: true,
+            chat_contents: chatContents,
+            input_area: chatInputArea
+        });
+
         this.chatbox_stack.add_named(chatboxStackChild, actor);
         return chatboxStackChild;
     },
@@ -963,16 +948,6 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
     },
 
-    clearConversations: function() {
-        this._state.clearConversations();
-        this.chatbox_stack.get_children().forEach(function(child) {
-            child.destroy();
-        });
-        this.actor_model.items().forEach(Lang.bind(this, function(actor) {
-            this._contentsForActor(actor.name);
-        }));
-    },
-
     chatMessage: function(actor, message, location, style, sentBy, pendingTime) {
         let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
                                                        Views.MAX_WIDTH_CHARS;
@@ -1139,11 +1114,6 @@ const CodingChatboxApplication = new Lang.Class({
         this._skeleton.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location, styles) {
             if (this._mainWindow)
                 this._mainWindow.chatUserInput(actor, spec, location, styles, 1);
-        }));
-
-        this._skeleton.connect('reset', Lang.bind(this, function() {
-            if (this._mainWindow)
-                this._mainWindow.clearConversations();
         }));
 
         return true;

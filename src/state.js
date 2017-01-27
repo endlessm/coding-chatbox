@@ -477,9 +477,5 @@ const CodingChatboxState = new Lang.Class({
     markAllMessagesByActorAsRead: function(actor) {
         this.load_conversations_for_actor(actor);
         this.conversations[actor].markAllMessagesAsRead();
-    },
-
-    clearConversations: function() {
-        this.conversations = {};
     }
 });
