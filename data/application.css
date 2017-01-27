@@ -196,9 +196,8 @@ row:selected:backdrop.contact-row {
   box-shadow: none;
 }
 
-.thumbnail-image {
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
+.thumbnail {
+  border-radius: 5px 5px 0px 0px;
 }
 
 .icon-container {

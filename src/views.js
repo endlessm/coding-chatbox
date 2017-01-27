@@ -348,10 +348,9 @@ function getPreviewForFile(path, thumbnailFactory) {
     let mtime = info.get_modification_time();
     let uri = path.get_uri();
 
-    let thumbnail = null;
-
     if (shouldThumbnail(uri, thumbnailFactory, mimeType, mtime)) {
         let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
+        let thumbnail = null;
 
         if (thumbnailPath && GLib.file_test(thumbnailPath, GLib.FileTest.EXISTS)) {
             try {
@@ -376,13 +375,35 @@ function getPreviewForFile(path, thumbnailFactory) {
                 log('Failed to create thumbnail of ' + uri);
             }
         }
+
+        /* Here we return the URI as we will be passing that directly to
+         * GtkCssProvider */
+        return {
+            icon: null,
+            thumbnail: {
+                path: thumbnailPath,
+                width: thumbnail.get_width(),
+                height: thumbnail.get_height()
+            }
+        };
     }
 
     return {
         icon: info.get_icon(),
-        thumbnail: thumbnail
+        thumbnail: null
     };
 }
+
+const CSSAllocator = (function() {
+    let counter = 0;
+    return function(properties) {
+        let class_name = 'themed-widget-' + counter++;
+        return [class_name, '.' + class_name + ' { ' +
+        Object.keys(properties).map(function(key) {
+            return key.replace('_', '-') + ': ' + properties[key] + ';';
+        }).join(' ') + ' }'];
+    }
+})();
 
 const AttachmentChatboxMessageView = new Lang.Class({
     Name: 'AttachmentChatboxMessageView',
@@ -415,14 +436,35 @@ const AttachmentChatboxMessageView = new Lang.Class({
         let thumbnailFactory = Thumbnailer.forSize(GnomeDesktop.DesktopThumbnailSize.LARGE);
         let preview = getPreviewForFile(this.state.path, thumbnailFactory);
         if (preview.thumbnail) {
-            this.attachment_icon.set_from_pixbuf(preview.thumbnail);
+            /* Where we are using a thumbnail, use GtkCSSProivder to
+             * set the background image */
+            let provider = new Gtk.CssProvider();
+            let [class_name, css] = CSSAllocator({
+                background_image: 'url("file://' + preview.thumbnail.path + '")',
+                min_width: preview.thumbnail.width + 'px',
+                min_height: preview.thumbnail.height + 'px'
+            });
+            provider.load_from_data(css);
+
+            let attachment_icon_context = this.attachment_icon.get_style_context();
+            attachment_icon_context.add_provider(provider,
+                                                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+            attachment_icon_context.add_class(class_name);
+
+            /* Now set some classes to indicate that this is a thumbnail.
+             * Because we set the background image through CSS, we will
+             * get corner rounding too */
             this.attachment_contents.orientation = Gtk.Orientation.VERTICAL;
             this.get_style_context().add_class('thumbnail');
             this.attachment_details.get_style_context().add_class('thumbnail');
-            this.attachment_icon.get_style_context().add_class('thumbnail');
+            attachment_icon_context.add_class('thumbnail');
         }
         else {
-            this.attachment_icon.set_from_gicon(preview.icon, Gtk.IconSize.DND);
+            /* In this case we create a new GtkImage and put the icon inside
+             * of that */
+            let image = new Gtk.Image({ visible: true });
+            image.set_from_gicon(preview.icon, Gtk.IconSize.DND);
+            this.attachment_icon.add(image);
             this.attachment_contents.orientation = Gtk.Orientation.HORIZONTAL;
             this.get_style_context().add_class('icon');
             this.attachment_icon_container.get_style_context().add_class('icon-container');
