@@ -116,7 +116,11 @@ const ChoiceChatboxMessage = new Lang.Class({
     },
 
     _init: function(params, spec) {
-        params.prompt = spec.settings.prompt;
+        // If we don't have a prompt in the spec, there's not a whole lot
+        // we can do. It probably came from the history at a point where
+        // service was not sending prompts back. Just send through a generic
+        // one.
+        params.prompt = spec.settings.prompt || 'What do you think?';
         this.parent(params);
         this.choices = Object.keys(spec.settings.choices).map(function(key) {
             return {
