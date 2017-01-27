@@ -792,8 +792,8 @@ const ChatboxStackChild = new Lang.Class({
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
 
-// Update every five minutes
-const CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS = 300;
+// Update every hour
+const CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS = 3600;
 
 const CodingChatboxMainWindow = new Lang.Class({
     Name: 'CodingChatboxMainWindow',
