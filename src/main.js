@@ -443,8 +443,10 @@ function calculateMessageReceivedTextFromDate(date) {
     if (hourDelta > 0) {
         /* For N hours and M minutes apart, display the timestamp
          * in the hours / minutes format */
-        return 'At ' + [date.getHours() % 12 || 12, date.getMinutes()].join(':') +
-               date.getHours() >= 12 ? ' AM' : ' PM';
+        let hours = date.getHours() % 12 || 12;
+        let minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+        let time = [hours, minutes].join(':')
+        return 'At ' + time  + (date.getHours() >= 12 ? ' AM' : ' PM');
     }
 
     let secondsDelta = dateSinceEpoch.getSeconds() - epochDate.getSeconds();
