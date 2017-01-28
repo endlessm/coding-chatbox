@@ -1003,6 +1003,23 @@ const CodingChatboxMainWindow = new Lang.Class({
         }));
     },
 
+    _markActorAsRead: function(actor) {
+        // Assuming here that this will always succeed, because it is part
+        // of the chatbox' invariant that an entry in the list box always has
+        // a page on the GtkStack and vice versa.
+        let row = this._rowForActor(actor);
+        let chatContents = this._contentsForActor(actor).chat_contents;
+        let groups = chatContents.get_children();
+        if (groups.length) {
+            let children = groups[groups.length - 1].chatbox_bubbles.get_children();
+            children[children.length - 1].focused();
+        }
+
+        row.highlight = false;
+        this._state.markAllMessagesByActorAsRead(actor);
+        this.application.withdraw_notification(notificationId(actor));
+    },
+
     _markVisibleActorAsRead: function() {
         // Sets all the messages on the visible actor as read, by calling
         // focused() on the last view, removing any highlights and withdrawing
@@ -1012,21 +1029,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         // in the model and use that, since a row may not always be
         // 'selected' by the user
         let selectedActor = this.chatbox_stack.get_visible_child_name();
-
-        // Assuming here that this will always succeed, because it is part
-        // of the chatbox' invariant that an entry in the list box always has
-        // a page on the GtkStack and vice versa.
-        let row = this._rowForActor(selectedActor);
-        let chatContents = this._contentsForActor(selectedActor).chat_contents;
-        let groups = chatContents.get_children();
-        if (groups.length) {
-            let children = groups[groups.length - 1].chatbox_bubbles.get_children();
-            children[children.length - 1].focused();
-        }
-
-        row.highlight = false;
-        this._state.markAllMessagesByActorAsRead(selectedActor);
-        this.application.withdraw_notification(notificationId(selectedActor));
+        this._markActorAsRead(selectedActor);
     },
 
     _actorIsVisible: function(name) {
@@ -1231,6 +1234,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         });
         this.actor_model.forEach(Lang.bind(this, function(actor) {
             this._contentsForActor(actor.name);
+            this._markActorAsRead(actor.name);
         }));
     },
 
