@@ -45,7 +45,7 @@
                     <property name="margin-top">10</property>
                     <property name="margin-bottom">10</property>
                     <style>
-                      <class name="attachment-details"/>
+                      <class name="details"/>
                     </style>
                     <child>
                       <object class="GtkLabel" id="attachment-name">
