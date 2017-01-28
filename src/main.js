@@ -150,12 +150,10 @@ const ActorModel = new Lang.Class({
         }));
     },
 
-    items: function() {
-        let list = [];
+    forEach: function(callback) {
         for (let idx = 0; idx < this.get_n_items(); idx++) {
-            list.push(this.get_item(idx));
+            callback(this.get_item(idx));
         }
-        return list;
     },
 
     getByName: function(name) {
@@ -1231,7 +1229,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         this.chatbox_stack.get_children().forEach(function(child) {
             child.destroy();
         });
-        this.actor_model.items().forEach(Lang.bind(this, function(actor) {
+        this.actor_model.forEach(Lang.bind(this, function(actor) {
             this._contentsForActor(actor.name);
         }));
     },
