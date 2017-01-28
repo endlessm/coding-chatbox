@@ -145,10 +145,6 @@ image.contact-default-image {
   box-shadow: 3px 1px 5px 5px #2a2d2d;
 }
 
-.chatbox-input-area.hide {
-  margin-bottom: -25px;
-}
-
 .contact-item .contact-message-preview {
   font-weight: 300; /* light */
 }
