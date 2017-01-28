@@ -436,8 +436,8 @@ const AttachmentChatboxMessageView = new Lang.Class({
         let thumbnailFactory = Thumbnailer.forSize(GnomeDesktop.DesktopThumbnailSize.LARGE);
         let preview = getPreviewForFile(this.state.path, thumbnailFactory);
         if (preview.thumbnail) {
-            /* Where we are using a thumbnail, use GtkCSSProivder to
-             * set the background image */
+            // Where we are using a thumbnail, use GtkCSSProivder to
+            // set the background image
             let provider = new Gtk.CssProvider();
             let [class_name, css] = CSSAllocator({
                 background_image: 'url("file://' + preview.thumbnail.path + '")',
@@ -451,17 +451,17 @@ const AttachmentChatboxMessageView = new Lang.Class({
                                                  Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
             attachment_icon_context.add_class(class_name);
 
-            /* Now set some classes to indicate that this is a thumbnail.
-             * Because we set the background image through CSS, we will
-             * get corner rounding too */
+            // Now set some classes to indicate that this is a thumbnail.
+            // Because we set the background image through CSS, we will
+            // get corner rounding too
             this.attachment_contents.orientation = Gtk.Orientation.VERTICAL;
             this.get_style_context().add_class('thumbnail');
             this.attachment_details.get_style_context().add_class('thumbnail');
             attachment_icon_context.add_class('thumbnail');
         }
         else {
-            /* In this case we create a new GtkImage and put the icon inside
-             * of that */
+            // In this case we create a new GtkImage and put the icon inside
+            // of that
             let image = new Gtk.Image({ visible: true });
             image.set_from_gicon(preview.icon, Gtk.IconSize.DND);
             this.attachment_icon.add(image);
