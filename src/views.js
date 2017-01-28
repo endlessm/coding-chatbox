@@ -459,11 +459,7 @@ const AttachmentChatboxMessageView = new Lang.Class({
             this.get_style_context().add_class('thumbnail');
         }
         else {
-            // In this case we create a new GtkImage and put the icon inside
-            // of that
-            let image = new Gtk.Image({ visible: true });
-            image.set_from_gicon(preview.icon, Gtk.IconSize.DND);
-            this.attachment_icon.add(image);
+            this.attachment_icon.set_from_gicon(preview.icon, Gtk.IconSize.DND);
             this.attachment_contents.orientation = Gtk.Orientation.HORIZONTAL;
             this.get_style_context().add_class('icon');
             this.attachment_icon_container.get_style_context().add_class('icon-container');

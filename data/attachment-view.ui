@@ -24,7 +24,7 @@
                     <property name="valign">center</property>
                     <property name="vexpand">True</property>
                     <child>
-                      <object class="GtkBox" id="attachment-icon">
+                      <object class="GtkImage" id="attachment-icon">
                         <property name="visible">True</property>
                       </object>
                     </child>
