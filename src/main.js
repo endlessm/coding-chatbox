@@ -795,8 +795,7 @@ const ChatboxStackChild = new Lang.Class({
 
         this._chatInputRevealer = new Gtk.Revealer({
             visible: true,
-            transition_duration: 200,
-            transition_type: Gtk.RevealerTransitionType.SLIDE_DOWN
+            transition_duration: 200
         });
         this._chatInputRevealer.add(this.input_area);
         this._chatInputRevealer.connect('notify::child-revealed', Lang.bind(this, function() {
@@ -812,10 +811,12 @@ const ChatboxStackChild = new Lang.Class({
     },
 
     showInputArea: function() {
+        this._chatInputRevealer.transition_type = Gtk.RevealerTransitionType.SLIDE_UP;
         this._chatInputRevealer.set_reveal_child(true);
     },
 
     hideInputArea: function() {
+        this._chatInputRevealer.transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN;
         this._chatInputRevealer.set_reveal_child(false);
     },
 
