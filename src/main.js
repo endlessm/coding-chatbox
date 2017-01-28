@@ -786,21 +786,37 @@ const ChatboxStackChild = new Lang.Class({
                                                '',
                                                GObject.ParamFlags.READWRITE |
                                                GObject.ParamFlags.CONSTRUCT_ONLY,
-                                               Gtk.Box),
-        'input-area-revealer': GObject.ParamSpec.object('input-area-revealer',
-                                                        '',
-                                                        '',
-                                                        GObject.ParamFlags.READWRITE |
-                                                        GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                        Gtk.Revealer)
+                                               Gtk.Box)
     },
 
     _init: function(params) {
         this.parent(params);
         this._scrollView = new CodingChatboxChatScrollView(this.chat_contents);
 
+        this._chatInputRevealer = new Gtk.Revealer({
+            visible: true,
+            transition_duration: 200,
+            transition_type: Gtk.RevealerTransitionType.CROSSFADE
+        });
+        this._chatInputRevealer.add(this.input_area);
+        this._chatInputRevealer.connect('notify::child-revealed', Lang.bind(this, function() {
+            if (!this._chatInputRevealer.child_revealed) {
+                this.input_area.get_children().forEach(function(child) {
+                    child.destroy();
+                });
+            }
+        }));
+
         this.pack_start(this._scrollView, true, true, 0);
-        this.pack_start(this.input_area_revealer, false, false, 0);
+        this.pack_start(this._chatInputRevealer, false, false, 0);
+    },
+
+    showInputArea: function() {
+        this._chatInputRevealer.set_reveal_child(true);
+    },
+
+    hideInputArea: function() {
+        this._chatInputRevealer.set_reveal_child(false);
     },
 
     scrollToBottomOnUpdate: function() {
@@ -1024,30 +1040,19 @@ const CodingChatboxMainWindow = new Lang.Class({
             }
         });
 
-        let chatInputRevealer = new Gtk.Revealer({
-            visible: true,
-            transition_duration: 200,
-            transition_type: Gtk.RevealerTransitionType.CROSSFADE
-        });
         let chatInputArea = new Gtk.Box({
             visible: true,
             expand: false
         });
         chatInputArea.get_style_context().add_class('chatbox-input-area');
-        chatInputRevealer.add(chatInputArea);
 
         chatboxStackChild = new ChatboxStackChild({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
             chat_contents: chatContents,
             input_area: chatInputArea,
-            input_area_revealer: chatInputRevealer,
             message_queue: messageQueue
         });
-        chatboxStackChild.input_area_revealer.connect('notify::child-revealed',
-                                                      Lang.bind(this,
-                                                                this._onUserInputRevealed,
-                                                                chatInputArea));
 
         this.chatbox_stack.add_named(chatboxStackChild, actor);
         return chatboxStackChild;
@@ -1136,7 +1141,6 @@ const CodingChatboxMainWindow = new Lang.Class({
         let stackChild = this._contentsForActor(actor);
         let messageQueue = stackChild.message_queue;
         let inputArea = stackChild.input_area;
-        let inputRevealer = stackChild.input_area_revealer;
 
         // Here we push a function to messageQueue which gets called when
         // it becomes the first item on the queue. When it is called, we
@@ -1161,7 +1165,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             view_container.margin = 10;
             inputArea.pack_end(view_container, true, true, 0);
             inputArea.get_style_context().remove_class('hide');
-            inputRevealer.set_reveal_child(true);
+            stackChild.showInputArea();
             stackChild.scrollToBottomOnUpdate();
             messageQueue.showNext();
         }));
@@ -1288,16 +1292,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         let revealer = contents.input_area_revealer;
 
         inputArea.get_style_context().add_class('hide');
-        revealer.set_reveal_child(false);
-        inputArea.get_style_context().add_class('hide');
-    },
-
-    _onUserInputRevealed: function(revealer, pspec, inputArea) {
-        if (!revealer.child_revealed) {
-            inputArea.get_children().forEach(function(child) {
-                child.destroy();
-            });
-        }
+        contents.hideInputArea();
     },
 
     switchToChatWith: function(actor) {
