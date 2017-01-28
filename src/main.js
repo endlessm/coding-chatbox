@@ -150,6 +150,14 @@ const ActorModel = new Lang.Class({
         }));
     },
 
+    items: function() {
+        let list = [];
+        for (let idx = 0; idx < this.get_n_items(); idx++) {
+            list.push(this.get_item(idx));
+        }
+        return list;
+    },
+
     getByName: function(name) {
         for (let idx = 0; idx < this.get_n_items(); idx++) {
             let actor = this.get_item(idx);
@@ -801,6 +809,56 @@ const ChatboxStackChild = new Lang.Class({
     }
 });
 
+// createChatContentsWidget
+//
+// Create a widget containing contents and an input box for this
+// part of the chatbox stack.
+function createChatContentsWidget() {
+    let chatContents = new Gtk.Box({
+        orientation: Gtk.Orientation.VERTICAL,
+        visible: true,
+        valign: Gtk.Align.START
+    });
+    chatContents.get_style_context().add_class('chatbox-chats');
+
+    let messageQueue = new TriggerableEventQueue(function(item) {
+        if (typeof(item) === 'function') {
+            item();
+        } else {
+            /* Check to see if there are any groups that will accept
+             * this item to start with */
+            let groups = chatContents.get_children();
+            if (!groups.length ||
+                !groups[groups.length - 1].addBubble(item.view,
+                                                     item.date,
+                                                     item.actor)) {
+                let newGroup = new CodingChatboxMessageGroup({
+                    visible: true,
+                    expand: true
+                });
+                newGroup.addBubble(item.view, item.date, item.actor);
+                chatContents.pack_start(newGroup, true, true, 15);
+            }
+
+            item.view.showContent();
+        }
+    });
+
+    let chatInputArea = new Gtk.Box({
+        visible: true,
+        expand: false
+    });
+    chatInputArea.get_style_context().add_class('chatbox-input-area');
+
+    return new ChatboxStackChild({
+        orientation: Gtk.Orientation.VERTICAL,
+        visible: true,
+        chat_contents: chatContents,
+        input_area: chatInputArea,
+        message_queue: messageQueue
+    });
+}
+
 // We'll send a reminder after 20 minutes if the user fails to read a message
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
@@ -983,50 +1041,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (chatboxStackChild)
             return chatboxStackChild;
 
-        let chatContents = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL,
-            visible: true,
-            valign: Gtk.Align.START
-        });
-        chatContents.get_style_context().add_class('chatbox-chats');
-
-        let messageQueue = new TriggerableEventQueue(function(item) {
-            if (typeof(item) === 'function') {
-                item();
-            } else {
-                /* Check to see if there are any groups that will accept
-                 * this item to start with */
-                let groups = chatContents.get_children();
-                if (!groups.length ||
-                    !groups[groups.length - 1].addBubble(item.view,
-                                                         item.date,
-                                                         item.actor)) {
-                    let newGroup = new CodingChatboxMessageGroup({
-                        visible: true,
-                        expand: true
-                    });
-                    newGroup.addBubble(item.view, item.date, item.actor);
-                    chatContents.pack_start(newGroup, true, true, 15);
-                }
-
-                item.view.showContent();
-            }
-        });
-
-        let chatInputArea = new Gtk.Box({
-            visible: true,
-            expand: false
-        });
-        chatInputArea.get_style_context().add_class('chatbox-input-area');
-
-        chatboxStackChild = new ChatboxStackChild({
-            orientation: Gtk.Orientation.VERTICAL,
-            visible: true,
-            chat_contents: chatContents,
-            input_area: chatInputArea,
-            message_queue: messageQueue
-        });
-
+        chatboxStackChild = createChatContentsWidget();
         this.chatbox_stack.add_named(chatboxStackChild, actor);
         return chatboxStackChild;
     },
