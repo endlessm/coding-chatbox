@@ -796,7 +796,7 @@ const ChatboxStackChild = new Lang.Class({
         this._chatInputRevealer = new Gtk.Revealer({
             visible: true,
             transition_duration: 200,
-            transition_type: Gtk.RevealerTransitionType.CROSSFADE
+            transition_type: Gtk.RevealerTransitionType.SLIDE_DOWN
         });
         this._chatInputRevealer.add(this.input_area);
         this._chatInputRevealer.connect('notify::child-revealed', Lang.bind(this, function() {
