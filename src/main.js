@@ -1164,7 +1164,6 @@ const CodingChatboxMainWindow = new Lang.Class({
             view_container.showContent();
             view_container.margin = 10;
             inputArea.pack_end(view_container, true, true, 0);
-            inputArea.get_style_context().remove_class('hide');
             stackChild.showInputArea();
             stackChild.scrollToBottomOnUpdate();
             messageQueue.showNext();
@@ -1291,7 +1290,6 @@ const CodingChatboxMainWindow = new Lang.Class({
         let inputArea = contents.input_area;
         let revealer = contents.input_area_revealer;
 
-        inputArea.get_style_context().add_class('hide');
         contents.hideInputArea();
     },
 
