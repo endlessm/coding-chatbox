@@ -397,6 +397,11 @@ function isCloseEnoughInTime(lastMessageDate, currentMessageDate) {
 const CLOCK_TYPE_24H = 1;
 const CLOCK_TYPE_AMPM = 0;
 
+// calculateMessageReceivedTextFromDate
+//
+// Calculate the 'message received' text from a timestamp. Right now this
+// calculates time the 'accurate' way but not necessarily in line with
+// user expectations.
 function calculateMessageReceivedTextFromDate(date) {
     /* Sanity check for clock skew. In this case, we just display
      * "In the future" */
