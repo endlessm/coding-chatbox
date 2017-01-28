@@ -206,8 +206,12 @@ row:selected:backdrop.contact-row {
   padding: 7px;
 }
 
-.attachment .details.thumbnail {
+.attachment.thumbnail .details {
   padding: 5px;
+}
+
+.attachment.thumbnail .image {
+  border-radius: 5px 5px 0px 0px;
 }
 
 .filename {
