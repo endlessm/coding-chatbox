@@ -30,6 +30,10 @@ const Service = imports.service;
 const State = imports.state;
 const Views = imports.views;
 
+const GnomeInterfacePreferences = new Gio.Settings({
+    schema: 'org.gnome.desktop.interface'
+});
+
 function initials_from_name(name) {
     return String(name.split().map(function(word) {
         return word[0];
@@ -390,6 +394,9 @@ function isCloseEnoughInTime(lastMessageDate, currentMessageDate) {
     return delta < _FIVE_MINUTES_IN_MS;
 }
 
+const CLOCK_TYPE_24H = 1;
+const CLOCK_TYPE_AMPM = 0;
+
 function calculateMessageReceivedTextFromDate(date) {
     /* Sanity check for clock skew. In this case, we just display
      * "In the future" */
@@ -397,12 +404,15 @@ function calculateMessageReceivedTextFromDate(date) {
         return "In the future";
     }
 
-    let dateSinceEpoch = new Date(Date.now() - date.getTime());
-    let epochDate = new Date(0);
+    /* Convert to GDateTime and use that API consistently throuhgout */
+    let datetime = GLib.DateTime.new_from_unix_local(date.getTime() / 1000);
+
+    let dateSinceEpoch = GLib.DateTime.new_from_unix_local(Date.now() - date.getTime());
+    let epochDate = GLib.DateTime.new_from_unix_utc(0);
 
     /* Compare deltas between the dates until we can determine a
      * string to show */
-    let yearDelta = dateSinceEpoch.getFullYear() - epochDate.getFullYear();
+    let yearDelta = dateSinceEpoch.get_year() - epochDate.get_year();
     if (yearDelta > 0) {
         if (yearDelta === 1) {
             return "Last year";
@@ -411,7 +421,7 @@ function calculateMessageReceivedTextFromDate(date) {
         return ["About", yearDelta, "years ago"].join(" ");
     }
 
-    let monthDelta = dateSinceEpoch.getMonth() - epochDate.getMonth();
+    let monthDelta = dateSinceEpoch.get_month() - epochDate.get_month();
     if (monthDelta > 0) {
         if (monthDelta === 1) {
             return "Last month";
@@ -420,7 +430,7 @@ function calculateMessageReceivedTextFromDate(date) {
         return ["About", monthDelta, "months ago"].join(" ");
     }
 
-    let dayDelta = dateSinceEpoch.getDate() - epochDate.getDate();
+    let dayDelta = dateSinceEpoch.get_day_of_year() - epochDate.get_day_of_year();
     if (dayDelta > 0) {
         if (dayDelta > 7) {
             let weekDelta = Math.floor(dayDelta / 7);
@@ -439,13 +449,14 @@ function calculateMessageReceivedTextFromDate(date) {
         return ["About", dayDelta, "days ago"].join(" ");
     }
 
-    /* In this case we convert to GLib.DateTime and use the localisation
-     * functions there to display the time */
-    let datetime = GLib.DateTime.new_from_unix_local(date.getTime() / 1000);
 
-    /* On the same day, display the timestamp
-     * in the hours / minutes format */
-    return 'At ' + datetime.format('%l:%M %p');
+    /* On the same day, display the timestamp in the hours / minutes format
+     * depending on the user's time settings */
+    if (GnomeInterfacePreferences.get_enum('clock-format') === CLOCK_TYPE_24H) {
+        return datetime.format('%l:%M %p');
+    } else {
+        return datetime.format('%k:%M');
+    }
 }
 
 const CodingChatboxMessageGroup = new Lang.Class({
