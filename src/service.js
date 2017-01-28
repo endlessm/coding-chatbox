@@ -138,7 +138,7 @@ const ChatboxReceiverService = new Lang.Class({
     vfunc_handle_reset: function(method) {
         try {
             this.emit('reset');
-            method.complete_reset(method);
+            this.complete_reset(method);
         } catch (e) {
             method.return_error_literal(ChatboxReceiverErrorDomain,
                                         ChatboxReceiverErrors.INTERNAL_ERROR,
