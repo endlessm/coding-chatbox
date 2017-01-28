@@ -803,6 +803,13 @@ const ChatboxStackChild = new Lang.Class({
                 this.input_area.get_children().forEach(function(child) {
                     child.destroy();
                 });
+            } else {
+                // Scroll the view back down to the bottom once the animation
+                // completes. Unforatunately we get a brief moment where
+                // the scroll view is in the 'wrong place' but it appears
+                // there's not much we can do about this.
+                let vadjustment = this._scrollView.vadjustment;
+                vadjustment.set_value(vadjustment.upper - vadjustment.page_size);
             }
         }));
 
