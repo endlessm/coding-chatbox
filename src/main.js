@@ -956,7 +956,6 @@ const CodingChatboxMainWindow = new Lang.Class({
 
             return true;
         }));
-        this._destroy_children_timeout = -1;
     },
 
     _markVisibleActorAsRead: function() {
@@ -1160,10 +1159,6 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                             null);
             view_container.showContent();
             view_container.margin = 10;
-            if (this._destroy_children_timeout !== -1) {
-                GLib.source_remove(this._destroy_children_timeout);
-                this._destroy_children_timeout = -1;
-            }
             inputArea.pack_end(view_container, true, true, 0);
             inputArea.get_style_context().remove_class('hide');
             inputRevealer.set_reveal_child(true);
