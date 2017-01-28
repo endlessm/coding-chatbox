@@ -57,6 +57,7 @@ function stripMarkup(text) {
 const ChatboxMessageView = new Lang.Interface({
     Name: 'ChatboxMessageView',
     Extends: [ GObject.Object ],
+    Requires: [ Gtk.Widget ],
     GTypeName: 'Gjs_ChatboxMessageView',
 
     focused: function() {
