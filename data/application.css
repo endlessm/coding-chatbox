@@ -172,6 +172,16 @@ image.contact-default-image {
   font-weight: 300; /* light */
 }
 
+.contact-item .name {
+  font-size: 16px;
+  color: #9ca2a3
+}
+
+.new-content .name {
+  font-weight: bold;
+  color: white;
+}
+
 row:selected.contact-row {
   background-color: #47565a;
   box-shadow: none;
@@ -191,13 +201,10 @@ row:selected:backdrop.contact-row {
   background-color: #252a2c;
 }
 
-.new-content {
-  font-weight: bold;
-}
-
 .contact-message-notification {
   background-color: #f26522;
   color: #fff;
+  font-weight: bold;
   padding: 3px;
   border-radius: 6px;
   font-size: 9pt;
