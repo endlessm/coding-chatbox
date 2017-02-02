@@ -40,8 +40,8 @@ function initials_from_name(name) {
 const CONTACT_IMAGE_SIZE = 48;
 const CHAT_WITH_ACTION = 'chat-with';
 
-const CLOCK_SCHEMA = "org.gnome.desktop.interface";
-const CLOCK_FORMAT_KEY = "clock-format";
+const CLOCK_SCHEMA = 'org.gnome.desktop.interface';
+const CLOCK_FORMAT_KEY = 'clock-format';
 
 const Actor = new Lang.Class({
     Name: 'Actor',
