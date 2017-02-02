@@ -51,7 +51,7 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
                                                   now.get_month(),
                                                   now.get_day_of_month(),
                                                   0, 0, 0);
-    beginningOfWeek.add_days(now.get_day_of_week() - 1);
+    beginningOfWeek.add_days(-(now.get_day_of_week() - 1));
     let beginningOfMonth = GLib.DateTime.new_local(now.get_year(),
                                                    now.get_month(),
                                                    1, 0, 0, 0);
