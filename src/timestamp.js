@@ -6,8 +6,8 @@
 // This file contains the logic for computing message timestamps.
 //
 
-const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
+const Gio = imports.gi.Gio;
 
 const GnomeInterfacePreferences = new Gio.Settings({
     schema: 'org.gnome.desktop.interface'
