@@ -45,7 +45,7 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
 
     // To do this, we need to get the current day and then subtract
     // the number of days from the first day of this week. That might
-    // end up putting beginningOfWeek into last month or event last year
+    // end up putting beginningOfWeek into last month or even last year
     // but that's fine.
     let beginningOfWeek = GLib.DateTime.new_local(now.get_year(),
                                                   now.get_month(),
