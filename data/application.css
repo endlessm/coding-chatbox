@@ -18,7 +18,6 @@ image.contact-default-image {
 
 .chatbox-bubble {
   background-color: #737478;
-  padding: 20px;
   border-radius: 5px;
   border-bottom-left-radius: 0px;
   text-shadow: 1px -1px alpha(black, 0.4);
@@ -145,6 +144,16 @@ image.contact-default-image {
   border-top: 10px solid #162227;
 }
 
+.chatbox-bubble-contents {
+  padding: 15px;
+}
+
+.chatbox-bubble-contents.thumbnail,
+.chatbox-bubble-contents.choice,
+.chatbox-bubble-contents.input {
+  padding: 0px;
+}
+
 .message-received-date {
   font-size: 12px;
   text-shadow: none;
@@ -194,4 +203,30 @@ row:selected:backdrop.contact-row {
   border-width: 0px;
   outline-width: 0px;
   box-shadow: none;
+}
+
+.thumbnail {
+  border-radius: 5px 5px 0px 0px;
+}
+
+.icon-container {
+  background-color: #5c6868;
+  border-radius: 24px;
+  padding: 7px;
+}
+
+.attachment.thumbnail .details {
+  padding: 5px;
+}
+
+.attachment.thumbnail .image {
+  border-radius: 5px 5px 0px 0px;
+}
+
+.filename {
+  font-style: italic;
+}
+
+.desc {
+  font-size: 14px;
 }

@@ -57,6 +57,7 @@ function stripMarkup(text) {
 const ChatboxMessageView = new Lang.Interface({
     Name: 'ChatboxMessageView',
     Extends: [ GObject.Object ],
+    Requires: [ Gtk.Widget ],
     GTypeName: 'Gjs_ChatboxMessageView',
 
     focused: function() {
@@ -117,6 +118,8 @@ const TextChatboxMessageView = new Lang.Class({
         this.state.bind_property('text', this, 'label',
                                  GObject.BindingFlags.DEFAULT |
                                  GObject.BindingFlags.SYNC_CREATE);
+        this.get_style_context().add_class('chatbox-bubble-contents');
+        this.get_style_context().add_class('text');
     },
 
     copyToClipboard: function() {
@@ -196,6 +199,8 @@ const ChoiceChatboxMessageView = new Lang.Class({
         }));
 
         this.pack_start(this._buttonsBox, true, true, 12);
+        this.get_style_context().add_class('chatbox-bubble-contents');
+        this.get_style_context().add_class('choice');
     }
 });
 
@@ -244,6 +249,8 @@ const InputChatboxMessageView = new Lang.Class({
                                                  false);
             this.emit('activate', text);
         }));
+        this.get_style_context().add_class('chatbox-bubble-contents');
+        this.get_style_context().add_class('input');
     },
 });
 
@@ -278,6 +285,8 @@ const MessagePendingView = new Lang.Class({
             widget.queue_draw();
         }));
         this.animation.queue_draw();
+        this.get_style_context().add_class('chatbox-bubble-contents');
+        this.get_style_context().add_class('pending');
     }
 });
 
@@ -340,10 +349,9 @@ function getPreviewForFile(path, thumbnailFactory) {
     let mtime = info.get_modification_time();
     let uri = path.get_uri();
 
-    let thumbnail = null;
-
     if (shouldThumbnail(uri, thumbnailFactory, mimeType, mtime)) {
         let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
+        let thumbnail = null;
 
         if (thumbnailPath && GLib.file_test(thumbnailPath, GLib.FileTest.EXISTS)) {
             try {
@@ -368,19 +376,48 @@ function getPreviewForFile(path, thumbnailFactory) {
                 log('Failed to create thumbnail of ' + uri);
             }
         }
+
+        /* Here we return the URI as we will be passing that directly to
+         * GtkCssProvider */
+        return {
+            icon: null,
+            thumbnail: {
+                path: thumbnailPath,
+                width: thumbnail.get_width(),
+                height: thumbnail.get_height()
+            }
+        };
     }
 
     return {
         icon: info.get_icon(),
-        thumbnail: thumbnail
+        thumbnail: null
     };
 }
+
+const CSSAllocator = (function() {
+    let counter = 0;
+    return function(properties) {
+        let class_name = 'themed-widget-' + counter++;
+        return [class_name, '.' + class_name + ' { ' +
+        Object.keys(properties).map(function(key) {
+            return key.replace('_', '-') + ': ' + properties[key] + ';';
+        }).join(' ') + ' }'];
+    }
+})();
 
 const AttachmentChatboxMessageView = new Lang.Class({
     Name: 'AttachmentChatboxMessageView',
     Extends: Gtk.Button,
     Template: 'resource:///com/endlessm/Coding/Chatbox/attachment-view.ui',
-    Children: ['attachment-icon', 'attachment-name', 'attachment-desc'],
+    Children: [
+        'attachment-icon',
+        'attachment-icon-container',
+        'attachment-details',
+        'attachment-name',
+        'attachment-desc',
+        'attachment-contents'
+    ],
     Implements: [ ChatboxMessageView ],
     Properties: {
         state: GObject.ParamSpec.object('state',
@@ -399,10 +436,38 @@ const AttachmentChatboxMessageView = new Lang.Class({
 
         let thumbnailFactory = Thumbnailer.forSize(GnomeDesktop.DesktopThumbnailSize.LARGE);
         let preview = getPreviewForFile(this.state.path, thumbnailFactory);
-        if (preview.thumbnail)
-            this.attachment_icon.set_from_pixbuf(preview.thumbnail);
-        else
-            this.attachment_icon.set_from_gicon(preview.icon, Gtk.IconSize.DIALOG);
+        if (preview.thumbnail) {
+            // Where we are using a thumbnail, use GtkCSSProivder to
+            // set the background image
+            let provider = new Gtk.CssProvider();
+            let [class_name, css] = CSSAllocator({
+                background_image: 'url("file://' + preview.thumbnail.path + '")',
+                min_width: preview.thumbnail.width + 'px',
+                min_height: preview.thumbnail.height + 'px'
+            });
+            provider.load_from_data(css);
+
+            let attachment_icon_context = this.attachment_icon.get_style_context();
+            attachment_icon_context.add_provider(provider,
+                                                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+            attachment_icon_context.add_class(class_name);
+            attachment_icon_context.add_class('image');
+
+            // Now set some classes to indicate that this is a thumbnail.
+            // Because we set the background image through CSS, we will
+            // get corner rounding too
+            this.attachment_contents.orientation = Gtk.Orientation.VERTICAL;
+            this.get_style_context().add_class('thumbnail');
+        }
+        else {
+            this.attachment_icon.set_from_gicon(preview.icon, Gtk.IconSize.DND);
+            this.attachment_contents.orientation = Gtk.Orientation.HORIZONTAL;
+            this.get_style_context().add_class('icon');
+            this.attachment_icon_container.get_style_context().add_class('icon-container');
+        }
+
+        this.get_style_context().add_class('chatbox-bubble-contents');
+        this.get_style_context().add_class('attachment');
     },
     copyToClipboard: function() {
         ChatboxPrivate.utils_copy_file_to_clipboard(this, this.state.path);

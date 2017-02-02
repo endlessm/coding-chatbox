@@ -3,45 +3,85 @@
   <template class="Gjs_AttachmentChatboxMessageView" parent="GtkButton">
     <style>
       <class name="attachment-button"/>
+      <class name="attachment"/>
     </style>
     <child>
       <object class="GtkGrid" id="content-grid">
         <property name="visible">True</property>
         <property name="hexpand">True</property>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="attachment-contents">
             <property name="vexpand">True</property>
             <property name="visible">True</property>
             <property name="orientation">vertical</property>
             <child>
-              <object class="GtkImage" id="attachment-icon">
-                <property name="width-request">64</property>
-                <property name="height-request">64</property>
+              <object class="GtkBox">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkBox" id="attachment-icon-container">
+                    <property name="visible">True</property>
+                    <property name="valign">center</property>
+                    <property name="vexpand">True</property>
+                    <child>
+                      <object class="GtkImage" id="attachment-icon">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
               <object class="GtkBox">
-                <property name="hexpand">True</property>
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
-                <property name="margin-left">10</property>
-                <property name="margin-top">10</property>
-                <property name="margin-bottom">10</property>
+                <property name="orientation">horizontal</property>
                 <child>
-                  <object class="GtkLabel" id="attachment-name">
+                  <object class="GtkBox" id="attachment-details">
+                    <property name="hexpand">True</property>
                     <property name="visible">True</property>
-                    <property name="xalign">0</property>
+                    <property name="orientation">vertical</property>
+                    <property name="margin-left">10</property>
+                    <property name="margin-top">10</property>
+                    <property name="margin-bottom">10</property>
+                    <style>
+                      <class name="details"/>
+                    </style>
+                    <child>
+                      <object class="GtkLabel" id="attachment-name">
+                        <property name="visible">True</property>
+                        <property name="xalign">0</property>
+                        <style>
+                          <class name="filename"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="attachment-desc">
+                        <property name="visible">True</property>
+                        <property name="margin-top">3</property>
+                        <property name="xalign">0</property>
+                        <property name="wrap">True</property>
+                        <!-- Same as MAX_WIDTH_CHARS in views.js -->
+                        <property name="max_width_chars">30</property>
+                        <style>
+                          <class name="desc"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="attachment-desc">
+                  <object class="GtkBox">
                     <property name="visible">True</property>
-                    <property name="margin-top">3</property>
-                    <property name="xalign">0</property>
-                    <property name="wrap">True</property>
-                    <!-- Same as MAX_WIDTH_CHARS in views.js -->
-                    <property name="max_width_chars">30</property>
+                    <property name="hexpand">False</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="visible">True</property>
+                        <property name="valign">center</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>

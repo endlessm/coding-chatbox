@@ -987,7 +987,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         let chatContents = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
             visible: true,
-            valign: Gtk.Align.CENTER
+            valign: Gtk.Align.START
         });
         chatContents.get_style_context().add_class('chatbox-chats');
 
