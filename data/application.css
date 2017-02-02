@@ -26,7 +26,7 @@ image.contact-default-image {
   font-size: 14px;
   border-radius: 5px;
   border-bottom-left-radius: 0px;
-  text-shadow: 1px -1px alpha(black, 0.4);
+  text-shadow: none;
 }
 
 .chatbox-bubble:backdrop {
@@ -52,7 +52,7 @@ image.contact-default-image {
   border: 1px solid #333333;
   border-bottom-right-radius: 0px;
   border-bottom-left-radius: 5px;
-  text-shadow: 1px 1px alpha(black, 0.6);
+  text-shadow: none;
 }
 
 .by-user .chatbox-bubble:backdrop {
@@ -73,7 +73,7 @@ image.contact-default-image {
   padding: 5px;
   background-color: #333837;
   border-bottom-left-radius: 5px;
-  text-shadow: 1px 1px alpha(black, 0.6);
+  text-shadow: none;
   box-shadow: inset 0 1px 2px #1f2323,
               inset 1px 0 2px #1f2323,
               inset -1px 0 2px #1f2323,
