@@ -58,9 +58,6 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
     let beginningOfYear = GLib.DateTime.new_local(now.get_year(),
                                                   1, 1, 0, 0, 0);
 
-    let dateSinceEpoch = GLib.DateTime.new_from_unix_local(Date.now() - date.getTime());
-    let epochDate = GLib.DateTime.new_from_unix_utc(0);
-
     // Compare deltas between the dates until we can determine a
     // string to show
     let yearDelta = beginningOfYear.get_year() - datetime.get_year();
