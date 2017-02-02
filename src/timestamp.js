@@ -61,20 +61,16 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
     // Compare deltas between the dates until we can determine a
     // string to show
     let yearDelta = beginningOfYear.get_year() - datetime.get_year();
-    if (yearDelta > 0) {
-        if (yearDelta === 1) {
-            return "Last year";
-        }
-
+    if (yearDelta === 1) {
+        return "Last year";
+    } else if (yearDelta > 0) {
         return ["About", yearDelta, "years ago"].join(" ");
     }
 
     let monthDelta = beginningOfMonth.get_month() - datetime.get_month();
-    if (monthDelta > 0) {
-        if (monthDelta === 1) {
-            return "Last month";
-        }
-
+    if (monthDelta === 1) {
+        return "Last month";
+    } else if (monthDelta > 0) {
         return ["About", monthDelta, "months ago"].join(" ");
     }
 
@@ -86,20 +82,16 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
         weekDelta = beginningOfWeek.get_week_of_year() - (datetime.get_week_of_year() - 53);
     }
 
-    if (weekDelta > 0) {
-        if (weekDelta === 1) {
-            return "Last week";
-        } else {
-            return ["About", weekDelta, "weeks ago"].join(" ");
-        }
+    if (weekDelta === 1) {
+        return "Last week";
+    } else if (weekDelta > 0) {
+        return ["About", weekDelta, "weeks ago"].join(" ");
     }
 
     let dayDelta = todayMidnight.get_day_of_year() - datetime.get_day_of_year();
-    if (dayDelta > 0) {
-        if (dayDelta === 1) {
-            return "Yesterday";
-        }
-
+    if (dayDelta === 1) {
+        return "Yesterday";
+    } else if (dayDelta > 0) {
         return ["About", dayDelta, "days ago"].join(" ");
     }
 
