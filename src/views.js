@@ -68,6 +68,10 @@ const ChatboxMessageView = new Lang.Interface({
 
     supportsCopyPaste: function() {
         return false;
+    },
+
+    parentStyleClasses: function() {
+        return [];
     }
 });
 
@@ -202,6 +206,10 @@ const ChoiceChatboxMessageView = new Lang.Class({
         this.pack_start(this._buttonsBox, true, true, 12);
         this.get_style_context().add_class('chatbox-bubble-contents');
         this.get_style_context().add_class('choice');
+    },
+
+    parentStyleClasses: function() {
+        return ['no-surrounding-bubble'];
     }
 });
 

@@ -357,12 +357,26 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
     },
 
     set content(val) {
+        // First, remove any style classes propogated to the parent
+        // through content
+        if (this._content) {
+            this._content.parentStyleClasses().forEach(Lang.bind(this, function(cls) {
+                this.get_style_context().remove_class(cls);
+            }));
+        }
+
         this._content = val;
 
         // Can't run this setter if we don't have an inner_box yet
         if (!this.inner_box) {
             return;
         }
+
+        // Now add any style classes to be propogated to the parent
+        // through content
+        this._content.parentStyleClasses().forEach(Lang.bind(this, function(cls) {
+            this.get_style_context().add_class(cls);
+        }));
 
         this.inner_box.get_children().forEach(Lang.bind(this, function(child) {
             this.inner_box.remove(child);

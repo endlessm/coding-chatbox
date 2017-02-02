@@ -170,6 +170,22 @@ image.contact-default-image {
   box-shadow: 3px 1px 5px 5px #2a2d2d;
 }
 
+.no-surrounding-bubble .chatbox-bubble {
+  background-color: #3b4140;
+  border: none;
+  box-shadow: none;
+}
+
+.no-surrounding-bubble .chatbox-bubble:backdrop {
+  background-color: #3b4140;
+  border: none;
+  box-shadow: none;
+}
+
+.chatbox-input-area {
+  background-color: #3b4140;
+}
+
 .contact-item .contact-message-preview {
   font-weight: 300; /* light */
 }
