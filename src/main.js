@@ -758,8 +758,10 @@ const ChatboxStackChild = new Lang.Class({
         this._chatInputRevealer.set_reveal_child(false);
     },
 
-    forEachMessageGroup: function(callback) {
-        this.chat_contents.get_children().forEach(callback);
+    updateTimestamps: function(callback) {
+        this.chat_contents.get_children().forEach(function(group) {
+            group.updateMessageReceivedDate();
+        });
     },
 
     scrollToBottomOnUpdate: function() {
@@ -958,9 +960,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         // and updates the message received label
         GLib.timeout_add_seconds(GLib.PRIORITY_LOW, CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS, Lang.bind(this, function() {
             this.chatbox_stack.get_children().forEach(function(child) {
-                child.forEachMessageGroup(function(group) {
-                    group.updateMessageReceivedDate();
-                });
+                child.updateTimestamps();
             });
 
             return true;
@@ -973,9 +973,7 @@ const CodingChatboxMainWindow = new Lang.Class({
 
     _updateClockFormat: function() {
         this.chatbox_stack.get_children().forEach(function(child) {
-            child.forEachMessageGroup(function(group) {
-                group.updateMessageReceivedDate();
-            });
+            child.updateTimestamps();
         });
     },
 
