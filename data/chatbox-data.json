@@ -2,27 +2,12 @@
     "actor_details": [
         {
             "name": "Ada",
-            "img": "Kaethe.png",
-            "location": "intro::hook"
-        },
-        {
-            "name": "Konrad",
-            "img": "Theodor.png",
+            "img": "ada.png",
             "location": "intro::hook"
         },
         {
             "name": "Marlon",
-            "img": "Leonhard.png",
-            "location": "intro::hook"
-        },
-        {
-            "name": "Cosimo",
-            "img": "Heinrich.png",
-            "location": "intro::hook"
-        },
-        {
-            "name": "Mary",
-            "img": "Marie.png",
+            "img": "marlon.png",
             "location": "intro::hook"
         }
     ]
