@@ -794,6 +794,12 @@ const ChatboxStackChild = new Lang.Class({
         this.parent(params);
         this._scrollView = new CodingChatboxChatScrollView(this.chat_contents);
 
+        let chatInputBoxWithShadow = new Gtk.Box({
+            visible: true,
+            orientation: Gtk.Orientation.VERTICAL
+        });
+        chatInputBoxWithShadow.get_style_context().add_class('chatbox-input-area-shadow');
+
         this._chatInputRevealer = new Gtk.Revealer({
             visible: true,
             transition_duration: 200
@@ -815,7 +821,8 @@ const ChatboxStackChild = new Lang.Class({
         }));
 
         this.pack_start(this._scrollView, true, true, 0);
-        this.pack_start(this._chatInputRevealer, false, false, 0);
+        chatInputBoxWithShadow.pack_start(this._chatInputRevealer, false, false, 0);
+        this.pack_start(chatInputBoxWithShadow, false, false, 0);
     },
 
     showInputArea: function() {
