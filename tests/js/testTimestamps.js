@@ -1,10 +1,10 @@
-// tests/js/testCodingGameService.js
+// tests/js/testTimestamps.js
 //
 // Copyright (c) 2016 Endless Mobile Inc.
 // All Rights Reserved.
 //
-// These unit tests test the underlying functionality in CodingGameController
-// (apart from the actual sequencing of events themselves).
+// These unit tests check that the message-received timestamps function
+// as-expected.
 
 const GLib = imports.gi.GLib;
 
