@@ -13,8 +13,8 @@ const GnomeInterfacePreferences = new Gio.Settings({
     schema: 'org.gnome.desktop.interface'
 });
 
-const CLOCK_TYPE_24H = 1;
-const CLOCK_TYPE_AMPM = 0;
+const CLOCK_TYPE_24H = 0;
+const CLOCK_TYPE_AMPM = 1;
 
 // calculateMessageReceivedTextFromDate
 //
