@@ -8,13 +8,13 @@
 
 const GLib = imports.gi.GLib;
 
+// Do this before we import Timestamp so that we don't end up creating
+// GSettings objects before the backend is set to GMemorySettingsBackend.
+GLib.setenv('GSETTINGS_BACKEND', 'memory', true);
+
 const Timestamp = imports.timestamp;
 
 describe('Timestamp calculation', function () {
-    beforeEach(function () {
-        GLib.setenv('GSETTINGS_BACKEND', 'memory', true);
-    });
-
     it('shows "last year" if date was in the last calendar year', function() {
         let current = new Date("1 January 2010");
         let date = new Date("31 December 2009");
