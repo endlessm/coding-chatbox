@@ -196,10 +196,10 @@ row:selected:backdrop.contact-row {
 }
 
 .contact-message-notification {
-  background-color: #e16f38;
+  background-color: #f26522;
   color: #fff;
   padding: 3px;
-  border-radius: 2px;
+  border-radius: 6px;
   font-size: 9pt;
 }
 
