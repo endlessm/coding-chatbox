@@ -244,3 +244,17 @@ row:selected:backdrop.contact-row {
 .desc {
   font-size: 14px;
 }
+
+.attachment-header {
+  background-color: #3b4140;
+  padding: 5px;
+}
+
+.attachment-header .description-box {
+  padding: 10px;
+}
+
+.attachment-preview {
+  background-color: #3b4140;
+  padding: 20px;
+}

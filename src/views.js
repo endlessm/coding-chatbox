@@ -426,7 +426,12 @@ const AttachmentChatboxMessageView = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        State.AttachmentChatboxMessage)
+                                        State.AttachmentChatboxMessage),
+        showing_thumbnail: GObject.ParamSpec.boolean('showing-thumbnail',
+                                                     '',
+                                                     '',
+                                                     GObject.ParamFlags.READABLE,
+                                                     false)
     },
 
     _init: function(params) {
@@ -459,6 +464,7 @@ const AttachmentChatboxMessageView = new Lang.Class({
             // get corner rounding too
             this.attachment_contents.orientation = Gtk.Orientation.VERTICAL;
             this.get_style_context().add_class('thumbnail');
+            this._isShowingThumbnail = true;
         }
         else {
             this.attachment_icon.set_from_gicon(preview.icon, Gtk.IconSize.DND);
@@ -476,5 +482,9 @@ const AttachmentChatboxMessageView = new Lang.Class({
 
     supportsCopyPaste: function() {
         return true;
+    },
+
+    get showing_thumbnail() {
+        return !!this._isShowingThumbnail;
     }
 });
