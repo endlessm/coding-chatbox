@@ -541,5 +541,9 @@ const CodingChatboxState = new Lang.Class({
                                                     targetProp,
                                                     flags);
         }
+    },
+
+    clearConversations: function() {
+        this.conversations = {};
     }
 });

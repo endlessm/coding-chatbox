@@ -3,5 +3,7 @@
     <method name="ReceiveMessage">
       <arg name="message" direction="in" type="s"/>
     </method>
+    <method name="Reset">
+    </method>
   </interface>
 <node>

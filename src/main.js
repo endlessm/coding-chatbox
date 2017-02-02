@@ -150,6 +150,12 @@ const ActorModel = new Lang.Class({
         }));
     },
 
+    forEach: function(callback) {
+        for (let idx = 0; idx < this.get_n_items(); idx++) {
+            callback(this.get_item(idx));
+        }
+    },
+
     getByName: function(name) {
         for (let idx = 0; idx < this.get_n_items(); idx++) {
             let actor = this.get_item(idx);
@@ -801,6 +807,56 @@ const ChatboxStackChild = new Lang.Class({
     }
 });
 
+// createChatContentsWidget
+//
+// Create a widget containing contents and an input box for this
+// part of the chatbox stack.
+function createChatContentsWidget() {
+    let chatContents = new Gtk.Box({
+        orientation: Gtk.Orientation.VERTICAL,
+        visible: true,
+        valign: Gtk.Align.START
+    });
+    chatContents.get_style_context().add_class('chatbox-chats');
+
+    let messageQueue = new TriggerableEventQueue(function(item) {
+        if (typeof(item) === 'function') {
+            item();
+        } else {
+            /* Check to see if there are any groups that will accept
+             * this item to start with */
+            let groups = chatContents.get_children();
+            if (!groups.length ||
+                !groups[groups.length - 1].addBubble(item.view,
+                                                     item.date,
+                                                     item.actor)) {
+                let newGroup = new CodingChatboxMessageGroup({
+                    visible: true,
+                    expand: true
+                });
+                newGroup.addBubble(item.view, item.date, item.actor);
+                chatContents.pack_start(newGroup, true, true, 15);
+            }
+
+            item.view.showContent();
+        }
+    });
+
+    let chatInputArea = new Gtk.Box({
+        visible: true,
+        expand: false
+    });
+    chatInputArea.get_style_context().add_class('chatbox-input-area');
+
+    return new ChatboxStackChild({
+        orientation: Gtk.Orientation.VERTICAL,
+        visible: true,
+        chat_contents: chatContents,
+        input_area: chatInputArea,
+        message_queue: messageQueue
+    });
+}
+
 // We'll send a reminder after 20 minutes if the user fails to read a message
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
@@ -947,6 +1003,23 @@ const CodingChatboxMainWindow = new Lang.Class({
         }));
     },
 
+    _markActorAsRead: function(actor) {
+        // Assuming here that this will always succeed, because it is part
+        // of the chatbox' invariant that an entry in the list box always has
+        // a page on the GtkStack and vice versa.
+        let row = this._rowForActor(actor);
+        let chatContents = this._contentsForActor(actor).chat_contents;
+        let groups = chatContents.get_children();
+        if (groups.length) {
+            let children = groups[groups.length - 1].chatbox_bubbles.get_children();
+            children[children.length - 1].focused();
+        }
+
+        row.highlight = false;
+        this._state.markAllMessagesByActorAsRead(actor);
+        this.application.withdraw_notification(notificationId(actor));
+    },
+
     _markVisibleActorAsRead: function() {
         // Sets all the messages on the visible actor as read, by calling
         // focused() on the last view, removing any highlights and withdrawing
@@ -956,21 +1029,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         // in the model and use that, since a row may not always be
         // 'selected' by the user
         let selectedActor = this.chatbox_stack.get_visible_child_name();
-
-        // Assuming here that this will always succeed, because it is part
-        // of the chatbox' invariant that an entry in the list box always has
-        // a page on the GtkStack and vice versa.
-        let row = this._rowForActor(selectedActor);
-        let chatContents = this._contentsForActor(selectedActor).chat_contents;
-        let groups = chatContents.get_children();
-        if (groups.length) {
-            let children = groups[groups.length - 1].chatbox_bubbles.get_children();
-            children[children.length - 1].focused();
-        }
-
-        row.highlight = false;
-        this._state.markAllMessagesByActorAsRead(selectedActor);
-        this.application.withdraw_notification(notificationId(selectedActor));
+        this._markActorAsRead(selectedActor);
     },
 
     _actorIsVisible: function(name) {
@@ -983,50 +1042,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (chatboxStackChild)
             return chatboxStackChild;
 
-        let chatContents = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL,
-            visible: true,
-            valign: Gtk.Align.START
-        });
-        chatContents.get_style_context().add_class('chatbox-chats');
-
-        let messageQueue = new TriggerableEventQueue(function(item) {
-            if (typeof(item) === 'function') {
-                item();
-            } else {
-                /* Check to see if there are any groups that will accept
-                 * this item to start with */
-                let groups = chatContents.get_children();
-                if (!groups.length ||
-                    !groups[groups.length - 1].addBubble(item.view,
-                                                         item.date,
-                                                         item.actor)) {
-                    let newGroup = new CodingChatboxMessageGroup({
-                        visible: true,
-                        expand: true
-                    });
-                    newGroup.addBubble(item.view, item.date, item.actor);
-                    chatContents.pack_start(newGroup, true, true, 15);
-                }
-
-                item.view.showContent();
-            }
-        });
-
-        let chatInputArea = new Gtk.Box({
-            visible: true,
-            expand: false
-        });
-        chatInputArea.get_style_context().add_class('chatbox-input-area');
-
-        chatboxStackChild = new ChatboxStackChild({
-            orientation: Gtk.Orientation.VERTICAL,
-            visible: true,
-            chat_contents: chatContents,
-            input_area: chatInputArea,
-            message_queue: messageQueue
-        });
-
+        chatboxStackChild = createChatContentsWidget();
         this.chatbox_stack.add_named(chatboxStackChild, actor);
         return chatboxStackChild;
     },
@@ -1211,6 +1227,17 @@ const CodingChatboxMainWindow = new Lang.Class({
         }
     },
 
+    clearConversations: function() {
+        this._state.clearConversations();
+        this.chatbox_stack.get_children().forEach(function(child) {
+            child.destroy();
+        });
+        this.actor_model.forEach(Lang.bind(this, function(actor) {
+            this._contentsForActor(actor.name);
+            this._markActorAsRead(actor.name);
+        }));
+    },
+
     chatMessage: function(actor, message, location, timestamp, style, sentBy, pendingTime) {
         let wrapWidth = style.indexOf('code') !== -1 ? Views.CODE_MAX_WIDTH_CHARS :
                                                        Views.MAX_WIDTH_CHARS;
@@ -1389,6 +1416,11 @@ const CodingChatboxApplication = new Lang.Class({
         this._skeleton.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location, styles) {
             if (this._mainWindow)
                 this._mainWindow.chatUserInput(actor, spec, location, styles, 1);
+        }));
+
+        this._skeleton.connect('reset', Lang.bind(this, function() {
+            if (this._mainWindow)
+                this._mainWindow.clearConversations();
         }));
 
         return true;

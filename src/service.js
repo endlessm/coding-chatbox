@@ -133,6 +133,19 @@ const ChatboxReceiverService = new Lang.Class({
         }
 
         return true;
+    },
+
+    vfunc_handle_reset: function(method) {
+        try {
+            this.emit('reset');
+            this.complete_reset(method);
+        } catch (e) {
+            method.return_error_literal(ChatboxReceiverErrorDomain,
+                                        ChatboxReceiverErrors.INTERNAL_ERROR,
+                                        String(e));
+        }
+
+        return true;
     }
 });
 Signals.addSignalMethods(ChatboxReceiverService.prototype);
