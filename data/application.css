@@ -81,8 +81,8 @@ image.contact-default-image {
 .input-bubble-container .chatbox-bubble-contents.input {
   padding: 10px;
   background-color: #343736;
-  border-bottom-left-radius: 5px;
   text-shadow: none;
+  border-radius: 5px;
   box-shadow: inset 0 1px 2px #1f2323,
               inset 1px 0 2px #1f2323,
               inset -1px 0 2px #1f2323,
