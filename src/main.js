@@ -484,8 +484,8 @@ function new_message_view_for_state(container,
         if (onVisible)
             onVisible();
 
-        /* Update both the content and the styles to reflect that this
-         * is now an actual bubble */
+        // Update both the content and the styles to reflect that this
+        // is now an actual bubble
         view_container.content = view;
         Views.removeStyles(view_container, ['message-pending']);
         container.connect('message-changed', function() {
@@ -783,8 +783,8 @@ function createChatContentsWidget() {
         if (typeof(item) === 'function') {
             item();
         } else {
-            /* Check to see if there are any groups that will accept
-             * this item to start with */
+            // Check to see if there are any groups that will accept
+            // this item to start with
             let groups = chatContents.get_children();
             if (!groups.length ||
                 !groups[groups.length - 1].addBubble(item.view,
