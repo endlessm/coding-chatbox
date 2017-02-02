@@ -71,7 +71,16 @@ image.contact-default-image {
 
 .input-bubble-container .chatbox-bubble {
   padding: 5px;
-  background-color: #333837;
+  background-color: #3b4140;
+}
+
+.input-bubble-container .chatbox-bubble:backdrop {
+  background-color: #3b4140
+}
+
+.input-bubble-container .chatbox-bubble-contents.input {
+  padding: 10px;
+  background-color: #343736;
   border-bottom-left-radius: 5px;
   text-shadow: none;
   box-shadow: inset 0 1px 2px #1f2323,
@@ -80,34 +89,34 @@ image.contact-default-image {
               inset 0 -1px 2px #1f2323
 }
 
-.input-bubble-container .chatbox-bubble:backdrop {
+.input-bubble-container .chatbox-bubble-contents.input:backdrop {
   background-color: #2a2d2c;
   text-shadow: none;
 }
 
-.input-bubble-container.code .chatbox-bubble {
+.input-bubble-container.code .chatbox-bubble-contents.input {
   background-color: #343736;
 }
 
-.input-bubble-container.code .chatbox-bubble:backdrop {
+.input-bubble-container.code .chatbox-bubble-contents.input:backdrop {
   background-color: #2a2d2c;
   text-shadow: none;
 }
 
 
-.input-bubble-container text {
+.input-bubble-container .chatbox-bubble-contents.input text {
   background-color: #343736;
 }
 
-.input-bubble-container text:backdrop {
+.input-bubble-container .chatbox-bubble-contents.input text:backdrop {
   background-color: #2a2d2c;
 }
 
-.input-bubble-container .code text {
+.input-bubble-container .code .chatbox-bubble-contents.input text {
   background-color: #343736;
 }
 
-.input-bubble-container .code text:backdrop {
+.input-bubble-container .code .chatbox-bubble-contents.input text:backdrop {
   background-color: #2a2d2c;
   color: #659e51;
 }
