@@ -40,6 +40,9 @@ function initials_from_name(name) {
 const CONTACT_IMAGE_SIZE = 48;
 const CHAT_WITH_ACTION = 'chat-with';
 
+const CLOCK_SCHEMA = "org.gnome.desktop.interface";
+const CLOCK_FORMAT_KEY = "clock-format";
+
 const Actor = new Lang.Class({
     Name: 'Actor',
     Extends: GObject.Object,
@@ -958,6 +961,18 @@ const CodingChatboxMainWindow = new Lang.Class({
 
             return true;
         }));
+
+       this._clockSettings = new Gio.Settings({ schema: CLOCK_SCHEMA });
+       this._clockSettings.connect('changed::' + CLOCK_FORMAT_KEY,
+                                    Lang.bind(this, this._updateClockFormat));
+    },
+
+    _updateClockFormat: function() {
+       this.chatbox_stack.get_children().forEach(function(child) {
+            child.chat_contents.get_children().forEach(function(group) {
+                group.updateMessageReceivedDate();
+            });
+        });
     },
 
     _markActorAsRead: function(actor) {
