@@ -5,6 +5,6 @@ Comment=Chat app
 Type=Application
 Exec=com.endlessm.Coding.Chatbox
 Icon=coding-chatbox
-Categories=Utility;
+Categories=Development;
 DBusActivatable=true
 StartupNotify=true
