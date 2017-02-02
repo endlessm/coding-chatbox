@@ -1291,14 +1291,7 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     hideUserInput: function(actor) {
-        // Before doing this, play an animation by adding the hide
-        // class to the input area. Then after a second, destroy the
-        // contents
-        let contents = this._contentsForActor(actor);
-        let inputArea = contents.input_area;
-        let revealer = contents.input_area_revealer;
-
-        contents.hideInputArea();
+        let contents = this._contentsForActor(actor).hideInputArea();
     },
 
     switchToChatWith: function(actor) {
