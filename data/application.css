@@ -22,6 +22,9 @@ image.contact-default-image {
 
 .chatbox-bubble {
   background-color: #47565a;
+  color: #d3d6d7;
+  line-height: 22px;
+  font-size: 14px;
   border-radius: 5px;
   border-bottom-left-radius: 0px;
   text-shadow: 1px -1px alpha(black, 0.4);
@@ -34,15 +37,15 @@ image.contact-default-image {
 
 .code .chatbox-bubble {
   background-color: #1a2c31;
-  font-family: monospace;
+  font-family: DejaVu Sans Mono;
   text-shadow: none;
-  color: #6ba957;
+  color: #5cae4b;
   font-size: 10pt;
 }
 
 .code .chatbox-bubble:backdrop {
   background-color: #162227;
-  color: #659e51;
+  color: #5cae4b;
 }
 
 .by-user .chatbox-bubble {
