@@ -29,10 +29,7 @@ const Lang = imports.lang;
 const Service = imports.service;
 const State = imports.state;
 const Views = imports.views;
-
-const GnomeInterfacePreferences = new Gio.Settings({
-    schema: 'org.gnome.desktop.interface'
-});
+const Timestamp = imports.timestamp;
 
 function initials_from_name(name) {
     return String(name.split().map(function(word) {
@@ -396,90 +393,6 @@ function isCloseEnoughInTime(lastMessageDate, currentMessageDate) {
     return delta < _FIVE_MINUTES_IN_MS;
 }
 
-const CLOCK_TYPE_24H = 1;
-const CLOCK_TYPE_AMPM = 0;
-
-// calculateMessageReceivedTextFromDate
-//
-// Calculate the 'message received' text from a timestamp. Right now this
-// calculates time the 'accurate' way but not necessarily in line with
-// user expectations.
-function calculateMessageReceivedTextFromDate(date) {
-    /* Sanity check for clock skew. In this case, we just display
-     * "In the future" */
-    if (date.getTime() > Date.now()) {
-        return "In the future";
-    }
-
-    /* Convert to GDateTime and use that API consistently throuhgout */
-    let datetime = GLib.DateTime.new_from_unix_local(date.getTime() / 1000);
-    let now = GLib.DateTime.new_now_local();
-
-    let todayMidnight = GLib.DateTime.new_local(now.get_year(),
-                                                now.get_month(),
-                                                now.get_day_of_month(),
-                                                0, 0, 0);
-    let beginningOfWeek = GLib.DateTime.new_local(now.get_year(),
-                                                  now.get_month(),
-                                                  (Math.floor(now.get_day_of_month() / 7) * 7) + 1,
-                                                  0, 0, 0);
-    let beginningOfMonth = GLib.DateTime.new_local(now.get_year(),
-                                                   now.get_month(),
-                                                   1, 0, 0, 0);
-    let beginningOfYear = GLib.DateTime.new_local(now.get_year(),
-                                                  1, 1, 0, 0, 0);
-
-    let dateSinceEpoch = GLib.DateTime.new_from_unix_local(Date.now() - date.getTime());
-    let epochDate = GLib.DateTime.new_from_unix_utc(0);
-
-    /* Compare deltas between the dates until we can determine a
-     * string to show */
-    let yearDelta = beginningOfYear.get_year() - datetime.get_year();
-    if (yearDelta > 0) {
-        if (yearDelta === 1) {
-            return "Last year";
-        }
-
-        return ["About", yearDelta, "years ago"].join(" ");
-    }
-
-    let monthDelta = beginningOfMonth.get_month() - datetime.get_month();
-    if (monthDelta > 0) {
-        if (monthDelta === 1) {
-            return "Last month";
-        }
-
-        return ["About", monthDelta, "months ago"].join(" ");
-    }
-
-    let weekDelta = beginningOfWeek.get_week_of_year() - datetime.get_week_of_year();
-    if (weekDelta > 0) {
-        if (weekDelta === 1) {
-            return "Last week";
-        } else {
-            return ["About", weekDelta, "weeks ago"].join(" ");
-        }
-    }
-
-    let dayDelta = todayMidnight.get_day_of_year() - datetime.get_day_of_year();
-    if (dayDelta > 1) {
-        if (dayDelta === 1) {
-            return "Yesterday";
-        }
-
-        return ["About", dayDelta, "days ago"].join(" ");
-    }
-
-
-    /* On the same day, display the timestamp in the hours / minutes format
-     * depending on the user's time settings */
-    if (GnomeInterfacePreferences.get_enum('clock-format') === CLOCK_TYPE_24H) {
-        return datetime.format('%l:%M %p');
-    } else {
-        return datetime.format('%k:%M');
-    }
-}
-
 const CodingChatboxMessageGroup = new Lang.Class({
     Name: 'CodingChatboxMessageGroup',
     Extends: Gtk.Box,
@@ -538,7 +451,7 @@ const CodingChatboxMessageGroup = new Lang.Class({
         }
 
         let date = this._messageDates[this._messageDates.length - 1];
-        this.message_received_date_label.label = calculateMessageReceivedTextFromDate(date);
+        this.message_received_date_label.label = Timestamp.calculateMessageReceivedTextFromDate(date);
     }
 });
 
