@@ -794,8 +794,38 @@ const ChatboxStackChild = new Lang.Class({
         this.parent(params);
         this._scrollView = new CodingChatboxChatScrollView(this.chat_contents);
 
+        this._chatInputRevealer = new Gtk.Revealer({
+            visible: true,
+            transition_duration: 200
+        });
+        this._chatInputRevealer.add(this.input_area);
+        this._chatInputRevealer.connect('notify::child-revealed', Lang.bind(this, function() {
+            if (!this._chatInputRevealer.child_revealed) {
+                this.input_area.get_children().forEach(function(child) {
+                    child.destroy();
+                });
+            } else {
+                // Scroll the view back down to the bottom once the animation
+                // completes. Unforatunately we get a brief moment where
+                // the scroll view is in the 'wrong place' but it appears
+                // there's not much we can do about this.
+                let vadjustment = this._scrollView.vadjustment;
+                vadjustment.set_value(vadjustment.upper - vadjustment.page_size);
+            }
+        }));
+
         this.pack_start(this._scrollView, true, true, 0);
-        this.pack_start(this.input_area, false, false, 0);
+        this.pack_start(this._chatInputRevealer, false, false, 0);
+    },
+
+    showInputArea: function() {
+        this._chatInputRevealer.transition_type = Gtk.RevealerTransitionType.SLIDE_UP;
+        this._chatInputRevealer.set_reveal_child(true);
+    },
+
+    hideInputArea: function() {
+        this._chatInputRevealer.transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN;
+        this._chatInputRevealer.set_reveal_child(false);
     },
 
     scrollToBottomOnUpdate: function() {
@@ -1153,6 +1183,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             view_container.showContent();
             view_container.margin = 10;
             inputArea.pack_end(view_container, true, true, 0);
+            stackChild.showInputArea();
             stackChild.scrollToBottomOnUpdate();
             messageQueue.showNext();
         }));
@@ -1280,10 +1311,7 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     hideUserInput: function(actor) {
-        let userInputArea = this._contentsForActor(actor).input_area;
-        userInputArea.get_children().forEach(function(child) {
-            child.destroy();
-        });
+        let contents = this._contentsForActor(actor).hideInputArea();
     },
 
     switchToChatWith: function(actor) {
