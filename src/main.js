@@ -28,8 +28,8 @@ const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 const Service = imports.service;
 const State = imports.state;
-const Views = imports.views;
 const Timestamp = imports.timestamp;
+const Views = imports.views;
 
 function initials_from_name(name) {
     return String(name.split().map(function(word) {
