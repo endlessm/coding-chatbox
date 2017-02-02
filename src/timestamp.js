@@ -26,15 +26,15 @@ const CLOCK_TYPE_AMPM = 1;
 // @param {object.Date} current - The current time (injected so that it
 //                                can be controlled from tests).
 function calculateMessageReceivedTextFromDate(date, current=null) {
-    /* Sanity check for clock skew. In this case, we just display
-     * "In the future" */
+    // Sanity check for clock skew. In this case, we just display
+    // "In the future"
     current = current || new Date();
 
     if (date.getTime() > current.getTime()) {
         return "In the future";
     }
 
-    /* Convert to GDateTime and use that API consistently throuhgout */
+    // Convert to GDateTime and use that API consistently throuhgout
     let datetime = GLib.DateTime.new_from_unix_local(date.getTime() / 1000);
     let now = GLib.DateTime.new_from_unix_local(current.getTime() / 1000);
 
@@ -61,8 +61,8 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
     let dateSinceEpoch = GLib.DateTime.new_from_unix_local(Date.now() - date.getTime());
     let epochDate = GLib.DateTime.new_from_unix_utc(0);
 
-    /* Compare deltas between the dates until we can determine a
-     * string to show */
+    // Compare deltas between the dates until we can determine a
+    // string to show
     let yearDelta = beginningOfYear.get_year() - datetime.get_year();
     if (yearDelta > 0) {
         if (yearDelta === 1) {
