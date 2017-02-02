@@ -15,6 +15,13 @@ GLib.setenv('GSETTINGS_BACKEND', 'memory', true);
 const Timestamp = imports.timestamp;
 
 describe('Timestamp calculation', function () {
+    it('shows "In the future" if message-sent date was affected by clock skew', function() {
+        let current = new Date('31 December 2009');
+        let date = new Date('1 January 2010');
+        let msg = Timestamp.calculateMessageReceivedTextFromDate(date, current);
+        expect(msg).toEqual('In the future');
+    });
+
     it('shows "last year" if date was in the last calendar year', function() {
         let current = new Date('1 January 2010');
         let date = new Date('31 December 2009');
