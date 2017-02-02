@@ -30,6 +30,10 @@ const Service = imports.service;
 const State = imports.state;
 const Views = imports.views;
 
+const GnomeInterfacePreferences = new Gio.Settings({
+    schema: 'org.gnome.desktop.interface'
+});
+
 function initials_from_name(name) {
     return String(name.split().map(function(word) {
         return word[0];
@@ -386,6 +390,14 @@ function isCloseEnoughInTime(lastMessageDate, currentMessageDate) {
     return delta < _FIVE_MINUTES_IN_MS;
 }
 
+const CLOCK_TYPE_24H = 1;
+const CLOCK_TYPE_AMPM = 0;
+
+// calculateMessageReceivedTextFromDate
+//
+// Calculate the 'message received' text from a timestamp. Right now this
+// calculates time the 'accurate' way but not necessarily in line with
+// user expectations.
 function calculateMessageReceivedTextFromDate(date) {
     /* Sanity check for clock skew. In this case, we just display
      * "In the future" */
@@ -393,12 +405,15 @@ function calculateMessageReceivedTextFromDate(date) {
         return "In the future";
     }
 
-    let dateSinceEpoch = new Date(Date.now() - date.getTime());
-    let epochDate = new Date(0);
+    /* Convert to GDateTime and use that API consistently throuhgout */
+    let datetime = GLib.DateTime.new_from_unix_local(date.getTime() / 1000);
+
+    let dateSinceEpoch = GLib.DateTime.new_from_unix_local(Date.now() - date.getTime());
+    let epochDate = GLib.DateTime.new_from_unix_utc(0);
 
     /* Compare deltas between the dates until we can determine a
      * string to show */
-    let yearDelta = dateSinceEpoch.getFullYear() - epochDate.getFullYear();
+    let yearDelta = dateSinceEpoch.get_year() - epochDate.get_year();
     if (yearDelta > 0) {
         if (yearDelta === 1) {
             return "Last year";
@@ -407,7 +422,7 @@ function calculateMessageReceivedTextFromDate(date) {
         return ["About", yearDelta, "years ago"].join(" ");
     }
 
-    let monthDelta = dateSinceEpoch.getMonth() - epochDate.getMonth();
+    let monthDelta = dateSinceEpoch.get_month() - epochDate.get_month();
     if (monthDelta > 0) {
         if (monthDelta === 1) {
             return "Last month";
@@ -416,7 +431,7 @@ function calculateMessageReceivedTextFromDate(date) {
         return ["About", monthDelta, "months ago"].join(" ");
     }
 
-    let dayDelta = dateSinceEpoch.getDate() - epochDate.getDate();
+    let dayDelta = dateSinceEpoch.get_day_of_year() - epochDate.get_day_of_year();
     if (dayDelta > 0) {
         if (dayDelta > 7) {
             let weekDelta = Math.floor(dayDelta / 7);
@@ -435,30 +450,14 @@ function calculateMessageReceivedTextFromDate(date) {
         return ["About", dayDelta, "days ago"].join(" ");
     }
 
-    let hourDelta = dateSinceEpoch.getHours() - epochDate.getHours();
-    if (hourDelta > 0) {
-        if (hourDelta === 1) {
-            return "About an hour ago";
-        }
 
-        return ["About", hourDelta, "hours ago"].join(" ");
+    /* On the same day, display the timestamp in the hours / minutes format
+     * depending on the user's time settings */
+    if (GnomeInterfacePreferences.get_enum('clock-format') === CLOCK_TYPE_24H) {
+        return datetime.format('%l:%M %p');
+    } else {
+        return datetime.format('%k:%M');
     }
-
-    let minutesDelta = dateSinceEpoch.getMinutes() - epochDate.getMinutes();
-    if (minutesDelta > 0) {
-        if (minutesDelta === 1) {
-            return "About a minute ago";
-        }
-
-        return ["About", minutesDelta, "minutes ago"].join(" ");
-    }
-
-    let secondsDelta = dateSinceEpoch.getSeconds() - epochDate.getSeconds();
-    if (secondsDelta > 30) {
-        return ["About", secondsDelta, "seconds ago"].join(" ");
-    }
-
-    return "Just now";
 }
 
 const CodingChatboxMessageGroup = new Lang.Class({
@@ -806,8 +805,8 @@ const ChatboxStackChild = new Lang.Class({
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
 
-// Update every five minutes
-const CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS = 300;
+// Update every hour
+const CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS = 3600;
 
 const CodingChatboxMainWindow = new Lang.Class({
     Name: 'CodingChatboxMainWindow',
