@@ -27,11 +27,11 @@ const CLOCK_TYPE_AMPM = 1;
 //                                can be controlled from tests).
 function calculateMessageReceivedTextFromDate(date, current=null) {
     // Sanity check for clock skew. In this case, we just display
-    // "In the future"
+    // 'In the future'
     current = current || new Date();
 
     if (date.getTime() > current.getTime()) {
-        return "In the future";
+        return 'In the future';
     }
 
     // Convert to GDateTime and use that API consistently throuhgout
@@ -62,16 +62,16 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
     // string to show
     let yearDelta = beginningOfYear.get_year() - datetime.get_year();
     if (yearDelta === 1) {
-        return "Last year";
+        return 'Last year';
     } else if (yearDelta > 0) {
-        return ["About", yearDelta, "years ago"].join(" ");
+        return ['About', yearDelta, 'years ago'].join(' ');
     }
 
     let monthDelta = beginningOfMonth.get_month() - datetime.get_month();
     if (monthDelta === 1) {
-        return "Last month";
+        return 'Last month';
     } else if (monthDelta > 0) {
-        return ["About", monthDelta, "months ago"].join(" ");
+        return ['About', monthDelta, 'months ago'].join(' ');
     }
 
     let weekDelta = beginningOfWeek.get_week_of_year() - datetime.get_week_of_year();
@@ -83,16 +83,16 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
     }
 
     if (weekDelta === 1) {
-        return "Last week";
+        return 'Last week';
     } else if (weekDelta > 0) {
-        return ["About", weekDelta, "weeks ago"].join(" ");
+        return ['About', weekDelta, 'weeks ago'].join(' ');
     }
 
     let dayDelta = todayMidnight.get_day_of_year() - datetime.get_day_of_year();
     if (dayDelta === 1) {
-        return "Yesterday";
+        return 'Yesterday';
     } else if (dayDelta > 0) {
-        return ["About", dayDelta, "days ago"].join(" ");
+        return ['About', dayDelta, 'days ago'].join(' ');
     }
 
 
