@@ -413,13 +413,28 @@ function calculateMessageReceivedTextFromDate(date) {
 
     /* Convert to GDateTime and use that API consistently throuhgout */
     let datetime = GLib.DateTime.new_from_unix_local(date.getTime() / 1000);
+    let now = GLib.DateTime.new_now_local();
+
+    let todayMidnight = GLib.DateTime.new_local(now.get_year(),
+                                                now.get_month(),
+                                                now.get_day_of_month(),
+                                                0, 0, 0);
+    let beginningOfWeek = GLib.DateTime.new_local(now.get_year(),
+                                                  now.get_month(),
+                                                  (Math.floor(now.get_day_of_month() / 7) * 7) + 1,
+                                                  0, 0, 0);
+    let beginningOfMonth = GLib.DateTime.new_local(now.get_year(),
+                                                   now.get_month(),
+                                                   1, 0, 0, 0);
+    let beginningOfYear = GLib.DateTime.new_local(now.get_year(),
+                                                  1, 1, 0, 0, 0);
 
     let dateSinceEpoch = GLib.DateTime.new_from_unix_local(Date.now() - date.getTime());
     let epochDate = GLib.DateTime.new_from_unix_utc(0);
 
     /* Compare deltas between the dates until we can determine a
      * string to show */
-    let yearDelta = dateSinceEpoch.get_year() - epochDate.get_year();
+    let yearDelta = beginningOfYear.get_year() - datetime.get_year();
     if (yearDelta > 0) {
         if (yearDelta === 1) {
             return "Last year";
@@ -428,7 +443,7 @@ function calculateMessageReceivedTextFromDate(date) {
         return ["About", yearDelta, "years ago"].join(" ");
     }
 
-    let monthDelta = dateSinceEpoch.get_month() - epochDate.get_month();
+    let monthDelta = beginningOfMonth.get_month() - datetime.get_month();
     if (monthDelta > 0) {
         if (monthDelta === 1) {
             return "Last month";
@@ -437,18 +452,17 @@ function calculateMessageReceivedTextFromDate(date) {
         return ["About", monthDelta, "months ago"].join(" ");
     }
 
-    let dayDelta = dateSinceEpoch.get_day_of_year() - epochDate.get_day_of_year();
-    if (dayDelta > 0) {
-        if (dayDelta > 7) {
-            let weekDelta = Math.floor(dayDelta / 7);
-
-            if (weekDelta === 1) {
-                return "Last week";
-            }
-
+    let weekDelta = beginningOfWeek.get_week_of_year() - datetime.get_week_of_year();
+    if (weekDelta > 0) {
+        if (weekDelta === 1) {
+            return "Last week";
+        } else {
             return ["About", weekDelta, "weeks ago"].join(" ");
         }
+    }
 
+    let dayDelta = todayMidnight.get_day_of_year() - datetime.get_day_of_year();
+    if (dayDelta > 1) {
         if (dayDelta === 1) {
             return "Yesterday";
         }
