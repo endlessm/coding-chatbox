@@ -232,7 +232,6 @@ const InputChatboxMessageView = new Lang.Class({
     },
 
     _init: function(params) {
-        params.margin = 10;
         params.width_request = MAX_WIDTH_CHARS * 5;
         params.expand = true;
         this.parent(params);
