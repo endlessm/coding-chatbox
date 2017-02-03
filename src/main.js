@@ -28,11 +28,8 @@ const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 const Service = imports.service;
 const State = imports.state;
+const Timestamp = imports.timestamp;
 const Views = imports.views;
-
-const GnomeInterfacePreferences = new Gio.Settings({
-    schema: 'org.gnome.desktop.interface'
-});
 
 function initials_from_name(name) {
     return String(name.split().map(function(word) {
@@ -42,6 +39,9 @@ function initials_from_name(name) {
 
 const CONTACT_IMAGE_SIZE = 48;
 const CHAT_WITH_ACTION = 'chat-with';
+
+const CLOCK_SCHEMA = 'org.gnome.desktop.interface';
+const CLOCK_FORMAT_KEY = 'clock-format';
 
 const Actor = new Lang.Class({
     Name: 'Actor',
@@ -396,76 +396,6 @@ function isCloseEnoughInTime(lastMessageDate, currentMessageDate) {
     return delta < _FIVE_MINUTES_IN_MS;
 }
 
-const CLOCK_TYPE_24H = 1;
-const CLOCK_TYPE_AMPM = 0;
-
-// calculateMessageReceivedTextFromDate
-//
-// Calculate the 'message received' text from a timestamp. Right now this
-// calculates time the 'accurate' way but not necessarily in line with
-// user expectations.
-function calculateMessageReceivedTextFromDate(date) {
-    /* Sanity check for clock skew. In this case, we just display
-     * "In the future" */
-    if (date.getTime() > Date.now()) {
-        return "In the future";
-    }
-
-    /* Convert to GDateTime and use that API consistently throuhgout */
-    let datetime = GLib.DateTime.new_from_unix_local(date.getTime() / 1000);
-
-    let dateSinceEpoch = GLib.DateTime.new_from_unix_local(Date.now() - date.getTime());
-    let epochDate = GLib.DateTime.new_from_unix_utc(0);
-
-    /* Compare deltas between the dates until we can determine a
-     * string to show */
-    let yearDelta = dateSinceEpoch.get_year() - epochDate.get_year();
-    if (yearDelta > 0) {
-        if (yearDelta === 1) {
-            return "Last year";
-        }
-
-        return ["About", yearDelta, "years ago"].join(" ");
-    }
-
-    let monthDelta = dateSinceEpoch.get_month() - epochDate.get_month();
-    if (monthDelta > 0) {
-        if (monthDelta === 1) {
-            return "Last month";
-        }
-
-        return ["About", monthDelta, "months ago"].join(" ");
-    }
-
-    let dayDelta = dateSinceEpoch.get_day_of_year() - epochDate.get_day_of_year();
-    if (dayDelta > 0) {
-        if (dayDelta > 7) {
-            let weekDelta = Math.floor(dayDelta / 7);
-
-            if (weekDelta === 1) {
-                return "Last week";
-            }
-
-            return ["About", weekDelta, "weeks ago"].join(" ");
-        }
-
-        if (dayDelta === 1) {
-            return "Yesterday";
-        }
-
-        return ["About", dayDelta, "days ago"].join(" ");
-    }
-
-
-    /* On the same day, display the timestamp in the hours / minutes format
-     * depending on the user's time settings */
-    if (GnomeInterfacePreferences.get_enum('clock-format') === CLOCK_TYPE_24H) {
-        return datetime.format('%l:%M %p');
-    } else {
-        return datetime.format('%k:%M');
-    }
-}
-
 const CodingChatboxMessageGroup = new Lang.Class({
     Name: 'CodingChatboxMessageGroup',
     Extends: Gtk.Box,
@@ -524,7 +454,7 @@ const CodingChatboxMessageGroup = new Lang.Class({
         }
 
         let date = this._messageDates[this._messageDates.length - 1];
-        this.message_received_date_label.label = calculateMessageReceivedTextFromDate(date);
+        this.message_received_date_label.label = Timestamp.calculateMessageReceivedTextFromDate(date);
     }
 });
 
@@ -554,8 +484,8 @@ function new_message_view_for_state(container,
         if (onVisible)
             onVisible();
 
-        /* Update both the content and the styles to reflect that this
-         * is now an actual bubble */
+        // Update both the content and the styles to reflect that this
+        // is now an actual bubble
         view_container.content = view;
         Views.removeStyles(view_container, ['message-pending']);
         container.connect('message-changed', function() {
@@ -828,6 +758,12 @@ const ChatboxStackChild = new Lang.Class({
         this._chatInputRevealer.set_reveal_child(false);
     },
 
+    updateTimestamps: function(callback) {
+        this.chat_contents.get_children().forEach(function(group) {
+            group.updateMessageReceivedDate();
+        });
+    },
+
     scrollToBottomOnUpdate: function() {
         let vadjustment = this._scrollView.vadjustment;
         let notifyId = vadjustment.connect('notify::upper', function() {
@@ -853,8 +789,8 @@ function createChatContentsWidget() {
         if (typeof(item) === 'function') {
             item();
         } else {
-            /* Check to see if there are any groups that will accept
-             * this item to start with */
+            // Check to see if there are any groups that will accept
+            // this item to start with
             let groups = chatContents.get_children();
             if (!groups.length ||
                 !groups[groups.length - 1].addBubble(item.view,
@@ -1024,13 +960,21 @@ const CodingChatboxMainWindow = new Lang.Class({
         // and updates the message received label
         GLib.timeout_add_seconds(GLib.PRIORITY_LOW, CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS, Lang.bind(this, function() {
             this.chatbox_stack.get_children().forEach(function(child) {
-                child.chat_contents.get_children().forEach(function(group) {
-                    group.updateMessageReceivedDate();
-                });
+                child.updateTimestamps();
             });
 
             return true;
         }));
+
+       this._clockSettings = new Gio.Settings({ schema: CLOCK_SCHEMA });
+       this._clockSettings.connect('changed::' + CLOCK_FORMAT_KEY,
+                                    Lang.bind(this, this._updateClockFormat));
+    },
+
+    _updateClockFormat: function() {
+        this.chatbox_stack.get_children().forEach(function(child) {
+            child.updateTimestamps();
+        });
     },
 
     _markActorAsRead: function(actor) {
