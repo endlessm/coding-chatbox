@@ -1002,8 +1002,8 @@ const CodingChatboxMainWindow = new Lang.Class({
             return true;
         }));
 
-       this._clockSettings = new Gio.Settings({ schema: CLOCK_SCHEMA });
-       this._clockSettings.connect('changed::' + CLOCK_FORMAT_KEY,
+        this._clockSettings = new Gio.Settings({ schema: CLOCK_SCHEMA });
+        this._clockSettings.connect('changed::' + CLOCK_FORMAT_KEY,
                                     Lang.bind(this, this._updateClockFormat));
         this.attachment_preview_close.connect('clicked', Lang.bind(this, function() {
             this.chatbox_view_stack.set_visible_child_name('chats');
