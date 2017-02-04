@@ -12,6 +12,8 @@
     <file>chatbox-data.json</file>
     <file>img/ada.png</file>
     <file>img/marlon.png</file>
+    <file>img/normal_zoom.png</file>
+    <file>img/over_zoom.png</file>
     <file>img/summary-counter.svg</file>
   </gresource>
 </gresources>

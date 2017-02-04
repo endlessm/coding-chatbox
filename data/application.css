@@ -258,3 +258,15 @@ row:selected:backdrop.contact-row {
   background-color: #3b4140;
   padding: 20px;
 }
+
+.thumbnail .magnifying-glass-overlay {
+  background-image: url('resource:////com/endlessm/Coding/Chatbox/img/normal_zoom.png');
+  background-size: 22px;
+  background-repeat: no-repeat;
+  background-position: 100% 25%;
+  border-top-right-radius: 5px;
+}
+
+.thumbnail:hover .magnifying-glass-overlay {
+  background-image: url('resource:////com/endlessm/Coding/Chatbox/img/over_zoom.png');
+}
