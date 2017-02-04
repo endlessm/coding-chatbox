@@ -1253,14 +1253,17 @@ const CodingChatboxMainWindow = new Lang.Class({
     _showAttachmentPreview: function(actor, imagePath, name, desc) {
         let actorIcon = this.actor_model.getByName(actor).avatar;
 
-        this.attachment_preview_actor_image_container.get_children().forEach(function(child) {
-            child.destroy();
-        });
-        this.attachment_preview_actor_image_container.add(new RoundedImage({
+        if (this._roundedImage)
+            this._roundedImage.destroy();
+
+        this._roundedImage = new RoundedImage({
             visible: true,
             pixbuf: actorIcon,
             halign: Gtk.Align.START,
-        }));
+        });
+
+        this.attachment_preview_actor_image_container.add(this._roundedImage);
+
         this.attachment_preview_image.set_from_file(imagePath);
         this.attachment_preview_filename.label = name;
         this.attachment_preview_desc.label = desc;
