@@ -605,8 +605,8 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
                 desc: this.desc
             } : null;
 
-            /* If we're going to show an attachment preview, don't
-             * launch the application */
+            // If we're going to show an attachment preview, don't
+            // launch the application
             if (!attachmentPreview) {
                 if (contentType(this.path) == 'application/x-desktop') {
                     appInfo = Gio.DesktopAppInfo.new_from_filename(this.path.get_path());
