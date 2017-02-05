@@ -304,6 +304,14 @@ function timevalToUsecs(timeval) {
     return timeval.tv_sec * 1000000 + timeval.tv_usec;
 }
 
+// saveThumbnailError
+//
+// Print error message when saving the thumbnail fails
+function saveThumbnailError(targetThumbnailPath, uri, e) {
+    log('Saving of thumbnail ' + targetThumbnailPath + ' for ' +
+        uri + ' failed: ' + String(e));
+}
+
 // getPreviewForFile
 //
 // Get an object containing a reference to both a GIcon
@@ -381,7 +389,28 @@ function getPreviewForFile(path, thumbnailFactory) {
             thumbnail = thumbnailFactory.generate_thumbnail(uri, mimeType);
 
             if (thumbnail) {
-                thumbnailFactory.save_thumbnail(thumbnail, uri, mtime);
+                thumbnailPath = GnomeDesktop.desktop_thumbnail_path_for_uri(
+                    uri, GnomeDesktop.DesktopThumbnailSize.LARGE
+                );
+                let splitted = thumbnailPath.split('.');
+                let thumbnailPathExt = splitted[splitted.length - 1];
+
+                try {
+                    let directory = Gio.File.new_for_path(GLib.path_get_dirname(thumbnailPath));
+                    directory.make_directory_with_parents(null);
+                } catch(e if e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.EXISTS)) {
+                } catch (e) {
+                    saveThumbnailError(thumbnailPath, uri, e);
+                }
+
+                try {
+                    thumbnail.savev(thumbnailPath,
+                                    thumbnailPathExt,
+                                    [],
+                                    []);
+                } catch (e) {
+                    saveThumbnailError(targetThumbnailPath, uri, e);
+                }
             } else {
                 log('Failed to create thumbnail of ' + uri);
             }
