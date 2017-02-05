@@ -283,8 +283,8 @@ const TriggerableEventQueue = new Lang.Class({
     }
 });
 
-const CodingChatboxChatScrollView = new Lang.Class({
-    Name: 'CodingChatboxChatScrollView',
+const ChatScrollView = new Lang.Class({
+    Name: 'ChatScrollView',
     Extends: Gtk.ScrolledWindow,
 
     _init: function(chatContents) {
@@ -333,7 +333,7 @@ const ChatboxStackChild = new Lang.Class({
             vexpand: true,
             valign: Gtk.Align.FILL
         });
-        this._scrollView = new CodingChatboxChatScrollView(this.chat_contents);
+        this._scrollView = new ChatScrollView(this.chat_contents);
 
         let chatInputBoxWithShadow = new Gtk.Box({
             visible: true,
