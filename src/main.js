@@ -1006,6 +1006,9 @@ const CodingChatboxMainWindow = new Lang.Class({
         this._clockSettings.connect('changed::' + CLOCK_FORMAT_KEY,
                                     Lang.bind(this, this._updateClockFormat));
         this.attachment_preview_close.connect('clicked', Lang.bind(this, function() {
+            this.attachment_preview_image.clear();
+            this.attachment_preview_filename.label = '';
+            this.attachment_preview_desc.label = '';
             this.chatbox_view_stack.set_visible_child_name('chats');
         }));
     },
