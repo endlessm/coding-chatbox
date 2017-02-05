@@ -1,6 +1,6 @@
 // src/main.js
 //
-// Copyright (c) 2016 Endless Mobile Inc.
+// Copyright (c) 2016-2017 Endless Mobile Inc.
 //
 // This file is the file first run by the entrypoint to the coding-chatbox
 // package.

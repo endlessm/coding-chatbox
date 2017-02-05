@@ -1,6 +1,6 @@
 // src/service.js
 //
-// Copyright (c) 2016 Endless Mobile Inc.
+// Copyright (c) 2016-2017 Endless Mobile Inc.
 //
 // Contains the "service" backend, which drives the chatbox interaction with
 // the rest of the game.

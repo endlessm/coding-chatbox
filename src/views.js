@@ -1,6 +1,6 @@
 // src/views.js
 //
-// Copyright (c) 2016 Endless Mobile Inc.
+// Copyright (c) 2016-2017 Endless Mobile Inc.
 //
 // The views for chatbox content.
 //
