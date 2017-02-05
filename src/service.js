@@ -72,7 +72,7 @@ const CodingGameService = new Lang.Class({
         }));
     },
 
-    respond_to_message: function(location, response_contents, response_name) {
+    respondToMessage: function(location, response_contents, response_name) {
         let chatResponseHandler = Lang.bind(this, function(source, result) {
             try {
                 this._service.call_chat_response_finish(result);

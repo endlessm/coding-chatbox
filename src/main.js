@@ -116,15 +116,15 @@ const RenderableChoiceChatboxMessage = new Lang.Class({
             state: this,
             visible: true
         });
-        view.connect('clicked', Lang.bind(this, function(view, button_id, button_text) {
+        view.connect('clicked', Lang.bind(this, function(view, buttonId, buttonText) {
             listener({
                 response: {
-                    evaluate: button_id,
-                    text: button_text
+                    evaluate: buttonId,
+                    text: buttonText
                 },
                 amendment: {
                     type: 'scrolled',
-                    text: button_text
+                    text: buttonText
                 }
             });
         }));
@@ -561,7 +561,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             // We evaluate the text of the response here in order to get an 'evaluated'
             // piece of text to send back to the game service.
             this.service.evaluate(response.showmehow_id, response.text, Lang.bind(this, function(evaluated) {
-                this.game_service.respond_to_message(location, response.text, evaluated);
+                this.game_service.respondToMessage(location, response.text, evaluated);
             }));
 
             this.chatMessage(actor,
@@ -589,7 +589,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             }
         } else if (response.evaluate) {
             // Nothing to evaluate, just send back the pre-determined evaluated response
-            this.game_service.respond_to_message(location, response.text, response.evaluate);
+            this.game_service.respondToMessage(location, response.text, response.evaluate);
             this.chatMessage(actor,
                              response.text,
                              location,
