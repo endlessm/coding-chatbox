@@ -302,6 +302,10 @@ function shouldThumbnail(uri, thumbnailFactory, mimeType, mtime) {
            _THUMBNAIL_MIME_TYPES.indexOf(mimeType) !== -1;
 }
 
+function timevalToUsecs(timeval) {
+    return timeval.tv_sec * 1000000 + timeval.tv_usec;
+}
+
 // getPreviewForFile
 //
 // Get an object containing a reference to both a GIcon
@@ -354,7 +358,19 @@ function getPreviewForFile(path, thumbnailFactory) {
         let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
         let thumbnail = null;
 
-        if (thumbnailPath && GLib.file_test(thumbnailPath, GLib.FileTest.EXISTS)) {
+        // We need to check that both the thumbnail exists and that the
+        // mtime of the thumbnail is greater than the mtime of the original
+        // file
+        let mtimeThumbnail = (Gio.File.new_for_path(thumbnailPath)).query_info([
+            Gio.FILE_ATTRIBUTE_TIME_MODIFIED
+        ].join(','), Gio.FileQueryInfoFlags.NONE, null).get_modification_time();
+
+        let mTimeUsecs = timevalToUsecs(mtime);
+        let mTimeThumbnailUsecs = timevalToUsecs(mtimeThumbnail);
+
+        if (thumbnailPath &&
+            GLib.file_test(thumbnailPath, GLib.FileTest.EXISTS) &&
+            mTimeThumbnailUsecs > mTimeUsecs) {
             try {
                 thumbnail = GdkPixbuf.Pixbuf.new_from_file(thumbnailPath);
             } catch (e) {
