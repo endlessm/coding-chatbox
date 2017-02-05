@@ -252,7 +252,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                                               '',
                                               GObject.ParamFlags.READWRITE |
                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              Actor.ActorModel),
+                                              Actor.Model),
         service: GObject.ParamSpec.object('service',
                                           '',
                                           '',
@@ -792,7 +792,7 @@ const CodingChatboxApplication = new Lang.Class({
 
         this._service = new Service.CodingChatboxTextService();
         this._gameService = new Service.CodingGameService();
-        this._actorModel = new Actor.ActorModel();
+        this._actorModel = new Actor.Model();
     },
 
     vfunc_activate: function() {

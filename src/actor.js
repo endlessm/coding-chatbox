@@ -104,8 +104,8 @@ const Actor = new Lang.Class({
     }
 });
 
-const ActorModel = new Lang.Class({
-    Name: 'ActorModel',
+const Model = new Lang.Class({
+    Name: 'Model',
     Extends: Gio.ListStore,
 
     _init: function() {
