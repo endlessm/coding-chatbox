@@ -26,6 +26,7 @@ const Lang = imports.lang;
 const State = imports.state;
 const Views = imports.views;
 const Timestamp = imports.timestamp;
+const Queue = imports.queue;
 
 // createCopyPopover
 //
@@ -238,50 +239,7 @@ const MessageGroup = new Lang.Class({
     }
 });
 
-// This class implements a queue of items which could be passed
-// to a consumer progressively according to the needs of the application.
-// The first item always gets added straight away, but is pushed to the back
-// of the queue. While the queue has items in it, queuing more items will just
-// cause them to be added to the queue. Calling the 'showNext' method will
-// cause the front of the queue to be popped and the widget at the
-// front of the queue to be added to the box.
-//
-// This class is used by the chatbox view to show pending animations
-// for already-received messages and otherwise show messages in the order
-// that they were received. When a message is done "showing", it can call
-// showNext on the queue to start the animation for the next message.
-const TriggerableEventQueue = new Lang.Class({
-    Name: 'TriggerableEventQueue',
-    Extends: GObject.Object,
 
-    _init: function(itemConsumer) {
-        this.parent({});
-        this._queue = [];
-        this._itemConsumer = itemConsumer;
-    },
-
-    showNext: function() {
-        this._queue.shift();
-        if (this._queue.length) {
-            let item = this._queue[0];
-            this._itemConsumer(item);
-        }
-    },
-
-    // push
-    //
-    // push accepts anything. If it would be the first item on the queue
-    // we immediately pass it to the consumer otherwise we keep it on the
-    // queue and pass it to the consumer when showNext is called.
-    push: function(item) {
-        let hadLength = this._queue.length > 0;
-        this._queue.push(item);
-
-        if (!hadLength) {
-            this._itemConsumer(item);
-        }
-    }
-});
 
 const ChatScrollView = new Lang.Class({
     Name: 'ChatScrollView',
@@ -313,7 +271,7 @@ const ChatStackChild = new Lang.Class({
                                                   '',
                                                   GObject.ParamFlags.READWRITE |
                                                   GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  TriggerableEventQueue.$gtype),
+                                                  Queue.TriggerableEventQueue.$gtype),
         'input-area': GObject.ParamSpec.object('input-area',
                                                '',
                                                '',
@@ -404,7 +362,7 @@ function createChatContentsWidget() {
     });
     chatContents.get_style_context().add_class('chatbox-chats');
 
-    let messageQueue = new TriggerableEventQueue(function(item) {
+    let messageQueue = new Queue.TriggerableEventQueue(function(item) {
         if (typeof(item) === 'function') {
             item();
         } else {

@@ -9,5 +9,6 @@
     <file>views.js</file>
     <file>state.js</file>
     <file>timestamp.js</file>
+    <file>queue.js</file>
   </gresource>
 </gresources>
