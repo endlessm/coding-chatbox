@@ -117,8 +117,10 @@
                           <object class="GtkImage">
                             <property name="visible">True</property>
                             <property name="halign">end</property>
-                            <property name="icon-name">window-close-symbolic</property>
-                            <property name="icon-size">5</property>
+                            <property name="width-request">24</property>
+                            <style>
+                              <class name="close-button"/>
+                            </style>
                           </object>
                         </child>
                       </object>

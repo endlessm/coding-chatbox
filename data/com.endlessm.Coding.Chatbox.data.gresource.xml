@@ -15,5 +15,6 @@
     <file>img/normal_zoom.png</file>
     <file>img/over_zoom.png</file>
     <file>img/summary-counter.svg</file>
+    <file>img/close_button.svg</file>
   </gresource>
 </gresources>
