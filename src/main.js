@@ -24,226 +24,18 @@ const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
 
+const Actor = imports.actor;
+const Contact = imports.contact;
 const Lang = imports.lang;
 const Service = imports.service;
 const State = imports.state;
 const Timestamp = imports.timestamp;
 const Views = imports.views;
 
-function initials_from_name(name) {
-    return String(name.split().map(function(word) {
-        return word[0];
-    })).toUpperCase();
-}
-
-const CONTACT_IMAGE_SIZE = 48;
 const CHAT_WITH_ACTION = 'chat-with';
 
 const CLOCK_SCHEMA = 'org.gnome.desktop.interface';
 const CLOCK_FORMAT_KEY = 'clock-format';
-
-const Actor = new Lang.Class({
-    Name: 'Actor',
-    Extends: GObject.Object,
-    Properties: {
-        'name': GObject.ParamSpec.string('name',
-                                         '',
-                                         '',
-                                         GObject.ParamFlags.READWRITE |
-                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                         ''),
-        'image': GObject.ParamSpec.string('image',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          '')
-    },
-
-    _init: function(data) {
-        this.parent();
-
-        this.name = data.name;
-        this.image = data.img;
-    },
-
-    _createActorAvatar: function() {
-        if (!this.image)
-            return null;
-
-        let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.image;
-        try {
-            return GdkPixbuf.Pixbuf.new_from_resource_at_scale(
-                resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
-        } catch(e) {
-            logError(e, 'Can\'t load resource at ' + resourcePath);
-        }
-
-        return null;
-    },
-
-    _createDefaultAvatar: function() {
-        // fake a GtkImage
-        let parentWidget = new Gtk.Image();
-
-        let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
-                                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-        let cr = new Cairo.Context(surface);
-        let context = parentWidget.get_style_context();
-        context.add_class('contact-default-image');
-
-        Gtk.render_background(context, cr, 0, 0,
-                              CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-        Gtk.render_frame(context, cr, 0, 0,
-                         CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-
-        let text = initials_from_name(this.name);
-        let layout = parentWidget.create_pango_layout(text);
-
-        let [text_width, text_height] = layout.get_pixel_size();
-
-        Gtk.render_layout(context, cr,
-                          (CONTACT_IMAGE_SIZE - text_width) / 2,
-                          (CONTACT_IMAGE_SIZE - text_height) / 2,
-                          layout);
-
-        cr.$dispose();
-        context.remove_class('contact-default-image');
-
-        return Gdk.pixbuf_get_from_surface(surface, 0, 0,
-                                           CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-    },
-
-    get avatar() {
-        if (this._avatar)
-            return this._avatar;
-
-        this._avatar = this._createActorAvatar();
-        if (!this._avatar)
-            this._avatar = this._createDefaultAvatar();
-
-        return this._avatar;
-    }
-});
-
-const ActorModel = new Lang.Class({
-    Name: 'ActorModel',
-    Extends: Gio.ListStore,
-
-    _init: function() {
-        this.parent({ item_type: Actor.$gtype });
-
-        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
-        let contents;
-        try {
-            contents = actorsFile.load_contents(null)[1];
-        } catch (e) {
-            logError(e, 'Couldn\'t load chatbox data file from data resource');
-            return;
-        }
-
-        let actorsData = JSON.parse(String(contents)).actor_details;
-        actorsData.forEach(Lang.bind(this, function(actorData) {
-            let actor = new Actor(actorData);
-            this.append(actor);
-        }));
-    },
-
-    forEach: function(callback) {
-        for (let idx = 0; idx < this.get_n_items(); idx++) {
-            callback(this.get_item(idx));
-        }
-    },
-
-    getByName: function(name) {
-        for (let idx = 0; idx < this.get_n_items(); idx++) {
-            let actor = this.get_item(idx);
-            if (actor.name == name)
-                return actor;
-        }
-
-        return null;
-    }
-});
-
-const RoundedImage = new Lang.Class({
-    Name: 'RoundedImage',
-    Extends: Gtk.Image,
-
-    vfunc_draw: function(cr) {
-        let width = this.get_allocated_width();
-        let height = this.get_allocated_height();
-
-        // Clip drawing to contact circle
-        cr.save();
-        cr.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
-        cr.clip();
-        cr.newPath();
-
-        this.parent(cr);
-
-        cr.restore();
-        cr.$dispose();
-
-        return false;
-    }
-});
-
-const CodingChatboxContactListItem = new Lang.Class({
-    Name: 'CodingChatboxContactListItem',
-    Extends: Gtk.ListBoxRow,
-    Template: 'resource:///com/endlessm/Coding/Chatbox/contact.ui',
-    Children: ['content-grid', 'contact-name-label', 'contact-message-notification'],
-    Properties: {
-        'actor': GObject.ParamSpec.object('actor',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          Actor.$gtype)
-    },
-
-    _init: function(params) {
-        this.parent(params);
-
-        this.contact_name_label.set_text(this.actor.name);
-        this._contact_image_widget = new RoundedImage({
-            visible: true,
-            margin: 8
-        });
-
-        this._contact_image_overlay = new Gtk.Overlay({ visible: true });
-        this._contact_image_overlay.add(this._contact_image_widget);
-
-        let frame = new Gtk.Frame({
-            visible: true,
-            shadow_type: Gtk.ShadowType.NONE
-        });
-        this._contact_image_overlay.add_overlay(frame);
-        frame.get_style_context().add_class('contact-image-overlay');
-
-        this.content_grid.attach_next_to(this._contact_image_overlay, null, Gtk.PositionType.LEFT,
-                                         1, 1);
-        this._contact_image_widget.pixbuf = this.actor.avatar;
-    },
-
-    set highlight(v) {
-        if (!v) {
-            this.contact_message_notification.visible = false;
-            this.get_style_context().remove_class('new-content');
-            return;
-        }
-
-        // If highlight was set, then it means that we were not
-        // considered to be visible, so show a highlight here.
-        this.contact_message_notification.visible = true;
-        this.get_style_context().add_class('new-content');
-    },
-
-    get avatar() {
-        return this.actor.avatar;
-    }
-});
 
 
 // createCopyPopover
@@ -311,7 +103,7 @@ const CodingChatboxChatBubbleContainer = new Lang.Class({
 
             // Add the user's icon to the left hand side of the box
             // as well
-            this.user_image_container.pack_start(new RoundedImage({
+            this.user_image_container.pack_start(new Contact.RoundedImage({
                 visible: true,
                 pixbuf: this.display_image.scale_simple(28,
                                                         28,
@@ -876,7 +668,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                                               '',
                                               GObject.ParamFlags.READWRITE |
                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              ActorModel),
+                                              Actor.ActorModel),
         service: GObject.ParamSpec.object('service',
                                           '',
                                           '',
@@ -959,7 +751,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                 }
             }));
 
-            let contactListItem = new CodingChatboxContactListItem({
+            let contactListItem = new Contact.CodingChatboxContactListItem({
                 visible: true,
                 actor: actor
             });
@@ -1258,7 +1050,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (this._roundedImage)
             this._roundedImage.destroy();
 
-        this._roundedImage = new RoundedImage({
+        this._roundedImage = new Contact.RoundedImage({
             visible: true,
             pixbuf: actorIcon,
             halign: Gtk.Align.START,
@@ -1416,7 +1208,7 @@ const CodingChatboxApplication = new Lang.Class({
 
         this._service = new Service.CodingChatboxTextService();
         this._gameService = new Service.CodingGameService();
-        this._actorModel = new ActorModel();
+        this._actorModel = new Actor.ActorModel();
     },
 
     vfunc_activate: function() {
