@@ -56,7 +56,7 @@ function newMessageViewForState(container,
             onResponse(response, actorObj.name, container.location);
     };
 
-    let view = container.render_view(responseFunc);
+    let view = container.renderView(responseFunc);
     let pending = new Views.MessagePendingView({ visible: true });
 
     let renderRealContent = function() {
@@ -68,7 +68,7 @@ function newMessageViewForState(container,
         view_container.content = view;
         Views.removeStyles(view_container, ['message-pending']);
         container.connect('message-changed', function() {
-            view_container.content = container.render_view(responseFunc);
+            view_container.content = container.renderView(responseFunc);
         });
     };
 
@@ -99,7 +99,7 @@ const RenderableTextChatboxMessage = new Lang.Class({
     Name: 'RenderableTextChatboxMessage',
     Extends: State.TextChatboxMessage,
 
-    render_view: function() {
+    renderView: function() {
         return new Views.TextChatboxMessageView({
             state: this,
             visible: true
@@ -111,7 +111,7 @@ const RenderableChoiceChatboxMessage = new Lang.Class({
     Name: 'RenderableChoiceChatboxMessage',
     Extends: State.ChoiceChatboxMessage,
 
-    render_view: function(listener) {
+    renderView: function(listener) {
         let view = new Views.ChoiceChatboxMessageView({
             state: this,
             visible: true
@@ -136,7 +136,7 @@ const RenderableInputChatboxMessage = new Lang.Class({
     Name: 'RenderableInputChatboxMessage',
     Extends: State.InputChatboxMessage,
 
-    render_view: function(listener) {
+    renderView: function(listener) {
         let view = new Views.InputChatboxMessageView({
             state: this,
             visible: true
@@ -170,7 +170,7 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
     Name: 'RenderableAttachmentChatboxMessage',
     Extends: State.AttachmentChatboxMessage,
 
-    render_view: function(listener) {
+    renderView: function(listener) {
         let view = new Views.AttachmentChatboxMessageView({
             state: this,
             visible: true
@@ -460,9 +460,9 @@ const CodingChatboxMainWindow = new Lang.Class({
         // If we can amend the last message, great.
         // Though I'm not really sure if we want this. "amend" currently
         // means 'amend-or-replace'.
-        let [amended, container] = this._state.amend_last_message_for_actor(actor,
-                                                                            sentBy,
-                                                                            item);
+        let [amended, container] = this._state.amendLastMessageForActor(actor,
+                                                                        sentBy,
+                                                                        item);
 
         if (amended)
             return container;
@@ -499,10 +499,10 @@ const CodingChatboxMainWindow = new Lang.Class({
             messageQueue.showNext();
         });
 
-        container = this._state.add_message_for_actor(actor,
-                                                      sentBy,
-                                                      item,
-                                                      location);
+        container = this._state.addMessageForActor(actor,
+                                                   sentBy,
+                                                   item,
+                                                   location);
         messageQueue.push({
             view: newMessageViewForState(container,
                                          this.actor_model.getByName(actor),
