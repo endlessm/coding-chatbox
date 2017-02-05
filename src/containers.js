@@ -43,8 +43,8 @@ function createCopyPopover(forWidget, callback) {
     return popover;
 }
 
-const CodingChatboxChatBubbleContainer = new Lang.Class({
-    Name: 'CodingChatboxChatBubbleContainer',
+const ChatBubble = new Lang.Class({
+    Name: 'ChatBubble',
     Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/Coding/Chatbox/chat-bubble-container.ui',
     Children: [

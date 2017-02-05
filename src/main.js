@@ -72,7 +72,7 @@ function new_message_view_for_state(container,
         });
     };
 
-    let view_container = new Containers.CodingChatboxChatBubbleContainer({
+    let view_container = new Containers.ChatBubble({
         // We only want to display the container if the underlying view
         // itself is visible. The assumption here is that the visibility
         // state never changes between renders.
