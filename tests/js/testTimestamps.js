@@ -1,7 +1,6 @@
 // tests/js/testTimestamps.js
 //
-// Copyright (c) 2016 Endless Mobile Inc.
-// All Rights Reserved.
+// Copyright (c) 2017 Endless Mobile Inc.
 //
 // These unit tests check that the message-received timestamps function
 // as-expected.
