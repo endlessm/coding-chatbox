@@ -322,7 +322,8 @@ function getPreviewForFile(path, thumbnailFactory) {
             Gio.FILE_ATTRIBUTE_STANDARD_ICON,
             Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
             Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
-            Gio.FILE_ATTRIBUTE_TIME_MODIFIED
+            Gio.FILE_ATTRIBUTE_TIME_MODIFIED,
+            Gio.FILE_ATTRIBUTE_THUMBNAIL_IS_VALID
         ].join(','), Gio.FileQueryInfoFlags.NONE, null);
     } catch (e) {
         logError(e,
@@ -358,19 +359,13 @@ function getPreviewForFile(path, thumbnailFactory) {
         let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
         let thumbnail = null;
 
-        // We need to check that both the thumbnail exists and that the
-        // mtime of the thumbnail is greater than the mtime of the original
-        // file
-        let mtimeThumbnail = (Gio.File.new_for_path(thumbnailPath)).query_info([
-            Gio.FILE_ATTRIBUTE_TIME_MODIFIED
-        ].join(','), Gio.FileQueryInfoFlags.NONE, null).get_modification_time();
-
-        let mTimeUsecs = timevalToUsecs(mtime);
-        let mTimeThumbnailUsecs = timevalToUsecs(mtimeThumbnail);
+        // Also check to see if the thumbnail is 'valid'. If it is not
+        // then we should ignore thumbnailPath and re-thumbnail.
+        let thumbnailIsValid = info.get_attribute_boolean(Gio.FILE_ATTRIBUTE_THUMBNAIL_IS_VALID);
 
         if (thumbnailPath &&
             GLib.file_test(thumbnailPath, GLib.FileTest.EXISTS) &&
-            mTimeThumbnailUsecs > mTimeUsecs) {
+            thumbnailIsValid) {
             try {
                 thumbnail = GdkPixbuf.Pixbuf.new_from_file(thumbnailPath);
             } catch (e) {
