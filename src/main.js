@@ -65,14 +65,14 @@ function newMessageViewForState(container,
 
         // Update both the content and the styles to reflect that this
         // is now an actual bubble
-        view_container.content = view;
-        Views.removeStyles(view_container, ['message-pending']);
+        viewContainer.content = view;
+        Views.removeStyles(viewContainer, ['message-pending']);
         container.connect('message-changed', function() {
-            view_container.content = container.renderView(responseFunc);
+            viewContainer.content = container.renderView(responseFunc);
         });
     };
 
-    let view_container = new Containers.ChatBubble({
+    let viewContainer = new Containers.ChatBubble({
         // We only want to display the container if the underlying view
         // itself is visible. The assumption here is that the visibility
         // state never changes between renders.
@@ -92,7 +92,7 @@ function newMessageViewForState(container,
         }
     });
 
-    return view_container;
+    return viewContainer;
 }
 
 const RenderableTextChatboxMessage = new Lang.Class({
