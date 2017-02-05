@@ -300,10 +300,6 @@ function shouldThumbnail(uri, thumbnailFactory, mimeType, mtime) {
            _THUMBNAIL_MIME_TYPES.indexOf(mimeType) !== -1;
 }
 
-function timevalToUsecs(timeval) {
-    return timeval.tv_sec * 1000000 + timeval.tv_usec;
-}
-
 // saveThumbnailError
 //
 // Print error message when saving the thumbnail fails
