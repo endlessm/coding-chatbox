@@ -38,17 +38,17 @@ const CLOCK_SCHEMA = 'org.gnome.desktop.interface';
 const CLOCK_FORMAT_KEY = 'clock-format';
 
 //
-// new_message_view_for_state
+// newMessageViewForState
 //
 // Creates a new message view container for a message state container, which
 // automatically updates when the underlying state changes.
 //
-function new_message_view_for_state(container,
-                                    actorObj,
-                                    styles,
-                                    onResponse,
-                                    timeout,
-                                    onVisible) {
+function newMessageViewForState(container,
+                                actorObj,
+                                styles,
+                                onResponse,
+                                timeout,
+                                onVisible) {
     styles = styles ? styles : [];
 
     let responseFunc = function(response) {
@@ -504,12 +504,12 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                       item,
                                                       location);
         messageQueue.push({
-            view: new_message_view_for_state(container,
-                                             this.actor_model.getByName(actor),
-                                             style,
-                                             Lang.bind(this, this._handleResponse, style),
-                                             pendingTime,
-                                             messageBecameVisibleHandler),
+            view: newMessageViewForState(container,
+                                         this.actor_model.getByName(actor),
+                                         style,
+                                         Lang.bind(this, this._handleResponse, style),
+                                         pendingTime,
+                                         messageBecameVisibleHandler),
             date: new Date(timestamp),
             actor: sentBy == State.SentBy.USER ? 'user' : actor
         });
@@ -535,12 +535,12 @@ const CodingChatboxMainWindow = new Lang.Class({
                 child.destroy();
             });
 
-            let view_container = new_message_view_for_state(container,
-                                                            this.actor_model.getByName(actor),
-                                                            style,
-                                                            Lang.bind(this, this._handleResponse, style),
-                                                            0,
-                                                            null);
+            let view_container = newMessageViewForState(container,
+                                                        this.actor_model.getByName(actor),
+                                                        style,
+                                                        Lang.bind(this, this._handleResponse, style),
+                                                        0,
+                                                        null);
             view_container.showContent();
             view_container.margin = 10;
             inputArea.pack_end(view_container, true, true, 0);
