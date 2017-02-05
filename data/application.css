@@ -219,8 +219,8 @@ row:selected:backdrop.contact-row {
   box-shadow: none;
 }
 
-.prelight:hover {
-  border-color: #1b1f20;
+.attachment-button.prelight:hover {
+  background-image: linear-gradient(to bottom, #353c3e, #2e3436 60%, #2a2e30);
 }
 
 .thumbnail {
