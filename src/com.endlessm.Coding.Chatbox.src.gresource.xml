@@ -3,6 +3,7 @@
   <gresource prefix="/com/endlessm/Coding/Chatbox/js">
     <file>actor.js</file>
     <file>contact.js</file>
+    <file>containers.js</file>
     <file>main.js</file>
     <file>service.js</file>
     <file>views.js</file>
