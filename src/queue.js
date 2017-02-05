@@ -15,6 +15,9 @@
 // that they were received. When a message is done "showing", it can call
 // showNext on the queue to start the animation for the next message.
 
+const GObject = imports.gi.GObject;
+
+const Lang = imports.lang;
 
 const TriggerableEventQueue = new Lang.Class({
     Name: 'TriggerableEventQueue',
