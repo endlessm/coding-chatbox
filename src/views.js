@@ -438,13 +438,22 @@ const AttachmentChatboxMessageView = new Lang.Class({
         let thumbnailFactory = Thumbnailer.forSize(GnomeDesktop.DesktopThumbnailSize.LARGE);
         let preview = getPreviewForFile(this.state.path, thumbnailFactory);
         if (preview.thumbnail) {
+            this.attachment_contents.orientation = Gtk.Orientation.VERTICAL;
+
             // Where we are using a thumbnail, use GtkCSSProivder to
             // set the background image
+            let naturalWidth = this.get_preferred_size()[1].width;
+            let minWidth = preview.thumbnail.width < naturalWidth ? naturalWidth : preview.thumbnail.width;
+
+            let aspectRatio = preview.thumbnail.width / preview.thumbnail.height;
+            let minHeight = minWidth / aspectRatio;
+
             let provider = new Gtk.CssProvider();
             let [class_name, css] = CSSAllocator({
                 background_image: 'url("file://' + preview.thumbnail.path + '")',
-                min_width: preview.thumbnail.width + 'px',
-                min_height: preview.thumbnail.height + 'px'
+                min_width: minWidth + 'px',
+                min_height: minHeight + 'px',
+                background_size: [minWidth + 'px', minHeight + 'px'].join(' ')
             });
             provider.load_from_data(css);
 
@@ -457,7 +466,6 @@ const AttachmentChatboxMessageView = new Lang.Class({
             // Now set some classes to indicate that this is a thumbnail.
             // Because we set the background image through CSS, we will
             // get corner rounding too
-            this.attachment_contents.orientation = Gtk.Orientation.VERTICAL;
             this.get_style_context().add_class('thumbnail');
         }
         else {
