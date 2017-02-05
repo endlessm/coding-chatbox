@@ -109,6 +109,8 @@
                     <child>
                       <object class="GtkButton" id="attachment-preview-close">
                         <property name="visible">True</property>
+                        <property name="margin-right">10</property>
+                        <property name="valign">center</property>
                         <style>
                           <class name="attachment-button"></class>
                           <class name="prelight"></class>
