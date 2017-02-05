@@ -298,8 +298,8 @@ const ChatScrollView = new Lang.Class({
     }
 });
 
-const ChatboxStackChild = new Lang.Class({
-    Name: 'ChatboxStackChild',
+const ChatStackChild = new Lang.Class({
+    Name: 'ChatStackChild',
     Extends: Gtk.Box,
     Properties: {
         'chat-contents': GObject.ParamSpec.object('chat-contents',
@@ -433,7 +433,7 @@ function createChatContentsWidget() {
     });
     chatInputArea.get_style_context().add_class('chatbox-input-area');
 
-    return new ChatboxStackChild({
+    return new ChatStackChild({
         orientation: Gtk.Orientation.VERTICAL,
         visible: true,
         chat_contents: chatContents,
