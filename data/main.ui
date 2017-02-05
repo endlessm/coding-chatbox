@@ -111,6 +111,7 @@
                         <property name="visible">True</property>
                         <style>
                           <class name="attachment-button"></class>
+                          <class name="prelight"></class>
                         </style>
                         <child>
                           <object class="GtkImage">

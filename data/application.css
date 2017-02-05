@@ -219,6 +219,10 @@ row:selected:backdrop.contact-row {
   box-shadow: none;
 }
 
+.prelight:hover {
+  border-color: #1b1f20;
+}
+
 .thumbnail {
   border-radius: 5px 5px 0px 0px;
 }
