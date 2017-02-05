@@ -7,7 +7,7 @@
         <property name="visible">true</property>
         <child>
           <object class="GtkBox">
-            <property name="margin-left">40</property>
+            <property name="margin-left">50</property>
             <property name="visible">true</property>
             <child>
               <object class="GtkLabel" id="message-received-date-label">

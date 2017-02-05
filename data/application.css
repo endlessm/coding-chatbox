@@ -16,11 +16,17 @@ image.contact-default-image {
   border-radius: 24px;
 }
 
+.frame {
+  background-color: #3b4140;
+}
+
 .chatbox-bubble {
-  background-color: #737478;
+  background-color: #47565a;
+  color: #d3d6d7;
+  font-size: 14px;
   border-radius: 5px;
   border-bottom-left-radius: 0px;
-  text-shadow: 1px -1px alpha(black, 0.4);
+  text-shadow: none;
 }
 
 .chatbox-bubble:backdrop {
@@ -29,23 +35,24 @@ image.contact-default-image {
 }
 
 .code .chatbox-bubble {
-  background-color: #1c2b31;
-  font-family: monospace;
+  background-color: #1a2c31;
+  font-family: DejaVu Sans Mono;
   text-shadow: none;
-  color: #6ba957;
+  color: #5cae4b;
   font-size: 10pt;
 }
 
 .code .chatbox-bubble:backdrop {
   background-color: #162227;
-  color: #659e51;
+  color: #5cae4b;
 }
 
 .by-user .chatbox-bubble {
-  background-color: #343736;
+  background-color: #333837;
+  border: 1px solid #333333;
   border-bottom-right-radius: 0px;
   border-bottom-left-radius: 5px;
-  text-shadow: 1px 1px alpha(black, 0.6);
+  text-shadow: none;
 }
 
 .by-user .chatbox-bubble:backdrop {
@@ -64,9 +71,9 @@ image.contact-default-image {
 
 .input-bubble-container .chatbox-bubble {
   padding: 5px;
-  background-color: #343736;
+  background-color: #333837;
   border-bottom-left-radius: 5px;
-  text-shadow: 1px 1px alpha(black, 0.6);
+  text-shadow: none;
   box-shadow: inset 0 1px 2px #1f2323,
               inset 1px 0 2px #1f2323,
               inset -1px 0 2px #1f2323,
@@ -111,12 +118,12 @@ image.contact-default-image {
 }
 
 .by-user .bubble-right-flair {
-  border-top: 10px solid #343736;
+  border-top: 10px solid #333333;
   border-right: 20px solid transparent;
 }
 
 .by-user.code .bubble-right-flair {
-  border-top: 10px solid #343736;
+  border-top: 10px solid #263437;
 }
 
 .by-user .bubble-right-flair:backdrop {
@@ -128,7 +135,7 @@ image.contact-default-image {
 }
 
 .bubble-left-flair {
-  border-top: 10px solid #737478;
+  border-top: 10px solid #414b4d;
   border-left: 20px solid transparent;
 }
 
@@ -137,7 +144,7 @@ image.contact-default-image {
 }
 
 .code .bubble-left-flair {
-  border-top: 10px solid #1c2b31;
+  border-top: 10px solid #263437;
 }
 
 .code .bubble-left-flair:backdrop {
@@ -145,7 +152,7 @@ image.contact-default-image {
 }
 
 .chatbox-bubble-contents {
-  padding: 15px;
+  padding: 20px;
 }
 
 .chatbox-bubble-contents.thumbnail,
@@ -159,7 +166,7 @@ image.contact-default-image {
   text-shadow: none;
 }
 
-.chatbox-input-area {
+.chatbox-input-area-shadow {
   box-shadow: 3px 1px 5px 5px #2a2d2d;
 }
 
@@ -167,8 +174,18 @@ image.contact-default-image {
   font-weight: 300; /* light */
 }
 
+.contact-item .name {
+  font-size: 16px;
+  color: #9ca2a3
+}
+
+.new-content .name {
+  font-weight: bold;
+  color: white;
+}
+
 row:selected.contact-row {
-  background-color: #49555b;
+  background-color: #47565a;
   box-shadow: none;
   outline-style: none;
 }
@@ -186,15 +203,12 @@ row:selected:backdrop.contact-row {
   background-color: #252a2c;
 }
 
-.new-content {
-  font-weight: bold;
-}
-
 .contact-message-notification {
-  background-color: #e16f38;
+  background-color: #f26522;
   color: #fff;
+  font-weight: bold;
   padding: 3px;
-  border-radius: 2px;
+  border-radius: 6px;
   font-size: 9pt;
 }
 

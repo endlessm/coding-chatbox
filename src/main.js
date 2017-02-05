@@ -722,7 +722,22 @@ const ChatboxStackChild = new Lang.Class({
 
     _init: function(params) {
         this.parent(params);
+
+        // XXX: Not sure why, but placing this widget in another box fixes
+        // a problem where the box shadow in the input area would be
+        // obscured by the scroll view
+        let scrollViewBox = new Gtk.Box({
+            visible: true,
+            vexpand: true,
+            valign: Gtk.Align.FILL
+        });
         this._scrollView = new CodingChatboxChatScrollView(this.chat_contents);
+
+        let chatInputBoxWithShadow = new Gtk.Box({
+            visible: true,
+            orientation: Gtk.Orientation.VERTICAL
+        });
+        chatInputBoxWithShadow.get_style_context().add_class('chatbox-input-area-shadow');
 
         this._chatInputRevealer = new Gtk.Revealer({
             visible: true,
@@ -744,8 +759,10 @@ const ChatboxStackChild = new Lang.Class({
             }
         }));
 
-        this.pack_start(this._scrollView, true, true, 0);
-        this.pack_start(this._chatInputRevealer, false, false, 0);
+        scrollViewBox.add(this._scrollView);
+        chatInputBoxWithShadow.pack_start(this._chatInputRevealer, false, false, 0);
+        this.pack_start(scrollViewBox, true, true, 0);
+        this.pack_start(chatInputBoxWithShadow, false, false, 0);
     },
 
     showInputArea: function() {
