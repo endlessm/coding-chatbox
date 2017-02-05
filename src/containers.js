@@ -176,8 +176,8 @@ function isCloseEnoughInTime(lastMessageDate, currentMessageDate) {
     return delta < _FIVE_MINUTES_IN_MS;
 }
 
-const CodingChatboxMessageGroup = new Lang.Class({
-    Name: 'CodingChatboxMessageGroup',
+const MessageGroup = new Lang.Class({
+    Name: 'MessageGroup',
     Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/Coding/Chatbox/chatbox-message-group.ui',
     Children: [
@@ -415,7 +415,7 @@ function createChatContentsWidget() {
                 !groups[groups.length - 1].addBubble(item.view,
                                                      item.date,
                                                      item.actor)) {
-                let newGroup = new CodingChatboxMessageGroup({
+                let newGroup = new MessageGroup({
                     visible: true,
                     expand: true
                 });

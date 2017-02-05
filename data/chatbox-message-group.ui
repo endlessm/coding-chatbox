@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <template class="Gjs_CodingChatboxMessageGroup" parent="GtkBox">
+  <template class="Gjs_MessageGroup" parent="GtkBox">
     <property name="orientation">vertical</property>
     <child>
       <object class="GtkBox" id="message-received-date-container">
