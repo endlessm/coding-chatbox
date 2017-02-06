@@ -52,6 +52,10 @@ AC_SUBST([JASMINE_REPORT_ARGUMENT])
 # -------------
 EOS_COVERAGE_REPORT([js])
 
+# Linting
+# -------
+EOS_ESLINT
+
 # Substitute variables
 AC_SUBST(GLIB_COMPILE_RESOURCES)
 
