@@ -245,7 +245,7 @@ const PlaceholderOverlay = new Lang.Class({
                                Lang.bind(this, this._updatePlaceholderState));
         this.text_view.buffer.connect('changed',
                                       Lang.bind(this, this._updatePlaceholderState));
-    }
+    },
 
     _updatePlaceholderState: function() {
         if (this.text_view.has_focus &&
@@ -255,7 +255,7 @@ const PlaceholderOverlay = new Lang.Class({
         }
 
         this.overlay_label.get_style_context().add_class('show');
-    },
+    }
 });
 
 const InputChatboxMessageView = new Lang.Class({
