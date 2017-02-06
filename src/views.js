@@ -300,15 +300,6 @@ function shouldThumbnail(uri, thumbnailFactory, mimeType, mtime) {
            _THUMBNAIL_MIME_TYPES.indexOf(mimeType) !== -1;
 }
 
-// saveThumbnailError
-//
-// Print error message when saving the thumbnail fails
-function saveThumbnailError(targetThumbnailPath, uri, e) {
-    logError(e,
-             'Saving of thumbnail ' + targetThumbnailPath + ' for ' +
-             uri + ' failed');
-}
-
 // getPreviewForFile
 //
 // Get an object containing a reference to both a GIcon
