@@ -448,11 +448,12 @@ const AttachmentChatboxMessageView = new Lang.Class({
             let aspectRatio = preview.thumbnail.width / preview.thumbnail.height;
             let minHeight = minWidth / aspectRatio;
 
+            // Set size of the widget
+            this.attachment_icon.set_size_request(minWidth, minHeight);
+
             let provider = new Gtk.CssProvider();
             let [class_name, css] = CSSAllocator({
                 background_image: 'url("file://' + preview.thumbnail.path + '")',
-                min_width: minWidth + 'px',
-                min_height: minHeight + 'px',
                 background_size: 'cover'
             });
             provider.load_from_data(css);
