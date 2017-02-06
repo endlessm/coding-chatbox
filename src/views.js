@@ -453,7 +453,7 @@ const AttachmentChatboxMessageView = new Lang.Class({
                 background_image: 'url("file://' + preview.thumbnail.path + '")',
                 min_width: minWidth + 'px',
                 min_height: minHeight + 'px',
-                background_size: [minWidth + 'px', minHeight + 'px'].join(' ')
+                background_size: 'cover'
             });
             provider.load_from_data(css);
 
