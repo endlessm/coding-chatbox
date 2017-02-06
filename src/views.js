@@ -574,7 +574,7 @@ const CSSAllocator = (function() {
         Object.keys(properties).map(function(key) {
             return key.replace('_', '-') + ': ' + properties[key] + ';';
         }).join(' ') + ' }'];
-    }
+    };
 })();
 
 const AttachmentChatboxMessageView = new Lang.Class({
