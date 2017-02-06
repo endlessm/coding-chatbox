@@ -223,17 +223,6 @@ const PlaceholderOverlay = new Lang.Class({
                                             Gtk.TextView)
     },
 
-    _updatePlaceholderState: function() {
-        if (this.text_view.has_focus &&
-            this.text_view.buffer.text) {
-            this.overlay_label.get_style_context().remove_class('show');
-            return;
-        }
-
-        this.overlay_label.visible = true;
-        this.overlay_label.get_style_context().add_class('show');
-    },
-
     _init: function(params) {
         this.parent(params);
 
@@ -257,6 +246,17 @@ const PlaceholderOverlay = new Lang.Class({
         this.text_view.buffer.connect('changed',
                                       Lang.bind(this, this._updatePlaceholderState));
     }
+
+    _updatePlaceholderState: function() {
+        if (this.text_view.has_focus &&
+            this.text_view.buffer.text) {
+            this.overlay_label.get_style_context().remove_class('show');
+            return;
+        }
+
+        this.overlay_label.visible = true;
+        this.overlay_label.get_style_context().add_class('show');
+    },
 });
 
 const InputChatboxMessageView = new Lang.Class({
