@@ -304,8 +304,9 @@ function shouldThumbnail(uri, thumbnailFactory, mimeType, mtime) {
 //
 // Print error message when saving the thumbnail fails
 function saveThumbnailError(targetThumbnailPath, uri, e) {
-    log('Saving of thumbnail ' + targetThumbnailPath + ' for ' +
-        uri + ' failed: ' + String(e));
+    logError(e,
+             'Saving of thumbnail ' + targetThumbnailPath + ' for ' +
+             uri + ' failed');
 }
 
 // getPreviewForFile
