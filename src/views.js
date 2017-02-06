@@ -254,7 +254,6 @@ const PlaceholderOverlay = new Lang.Class({
             return;
         }
 
-        this.overlay_label.visible = true;
         this.overlay_label.get_style_context().add_class('show');
     },
 });
