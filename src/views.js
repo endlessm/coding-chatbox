@@ -323,7 +323,6 @@ function getPreviewForFile(path, thumbnailFactory) {
         // IO here, though it is done for now to avoid too much churn.
         info = path.query_info([
             Gio.FILE_ATTRIBUTE_STANDARD_ICON,
-            Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
             Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
             Gio.FILE_ATTRIBUTE_TIME_MODIFIED,
             Gio.FILE_ATTRIBUTE_THUMBNAIL_IS_VALID
@@ -359,7 +358,7 @@ function getPreviewForFile(path, thumbnailFactory) {
     let uri = path.get_uri();
 
     if (shouldThumbnail(uri, thumbnailFactory, mimeType, mtime)) {
-        let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
+        let thumbnailPath = thumbnailFactory.lookup(uri, mtime);
         let thumbnail = null;
 
         // Also check to see if the thumbnail is 'valid'. If it is not
@@ -386,28 +385,12 @@ function getPreviewForFile(path, thumbnailFactory) {
             thumbnail = thumbnailFactory.generate_thumbnail(uri, mimeType);
 
             if (thumbnail) {
-                thumbnailPath = GnomeDesktop.desktop_thumbnail_path_for_uri(
-                    uri, GnomeDesktop.DesktopThumbnailSize.LARGE
-                );
-                let splitted = thumbnailPath.split('.');
-                let thumbnailPathExt = splitted[splitted.length - 1];
+                thumbnailFactory.save_thumbnail(thumbnail, uri, mtime);
 
-                try {
-                    let directory = Gio.File.new_for_path(GLib.path_get_dirname(thumbnailPath));
-                    directory.make_directory_with_parents(null);
-                } catch(e if e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.EXISTS)) {
-                } catch (e) {
-                    saveThumbnailError(thumbnailPath, uri, e);
-                }
-
-                try {
-                    thumbnail.savev(thumbnailPath,
-                                    thumbnailPathExt,
-                                    [],
-                                    []);
-                } catch (e) {
-                    saveThumbnailError(thumbnailPath, uri, e);
-                }
+                // Once the thumbnail is saved, we need to look up its
+                // path again since GnomeDesktopThumbnailFactory.lookup
+                // may have returned NULL earlier.
+                thumbnailPath = thumbnailFactory.lookup(uri, mtime);
             } else {
                 log('Failed to create thumbnail of ' + uri);
             }
