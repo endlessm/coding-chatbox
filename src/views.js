@@ -406,7 +406,7 @@ function getPreviewForFile(path, thumbnailFactory) {
                                     [],
                                     []);
                 } catch (e) {
-                    saveThumbnailError(targetThumbnailPath, uri, e);
+                    saveThumbnailError(thumbnailPath, uri, e);
                 }
             } else {
                 log('Failed to create thumbnail of ' + uri);
