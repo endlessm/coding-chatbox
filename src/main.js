@@ -741,7 +741,7 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     hideUserInput: function(actor) {
-        let contents = this._contentsForActor(actor).hideInputArea();
+        this._contentsForActor(actor).hideInputArea();
     },
 
     switchToChatWith: function(actor) {
