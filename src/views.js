@@ -249,7 +249,7 @@ const PlaceholderOverlay = new Lang.Class({
 
     _updatePlaceholderState: function() {
         if (this.text_view.has_focus &&
-            this.text_view.buffer.text) {
+            this.text_view.buffer.get_char_count()) {
             this.overlay_label.get_style_context().remove_class('show');
             return;
         }
