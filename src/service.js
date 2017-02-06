@@ -17,6 +17,7 @@ const Lang = imports.lang;
 const Signals = imports.signals;
 
 
+// eslint-disable-next-line no-unused-vars
 const CodingGameService = new Lang.Class({
     Name: 'CodingGameService',
     Extends: GObject.Object,
@@ -149,6 +150,7 @@ const ChatboxReceiverService = new Lang.Class({
 });
 Signals.addSignalMethods(ChatboxReceiverService.prototype);
 
+// eslint-disable-next-line no-unused-vars
 const CodingChatboxTextService = new Lang.Class({
     Name: 'CodingChatboxTextService',
     Extends: GObject.Object,

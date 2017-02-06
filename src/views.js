@@ -19,7 +19,7 @@ const Lang = imports.lang;
 const State = imports.state;
 
 const MAX_WIDTH_CHARS = 30;
-const CODE_MAX_WIDTH_CHARS = 65;
+const CODE_MAX_WIDTH_CHARS = 65;  // eslint-disable-line no-unused-vars
 
 // An immediately invoked function expression that
 // allows views to get a cached GnomeDesktopThumbnailFactory
@@ -74,6 +74,8 @@ const ChatboxMessageView = new Lang.Interface({
 // applyStyles
 //
 // Apply all given style classes to widget
+//
+// eslint-disable-next-line no-unused-vars
 function applyStyles(widget, styles) {
     if (styles) {
         let context = widget.get_style_context();
@@ -86,6 +88,8 @@ function applyStyles(widget, styles) {
 // removeStyles
 //
 // Remove all styles from a widget.
+//
+// eslint-disable-next-line no-unused-vars
 function removeStyles(widget, styles) {
     if (styles) {
         let context = widget.get_style_context();
@@ -95,6 +99,7 @@ function removeStyles(widget, styles) {
     }
 }
 
+// eslint-disable-next-line no-unused-vars
 const TextChatboxMessageView = new Lang.Class({
     Name: 'TextChatboxMessageView',
     Extends: Gtk.Label,
@@ -144,6 +149,7 @@ const TextChatboxMessageView = new Lang.Class({
 
 const _HORIZONTAL_TEXT_SIZE_LIMIT_CHARS = 15;
 
+// eslint-disable-next-line no-unused-vars
 const ChoiceChatboxMessageView = new Lang.Class({
     Name: 'ChoiceChatboxMessageView',
     Extends: Gtk.Box,
@@ -373,6 +379,7 @@ const ChatTextInputArea = new Lang.Class({
     }
 });
 
+// eslint-disable-next-line no-unused-vars
 const InputChatboxMessageView = new Lang.Class({
     Name: 'InputChatboxMessageView',
     Extends: Gtk.Box,
@@ -414,6 +421,7 @@ const InputChatboxMessageView = new Lang.Class({
     },
 });
 
+// eslint-disable-next-line no-unused-vars
 const MessagePendingView = new Lang.Class({
     Name: 'MessagePendingView',
     Extends: Gtk.Box,
@@ -577,6 +585,8 @@ const CSSAllocator = (function() {
     };
 })();
 
+
+// eslint-disable-next-line no-unused-vars
 const AttachmentChatboxMessageView = new Lang.Class({
     Name: 'AttachmentChatboxMessageView',
     Extends: Gtk.Button,

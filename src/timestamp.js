@@ -13,7 +13,7 @@ const GnomeInterfacePreferences = new Gio.Settings({
 });
 
 const CLOCK_TYPE_24H = 0;
-const CLOCK_TYPE_AMPM = 1;
+const CLOCK_TYPE_AMPM = 1;  // eslint-disable-line no-unused-vars
 
 // calculateMessageReceivedTextFromDate
 //
@@ -24,6 +24,8 @@ const CLOCK_TYPE_AMPM = 1;
 // @param {object.Date} date - The date of the message
 // @param {object.Date} current - The current time (injected so that it
 //                                can be controlled from tests).
+//
+// eslint-disable-next-line no-unused-vars
 function calculateMessageReceivedTextFromDate(date, current=null) {
     // Sanity check for clock skew. In this case, we just display
     // 'In the future'
