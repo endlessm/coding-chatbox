@@ -1,6 +1,8 @@
 /*
  * chatbox-utils.h
  *
+ * Copyright (c) 2016-2017 Endless Mobile, Inc.
+ *
  * This is a small helper module to copy a file URI into the clipboard, since
  * Gtk.Clipboard.set_with_data is not exposed to GObject-Introspection.
  *

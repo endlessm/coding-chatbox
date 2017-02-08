@@ -1,7 +1,6 @@
 // src/timestmap.js
 //
-// Copyright (c) 2016 Endless Mobile Inc.
-// All Rights Reserved.
+// Copyright (c) 2016-2017 Endless Mobile Inc.
 //
 // This file contains the logic for computing message timestamps.
 //
