@@ -598,22 +598,32 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
         view.connect('clicked', Lang.bind(this, function() {
             let files = [];
             let appInfo = null;
+            let attachmentPreview = view.showing_thumbnail ? {
+                path: this.path.get_path(),
+                name: this.path.get_basename(),
+                desc: this.desc
+            } : null;
 
-            if (contentType(this.path) == 'application/x-desktop') {
-                appInfo = Gio.DesktopAppInfo.new_from_filename(this.path.get_path());
-            } else {
-                appInfo = this.path.query_default_handler(null);
-                files.push(this.path);
+            // If we're going to show an attachment preview, don't
+            // launch the application
+            if (!attachmentPreview) {
+                if (contentType(this.path) == 'application/x-desktop') {
+                    appInfo = Gio.DesktopAppInfo.new_from_filename(this.path.get_path());
+                } else {
+                    appInfo = this.path.query_default_handler(null);
+                    files.push(this.path);
+                }
+
+                if (appInfo)
+                    appInfo.launch(files, null);
+                else
+                    log('Couldn\'t find appInfo for ' + this.path.get_path() + ' ' + contentType(this.path));
             }
-
-            if (appInfo)
-                appInfo.launch(files, null);
-            else
-                log('Couldn\'t find appInfo for ' + this.path.get_path() + ' ' + contentType(this.path));
 
             listener({
                 response: {
-                    open_attachment: true
+                    open_attachment: true,
+                    attachment_preview: attachmentPreview
                 }
             });
         }));
@@ -850,7 +860,16 @@ const CodingChatboxMainWindow = new Lang.Class({
     Name: 'CodingChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
     Template: 'resource:///com/endlessm/Coding/Chatbox/main.ui',
-    Children: ['chatbox-list-box', 'chatbox-stack'],
+    Children: [
+      'chatbox-list-box',
+      'chatbox-stack',
+      'chatbox-view-stack',
+      'attachment-preview-actor-image-container',
+      'attachment-preview-close',
+      'attachment-preview-filename',
+      'attachment-preview-desc',
+      'attachment-preview-image'
+    ],
     Properties: {
         actor_model: GObject.ParamSpec.object('actor-model',
                                               '',
@@ -982,9 +1001,15 @@ const CodingChatboxMainWindow = new Lang.Class({
             return true;
         }));
 
-       this._clockSettings = new Gio.Settings({ schema: CLOCK_SCHEMA });
-       this._clockSettings.connect('changed::' + CLOCK_FORMAT_KEY,
+        this._clockSettings = new Gio.Settings({ schema: CLOCK_SCHEMA });
+        this._clockSettings.connect('changed::' + CLOCK_FORMAT_KEY,
                                     Lang.bind(this, this._updateClockFormat));
+        this.attachment_preview_close.connect('clicked', Lang.bind(this, function() {
+            this.attachment_preview_image.clear();
+            this.attachment_preview_filename.label = '';
+            this.attachment_preview_desc.label = '';
+            this.chatbox_view_stack.set_visible_child_name('chats');
+        }));
     },
 
     _updateClockFormat: function() {
@@ -1177,6 +1202,15 @@ const CodingChatboxMainWindow = new Lang.Class({
         } else if (response.open_attachment) {
             // Notify that this external event has been triggered
             this.game_service.openAttachment(location);
+
+            // We had an attachment preview too. Use the contents
+            // of this preview to open a new view to show the attachment
+            if (response.attachment_preview) {
+                this._showAttachmentPreview(actor,
+                                            response.attachment_preview.path,
+                                            response.attachment_preview.name,
+                                            response.attachment_preview.desc);
+            }
         } else if (response.evaluate) {
             // Nothing to evaluate, just send back the pre-determined evaluated response
             this.game_service.respond_to_message(location, response.text, response.evaluate);
@@ -1216,6 +1250,26 @@ const CodingChatboxMainWindow = new Lang.Class({
             this.application.showNotification(title, stripped, row.avatar, actor);
             row.highlight = true;
         }
+    },
+
+    _showAttachmentPreview: function(actor, imagePath, name, desc) {
+        let actorIcon = this.actor_model.getByName(actor).avatar;
+
+        if (this._roundedImage)
+            this._roundedImage.destroy();
+
+        this._roundedImage = new RoundedImage({
+            visible: true,
+            pixbuf: actorIcon,
+            halign: Gtk.Align.START,
+        });
+
+        this.attachment_preview_actor_image_container.add(this._roundedImage);
+
+        this.attachment_preview_image.set_from_file(imagePath);
+        this.attachment_preview_filename.label = name;
+        this.attachment_preview_desc.label = desc;
+        this.chatbox_view_stack.set_visible_child_name('attachment-preview');
     },
 
     clearConversations: function() {

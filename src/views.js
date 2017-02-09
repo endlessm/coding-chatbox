@@ -300,6 +300,10 @@ function shouldThumbnail(uri, thumbnailFactory, mimeType, mtime) {
            _THUMBNAIL_MIME_TYPES.indexOf(mimeType) !== -1;
 }
 
+function timevalToUsecs(timeval) {
+    return timeval.tv_sec * 1000000 + timeval.tv_usec;
+}
+
 // getPreviewForFile
 //
 // Get an object containing a reference to both a GIcon
@@ -316,7 +320,8 @@ function getPreviewForFile(path, thumbnailFactory) {
             Gio.FILE_ATTRIBUTE_STANDARD_ICON,
             Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
             Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
-            Gio.FILE_ATTRIBUTE_TIME_MODIFIED
+            Gio.FILE_ATTRIBUTE_TIME_MODIFIED,
+            Gio.FILE_ATTRIBUTE_THUMBNAIL_IS_VALID
         ].join(','), Gio.FileQueryInfoFlags.NONE, null);
     } catch (e) {
         logError(e,
@@ -352,7 +357,13 @@ function getPreviewForFile(path, thumbnailFactory) {
         let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
         let thumbnail = null;
 
-        if (thumbnailPath && GLib.file_test(thumbnailPath, GLib.FileTest.EXISTS)) {
+        // Also check to see if the thumbnail is 'valid'. If it is not
+        // then we should ignore thumbnailPath and re-thumbnail.
+        let thumbnailIsValid = info.get_attribute_boolean(Gio.FILE_ATTRIBUTE_THUMBNAIL_IS_VALID);
+
+        if (thumbnailPath &&
+            GLib.file_test(thumbnailPath, GLib.FileTest.EXISTS) &&
+            thumbnailIsValid) {
             try {
                 thumbnail = GdkPixbuf.Pixbuf.new_from_file(thumbnailPath);
             } catch (e) {
@@ -424,7 +435,12 @@ const AttachmentChatboxMessageView = new Lang.Class({
                                         '',
                                         GObject.ParamFlags.READWRITE |
                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        State.AttachmentChatboxMessage)
+                                        State.AttachmentChatboxMessage),
+        showing_thumbnail: GObject.ParamSpec.boolean('showing-thumbnail',
+                                                     '',
+                                                     '',
+                                                     GObject.ParamFlags.READABLE,
+                                                     false)
     },
 
     _init: function(params) {
@@ -457,6 +473,7 @@ const AttachmentChatboxMessageView = new Lang.Class({
             // get corner rounding too
             this.attachment_contents.orientation = Gtk.Orientation.VERTICAL;
             this.get_style_context().add_class('thumbnail');
+            this._isShowingThumbnail = true;
         }
         else {
             this.attachment_icon.set_from_gicon(preview.icon, Gtk.IconSize.DND);
@@ -474,5 +491,9 @@ const AttachmentChatboxMessageView = new Lang.Class({
 
     supportsCopyPaste: function() {
         return true;
+    },
+
+    get showing_thumbnail() {
+        return !!this._isShowingThumbnail;
     }
 });

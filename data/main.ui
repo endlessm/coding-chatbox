@@ -10,50 +10,153 @@
         <property name="visible">True</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkBox" id="hbox">
-            <property name="can_focus">False</property>
+          <object class="GtkStack" id="chatbox-view-stack">
             <property name="visible">True</property>
+            <property name="transition-type">crossfade</property>
             <child>
-              <object class="GtkScrolledWindow">
+              <object class="GtkBox" id="hbox">
+                <property name="can_focus">False</property>
                 <property name="visible">True</property>
-                <property name="width-request">300</property>
                 <child>
-                  <object class="GtkListBox" id="chatbox-list-box">
-                    <style>
-                      <class name="chatbox-contact-list"/>
-                    </style>
+                  <object class="GtkScrolledWindow">
+                    <property name="visible">True</property>
+                    <property name="width-request">300</property>
+                    <child>
+                      <object class="GtkListBox" id="chatbox-list-box">
+                        <style>
+                          <class name="chatbox-contact-list"/>
+                        </style>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="vexpand">True</property>
+                        <property name="hexpand">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStack" id="chatbox-stack">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="vexpand">True</property>
-                    <property name="hexpand">False</property>
+                    <property name="width-request">500</property>
+                    <property name="transition-type">slide-left-right</property>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
+                    <property name="expand">True</property>
                     <property name="fill">True</property>
-                    <property name="position">0</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
               </object>
+              <packing>
+                <property name="name">chats</property>
+              </packing>
             </child>
             <child>
-              <object class="GtkStack" id="chatbox-stack">
+              <object class="GtkBox">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="width-request">500</property>
-                <property name="transition-type">slide-left-right</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="halign">fill</property>
+                    <property name="vexpand">False</property>
+                    <style>
+                      <class name="attachment-header"/>
+                    </style>
+                    <child>
+                      <object class="GtkBox" id="attachment-preview-actor-image-container">
+                        <property name="visible">True</property>
+                        <property name="margin-left">5</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <style>
+                          <class name="description-box"/>
+                        </style>
+                        <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
+                        <property name="hexpand">True</property>
+                        <child>
+                          <object class="GtkLabel" id="attachment-preview-filename">
+                            <property name="visible">True</property>
+                            <property name="label">filename</property>
+                            <property name="halign">start</property>
+                            <style>
+                              <class name="filename"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="attachment-preview-desc">
+                            <property name="visible">True</property>
+                            <property name="label">description</property>
+                            <property name="halign">start</property>
+                            <style>
+                              <class name="desc"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="attachment-preview-close">
+                        <property name="visible">True</property>
+                        <property name="margin-right">10</property>
+                        <property name="valign">center</property>
+                        <style>
+                          <class name="attachment-button"></class>
+                          <class name="prelight"></class>
+                        </style>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="visible">True</property>
+                            <property name="halign">end</property>
+                            <property name="width-request">24</property>
+                            <style>
+                              <class name="close-button"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="halign">fill</property>
+                    <property name="valign">fill</property>
+                    <style>
+                      <class name="attachment-preview"/>
+                    </style>
+                    <child>
+                      <object class="GtkImage" id="attachment-preview-image">
+                        <property name="visible">True</property>
+                        <property name="hexpand">True</property>
+                        <property name="vexpand">True</property>
+                        <style>
+                          <class name="image"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="name">attachment-preview</property>
               </packing>
             </child>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
         </child>
       </object>
     </child>

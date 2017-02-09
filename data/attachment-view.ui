@@ -24,8 +24,28 @@
                     <property name="valign">center</property>
                     <property name="vexpand">True</property>
                     <child>
-                      <object class="GtkImage" id="attachment-icon">
+                      <object class="GtkOverlay">
                         <property name="visible">True</property>
+                        <child>
+                          <object class="GtkImage" id="attachment-icon">
+                            <property name="visible">True</property>
+                          </object>
+                        </child>
+                        <child type="overlay">
+                          <object class="GtkImage" id="attachment-icon-overlay">
+                            <property name="visible">True</property>
+                            <property name="halign">end</property>
+                            <property name="valign">start</property>
+                            <property name="width-request">25</property>
+                            <property name="height-request">25</property>
+                            <style>
+                              <class name="magnifying-glass-overlay"/>
+                            </style>
+                          </object>
+                          <packing>
+                            <property name="pass-through">True</property>
+                          </packing>
+                        </child>
                       </object>
                     </child>
                   </object>
