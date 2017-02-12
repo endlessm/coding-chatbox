@@ -300,10 +300,6 @@ function shouldThumbnail(uri, thumbnailFactory, mimeType, mtime) {
            _THUMBNAIL_MIME_TYPES.indexOf(mimeType) !== -1;
 }
 
-function timevalToUsecs(timeval) {
-    return timeval.tv_sec * 1000000 + timeval.tv_usec;
-}
-
 // getPreviewForFile
 //
 // Get an object containing a reference to both a GIcon
@@ -318,7 +314,6 @@ function getPreviewForFile(path, thumbnailFactory) {
         // IO here, though it is done for now to avoid too much churn.
         info = path.query_info([
             Gio.FILE_ATTRIBUTE_STANDARD_ICON,
-            Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH,
             Gio.FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
             Gio.FILE_ATTRIBUTE_TIME_MODIFIED,
             Gio.FILE_ATTRIBUTE_THUMBNAIL_IS_VALID
@@ -354,7 +349,7 @@ function getPreviewForFile(path, thumbnailFactory) {
     let uri = path.get_uri();
 
     if (shouldThumbnail(uri, thumbnailFactory, mimeType, mtime)) {
-        let thumbnailPath = info.get_attribute_byte_string(Gio.FILE_ATTRIBUTE_THUMBNAIL_PATH);
+        let thumbnailPath = thumbnailFactory.lookup(uri, mtime);
         let thumbnail = null;
 
         // Also check to see if the thumbnail is 'valid'. If it is not
@@ -382,6 +377,11 @@ function getPreviewForFile(path, thumbnailFactory) {
 
             if (thumbnail) {
                 thumbnailFactory.save_thumbnail(thumbnail, uri, mtime);
+
+                // Once the thumbnail is saved, we need to look up its
+                // path again since GnomeDesktopThumbnailFactory.lookup
+                // may have returned NULL earlier.
+                thumbnailPath = thumbnailFactory.lookup(uri, mtime);
             } else {
                 log('Failed to create thumbnail of ' + uri);
             }
