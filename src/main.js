@@ -1399,7 +1399,19 @@ const CodingChatboxApplication = new Lang.Class({
     vfunc_startup: function() {
         this.parent();
 
-        Gtk.Settings.get_default().gtk_application_prefer_dark_theme = true;
+        let settings = Gtk.Settings.get_default();
+        settings.gtk_application_prefer_dark_theme = true;
+
+        // We don't want select-on-focus to be enabled here. If we had
+        // text selected in one chat bubble and then changed to another
+        // conversation, that would cause gtk_widget_grab_focus to be
+        // called recursively on the container and then eventually
+        // the bubbles themselves. If select-on-focus was enabled here,
+        // that would attempt to apply the selection region of the old
+        // selected conversation bubble to the new one, which makes
+        // no sense. (T15186)
+        settings.gtk_label_select_on_focus = false;
+
         load_style_sheet('/com/endlessm/Coding/Chatbox/application.css');
 
         this._service = new Service.CodingChatboxTextService();
