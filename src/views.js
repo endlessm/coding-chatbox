@@ -115,6 +115,15 @@ const TextChatboxMessageView = new Lang.Class({
         params.xalign = 0;
         this.parent(params);
 
+        // We set can-focus to false here so that the bubble
+        // contents don't try and grab focus as soon as a
+        // conversation is selected (which would cause the
+        // scroll view to move upwards).
+        //
+        // Note that we have to do this after constructing
+        // because 'selectable' implies 'can-focus'
+        this.can_focus = false;
+
         this.state.bind_property('text', this, 'label',
                                  GObject.BindingFlags.DEFAULT |
                                  GObject.BindingFlags.SYNC_CREATE);
@@ -444,6 +453,9 @@ const AttachmentChatboxMessageView = new Lang.Class({
     },
 
     _init: function(params) {
+        // See above for TextChatboxMessageView
+        params.can_focus = false;
+
         this.parent(params);
 
         this.attachment_name.label = this.state.path.get_basename();
