@@ -213,6 +213,60 @@ const ChoiceChatboxMessageView = new Lang.Class({
     }
 });
 
+
+const PlaceholderOverlay = new Lang.Class({
+    Name: 'PlaceholderOverlay',
+    Extends: Gtk.Overlay,
+    Properties: {
+        placeholder: GObject.ParamSpec.string('placeholder',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              ''),
+        text_view: GObject.ParamSpec.object('text-view',
+                                            '',
+                                            '',
+                                            GObject.ParamFlags.READWRITE |
+                                            GObject.ParamFlags.CONSTRUCT_ONLY,
+                                            Gtk.TextView)
+    },
+
+    _init: function(params) {
+        this.parent(params);
+
+        this.overlay_label = new Gtk.Label({
+            label: this.placeholder,
+            use_markup: true,
+            visible: true,
+            halign: Gtk.Align.START,
+            valign: Gtk.Align.START
+        });
+        this.overlay_label.get_style_context().add_class('overlay-label');
+
+        this.add(this.text_view);
+        this.add_overlay(this.overlay_label);
+        this.set_overlay_pass_through(this.overlay_label, true);
+
+        this._updatePlaceholderState();
+
+        this.text_view.connect('notify::has-focus',
+                               Lang.bind(this, this._updatePlaceholderState));
+        this.text_view.buffer.connect('changed',
+                                      Lang.bind(this, this._updatePlaceholderState));
+    },
+
+    _updatePlaceholderState: function() {
+        if (this.text_view.has_focus &&
+            this.text_view.buffer.get_char_count()) {
+            this.overlay_label.get_style_context().remove_class('show');
+            return;
+        }
+
+        this.overlay_label.get_style_context().add_class('show');
+    }
+});
+
 const InputChatboxMessageView = new Lang.Class({
     Name: 'InputChatboxMessageView',
     Extends: Gtk.Box,
@@ -237,11 +291,17 @@ const InputChatboxMessageView = new Lang.Class({
         this.parent(params);
 
         this._textBuffer = new Gtk.TextBuffer();
-        this._textView = new Gtk.TextView({
-            visible: true,
-            buffer: this._textBuffer,
+        this._textView = new PlaceholderOverlay({
+            text_view: new Gtk.TextView({
+                visible: true,
+                buffer: this._textBuffer,
+                expand: true,
+                halign: Gtk.Align.FILL,
+            }),
             expand: true,
-            halign: Gtk.Align.FILL
+            halign: Gtk.Align.FILL,
+            visible: true,
+            placeholder: 'Enter your message here'
         });
         this.pack_start(this._textView, true, true, 0);
         this._button = new Gtk.Button({
