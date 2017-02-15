@@ -336,7 +336,7 @@ const ChatStackChild = new Lang.Class({
         this._chatInputRevealer.set_reveal_child(false);
     },
 
-    updateTimestamps: function(callback) {
+    updateTimestamps: function() {
         this.chat_contents.get_children().forEach(function(group) {
             group.updateMessageReceivedDate();
         });
