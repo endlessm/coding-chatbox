@@ -231,6 +231,15 @@ function notificationId(actor) {
     return actor + '-message';
 }
 
+function createAccelGroupFor(desc, callback) {
+    let group = new Gtk.AccelGroup();
+    let [key, modifier] = Gtk.accelerator_parse(desc);
+
+    group.connect(key, modifier, Gtk.AccelFlags.VISIBLE, callback);
+
+    return group;
+}
+
 // We'll send a reminder after 20 minutes if the user fails to read a message
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
@@ -386,12 +395,20 @@ const CodingChatboxMainWindow = new Lang.Class({
         this._clockSettings = new Gio.Settings({ schema: CLOCK_SCHEMA });
         this._clockSettings.connect('changed::' + CLOCK_FORMAT_KEY,
                                     Lang.bind(this, this._updateClockFormat));
-        this.attachment_preview_close.connect('clicked', Lang.bind(this, function() {
-            this.attachment_preview_image.clear();
-            this.attachment_preview_filename.label = '';
-            this.attachment_preview_desc.label = '';
-            this.chatbox_view_stack.set_visible_child_name('chats');
-        }));
+
+        let escAction = new Gio.SimpleAction({ name: 'close-preview' });
+        escAction.connect('activate', Lang.bind(this, this._closeAttachmentPreview));
+
+        this.add_action(escAction);
+        this.application.set_accels_for_action('win.close-preview', ['Escape']);
+        this.attachment_preview_close.set_action_name('win.close-preview');
+    },
+
+    _closeAttachmentPreview: function() {
+        this.attachment_preview_image.clear();
+        this.attachment_preview_filename.label = '';
+        this.attachment_preview_desc.label = '';
+        this.chatbox_view_stack.set_visible_child_name('chats');
     },
 
     _updateClockFormat: function() {
