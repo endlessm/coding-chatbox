@@ -526,7 +526,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                                 function() {
                                                                     pendingMessageContainer.destroy();
                                                                     messageBecameVisibleHandler();
-                                                                })
+                                                                });
             messageQueue.push({
                 view: pendingMessageContainer,
                 date: new Date(timestamp),
