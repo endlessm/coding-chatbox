@@ -44,6 +44,7 @@ function createCopyPopover(forWidget, callback) {
     return popover;
 }
 
+// eslint-disable-next-line no-unused-vars
 const ChatBubble = new Lang.Class({
     Name: 'ChatBubble',
     Extends: Gtk.Box,
