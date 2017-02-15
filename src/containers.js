@@ -355,6 +355,8 @@ const ChatStackChild = new Lang.Class({
 //
 // Create a widget containing contents and an input box for this
 // part of the chatbox stack.
+//
+// eslint-disable-next-line no-unused-vars
 function createChatContentsWidget() {
     let chatContents = new Gtk.Box({
         orientation: Gtk.Orientation.VERTICAL,
