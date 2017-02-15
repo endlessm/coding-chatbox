@@ -105,6 +105,7 @@ const Actor = new Lang.Class({
     }
 });
 
+// eslint-disable-next-line no-unused-vars
 const Model = new Lang.Class({
     Name: 'Model',
     Extends: Gio.ListStore,
