@@ -28,7 +28,7 @@ const CodingChatboxMessage = new Lang.Interface({
     amend: Lang.UNIMPLEMENTED,
 
     //
-    // render_view
+    // renderView
     //
     // Renders a view for this message, which iis suitable to be put into a container. The exact
     // implementation of the view depends on the message and it might be connected to signals
@@ -46,7 +46,7 @@ const CodingChatboxMessage = new Lang.Interface({
     // }
     //
     //
-    render_view: Lang.UNIMPLEMENTED
+    renderView: Lang.UNIMPLEMENTED
 });
 
 const SentBy = {
@@ -285,8 +285,8 @@ const CodingChatboxMessageContainer = new Lang.Class({
     // takes a single string argument for the response to send to the
     // service for the location this container represents.
     //
-    render_view: function(listener) {
-        return this.message.render_view(Lang.bind(this, function(event) {
+    renderView: function(listener) {
+        return this.message.renderView(Lang.bind(this, function(event) {
             // Attempt to amend the underlying message using
             // the data from event
             var amendment_spec = event.amendment;
@@ -333,23 +333,23 @@ const CodingChatboxConversationState = new Lang.Class({
     },
 
     //
-    // with_each_message_container
+    // withEachMessageContainer
     //
     // Pass each message specification to callback, which can figure out what to do with it. The
     // messages passed are to be treated as immutable and typically used for things like
     // constructing views.
-    with_each_message_container: function(callback) {
+    withEachMessageContainer: function(callback) {
         this._conversation.forEach(callback);
     },
 
     //
-    // add_from_service
+    // addFromService
     //
     // Add a new response or user input bubble from the service using the specification
     // in message. Internally a new CodingChatboxMessage will be created, which represents
     // the internal state of the message.
     //
-    add_from_service: function(sender, message, location) {
+    addFromService: function(sender, message, location) {
         let container = new CodingChatboxMessageContainer({
             sender: sender,
             location: location,
@@ -374,7 +374,7 @@ const CodingChatboxConversationState = new Lang.Class({
     },
 
     //
-    // amend_last_message
+    // amendLastMessage
     //
     // Amend the last message in the model with a message specification. This might completely
     // change the message type (eg, from user input to just text).
@@ -385,7 +385,7 @@ const CodingChatboxConversationState = new Lang.Class({
     // This function will return both a reference to the relevant container and also
     // whether the amendment was successful.
     //
-    amend_last_message: function(spec) {
+    amendLastMessage: function(spec) {
         if (!this._conversation.length) {
             return false;
         }
@@ -395,7 +395,7 @@ const CodingChatboxConversationState = new Lang.Class({
     },
 
     //
-    // current_location
+    // currentLocation
     //
     // The current location in the message storyline that we are currently in, computed by
     // the last chat bubble.
@@ -403,7 +403,7 @@ const CodingChatboxConversationState = new Lang.Class({
     // Returns null if there is no relevant position (eg, we are at the start of the
     // conversation).
     //
-    current_location: function() {
+    currentLocation: function() {
         if (!this._conversation.length) {
             return null;
         }
@@ -465,7 +465,7 @@ const CodingChatboxState = new Lang.Class({
         this._message_factories = message_factories;
     },
 
-    load_conversations_for_actor: function(actor) {
+    loadConversationsForActor: function(actor) {
         if (Object.keys(this.conversations).indexOf(actor) !== -1) {
             return;
         }
@@ -473,14 +473,14 @@ const CodingChatboxState = new Lang.Class({
         this.conversations[actor] = new CodingChatboxConversationState(this._message_factories);
     },
 
-    conversation_position_for_actor: function(actor) {
-        this.load_conversations_for_actor(actor);
-        return this.conversations[actor].current_location();
+    currentPositionForActor: function(actor) {
+        this.loadConversationsForActor(actor);
+        return this.conversations[actor].currentLocation();
     },
 
-    add_message_for_actor: function(actor, sender, spec, location) {
-        this.load_conversations_for_actor(actor);
-        return this.conversations[actor].add_from_service(sender, spec, location);
+    addMessageForActor: function(actor, sender, spec, location) {
+        this.loadConversationsForActor(actor);
+        return this.conversations[actor].addFromService(sender, spec, location);
     },
 
     //
@@ -490,24 +490,24 @@ const CodingChatboxState = new Lang.Class({
     // for the given actor.
     //
     replaceUserInputWithForActor: function(actor, spec, location) {
-        this.load_conversations_for_actor(actor);
+        this.loadConversationsForActor(actor);
         return this.conversations[actor].replaceUserInputWith(spec, location);
     },
 
-    amend_last_message_for_actor: function(actor, sender, spec) {
-        this.load_conversations_for_actor(actor);
+    amendLastMessageForActor: function(actor, sender, spec) {
+        this.loadConversationsForActor(actor);
         var amendment_spec = spec;
         amendment_spec.sender = sender;
-        return this.conversations[actor].amend_last_message(spec);
+        return this.conversations[actor].amendLastMessage(spec);
     },
 
     mesageBecameVisibleAndNotRead: function(actor, timeoutSeconds, callback) {
-        this.load_conversations_for_actor(actor);
+        this.loadConversationsForActor(actor);
         this.conversations[actor].mesageBecameVisibleAndNotRead(timeoutSeconds, callback);
     },
 
     markAllMessagesByActorAsRead: function(actor) {
-        this.load_conversations_for_actor(actor);
+        this.loadConversationsForActor(actor);
         this.conversations[actor].markAllMessagesAsRead();
     },
 
@@ -523,7 +523,7 @@ const CodingChatboxState = new Lang.Class({
                                         flags,
                                         transformFrom,
                                         transformTo) {
-        this.load_conversations_for_actor(actor);
+        this.loadConversationsForActor(actor);
         if (transformFrom && transformTo) {
             // g_object_bind_property_full does not seem to work here, so
             // simulate it by connecting on 'notify'

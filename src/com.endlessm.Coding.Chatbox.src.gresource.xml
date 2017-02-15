@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/endlessm/Coding/Chatbox/js">
+    <file>actor.js</file>
+    <file>contact.js</file>
+    <file>containers.js</file>
     <file>main.js</file>
     <file>service.js</file>
     <file>views.js</file>
     <file>state.js</file>
     <file>timestamp.js</file>
+    <file>queue.js</file>
   </gresource>
 </gresources>

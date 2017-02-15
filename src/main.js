@@ -24,451 +24,31 @@ const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
 
+const Actor = imports.actor;
+const Contact = imports.contact;
+const Containers = imports.containers;
 const Lang = imports.lang;
 const Service = imports.service;
 const State = imports.state;
-const Timestamp = imports.timestamp;
 const Views = imports.views;
 
-function initials_from_name(name) {
-    return String(name.split().map(function(word) {
-        return word[0];
-    })).toUpperCase();
-}
-
-const CONTACT_IMAGE_SIZE = 48;
 const CHAT_WITH_ACTION = 'chat-with';
 
 const CLOCK_SCHEMA = 'org.gnome.desktop.interface';
 const CLOCK_FORMAT_KEY = 'clock-format';
 
-const Actor = new Lang.Class({
-    Name: 'Actor',
-    Extends: GObject.Object,
-    Properties: {
-        'name': GObject.ParamSpec.string('name',
-                                         '',
-                                         '',
-                                         GObject.ParamFlags.READWRITE |
-                                         GObject.ParamFlags.CONSTRUCT_ONLY,
-                                         ''),
-        'image': GObject.ParamSpec.string('image',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          '')
-    },
-
-    _init: function(data) {
-        this.parent();
-
-        this.name = data.name;
-        this.image = data.img;
-    },
-
-    _createActorAvatar: function() {
-        if (!this.image)
-            return null;
-
-        let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.image;
-        try {
-            return GdkPixbuf.Pixbuf.new_from_resource_at_scale(
-                resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
-        } catch(e) {
-            logError(e, 'Can\'t load resource at ' + resourcePath);
-        }
-
-        return null;
-    },
-
-    _createDefaultAvatar: function() {
-        // fake a GtkImage
-        let parentWidget = new Gtk.Image();
-
-        let surface = new Cairo.ImageSurface(Cairo.Format.ARGB32,
-                                             CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-        let cr = new Cairo.Context(surface);
-        let context = parentWidget.get_style_context();
-        context.add_class('contact-default-image');
-
-        Gtk.render_background(context, cr, 0, 0,
-                              CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-        Gtk.render_frame(context, cr, 0, 0,
-                         CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-
-        let text = initials_from_name(this.name);
-        let layout = parentWidget.create_pango_layout(text);
-
-        let [text_width, text_height] = layout.get_pixel_size();
-
-        Gtk.render_layout(context, cr,
-                          (CONTACT_IMAGE_SIZE - text_width) / 2,
-                          (CONTACT_IMAGE_SIZE - text_height) / 2,
-                          layout);
-
-        cr.$dispose();
-        context.remove_class('contact-default-image');
-
-        return Gdk.pixbuf_get_from_surface(surface, 0, 0,
-                                           CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE);
-    },
-
-    get avatar() {
-        if (this._avatar)
-            return this._avatar;
-
-        this._avatar = this._createActorAvatar();
-        if (!this._avatar)
-            this._avatar = this._createDefaultAvatar();
-
-        return this._avatar;
-    }
-});
-
-const ActorModel = new Lang.Class({
-    Name: 'ActorModel',
-    Extends: Gio.ListStore,
-
-    _init: function() {
-        this.parent({ item_type: Actor.$gtype });
-
-        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
-        let contents;
-        try {
-            contents = actorsFile.load_contents(null)[1];
-        } catch (e) {
-            logError(e, 'Couldn\'t load chatbox data file from data resource');
-            return;
-        }
-
-        let actorsData = JSON.parse(String(contents)).actor_details;
-        actorsData.forEach(Lang.bind(this, function(actorData) {
-            let actor = new Actor(actorData);
-            this.append(actor);
-        }));
-    },
-
-    forEach: function(callback) {
-        for (let idx = 0; idx < this.get_n_items(); idx++) {
-            callback(this.get_item(idx));
-        }
-    },
-
-    getByName: function(name) {
-        for (let idx = 0; idx < this.get_n_items(); idx++) {
-            let actor = this.get_item(idx);
-            if (actor.name == name)
-                return actor;
-        }
-
-        return null;
-    }
-});
-
-const RoundedImage = new Lang.Class({
-    Name: 'RoundedImage',
-    Extends: Gtk.Image,
-
-    vfunc_draw: function(cr) {
-        let width = this.get_allocated_width();
-        let height = this.get_allocated_height();
-
-        // Clip drawing to contact circle
-        cr.save();
-        cr.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
-        cr.clip();
-        cr.newPath();
-
-        this.parent(cr);
-
-        cr.restore();
-        cr.$dispose();
-
-        return false;
-    }
-});
-
-const CodingChatboxContactListItem = new Lang.Class({
-    Name: 'CodingChatboxContactListItem',
-    Extends: Gtk.ListBoxRow,
-    Template: 'resource:///com/endlessm/Coding/Chatbox/contact.ui',
-    Children: ['content-grid', 'contact-name-label', 'contact-message-notification'],
-    Properties: {
-        'actor': GObject.ParamSpec.object('actor',
-                                          '',
-                                          '',
-                                          GObject.ParamFlags.READWRITE |
-                                          GObject.ParamFlags.CONSTRUCT_ONLY,
-                                          Actor.$gtype)
-    },
-
-    _init: function(params) {
-        this.parent(params);
-
-        this.contact_name_label.set_text(this.actor.name);
-        this._contact_image_widget = new RoundedImage({
-            visible: true,
-            margin: 8
-        });
-
-        this._contact_image_overlay = new Gtk.Overlay({ visible: true });
-        this._contact_image_overlay.add(this._contact_image_widget);
-
-        let frame = new Gtk.Frame({
-            visible: true,
-            shadow_type: Gtk.ShadowType.NONE
-        });
-        this._contact_image_overlay.add_overlay(frame);
-        frame.get_style_context().add_class('contact-image-overlay');
-
-        this.content_grid.attach_next_to(this._contact_image_overlay, null, Gtk.PositionType.LEFT,
-                                         1, 1);
-        this._contact_image_widget.pixbuf = this.actor.avatar;
-    },
-
-    set highlight(v) {
-        if (!v) {
-            this.contact_message_notification.visible = false;
-            this.get_style_context().remove_class('new-content');
-            return;
-        }
-
-        // If highlight was set, then it means that we were not
-        // considered to be visible, so show a highlight here.
-        this.contact_message_notification.visible = true;
-        this.get_style_context().add_class('new-content');
-    },
-
-    get avatar() {
-        return this.actor.avatar;
-    }
-});
-
-
-// createCopyPopover
 //
-// Creates a popover copy button which invokes the specified
-// callback when the button is clicked
-function createCopyPopover(forWidget, callback) {
-    let popover = new Gtk.Popover({ relative_to: forWidget });
-    // TODO: make this translatable
-    let button = new Gtk.Button({
-        label: 'Copy',
-        visible: true
-    });
-    button.connect('clicked', callback);
-    popover.add(button);
-    return popover;
-}
-
-const CodingChatboxChatBubbleContainer = new Lang.Class({
-    Name: 'CodingChatboxChatBubbleContainer',
-    Extends: Gtk.Box,
-    Template: 'resource:///com/endlessm/Coding/Chatbox/chat-bubble-container.ui',
-    Children: [
-        'inner-box',
-        'event-box',
-        'user-image-container',
-        'bubble-detail-left',
-        'bubble-detail-right'
-    ],
-    Properties: {
-        'content': GObject.ParamSpec.object('content',
-                                            '',
-                                            '',
-                                            GObject.ParamFlags.READWRITE,
-                                            Gtk.Widget),
-        'sender': GObject.ParamSpec.int('sender',
-                                        '',
-                                        '',
-                                        GObject.ParamFlags.READWRITE |
-                                        GObject.ParamFlags.CONSTRUCT_ONLY,
-                                        State.SentBy.USER,
-                                        State.SentBy.INPUT,
-                                        State.SentBy.USER),
-        'display-image': GObject.ParamSpec.object('display-image',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  GdkPixbuf.Pixbuf)
-    },
-
-    _init: function(params, styles, showContentHandler) {
-        this.parent(params);
-
-        Views.applyStyles(this, styles);
-        this._popover = createCopyPopover(this, Lang.bind(this, function() {
-            this.content.copyToClipboard();
-            this._popover.hide();
-        }));
-
-        let margin_prop, halign, containerStyle;
-        switch (params.sender) {
-        case State.SentBy.ACTOR:
-            [margin_prop, halign, containerStyle] = ['margin-start', Gtk.Align.START, 'by-actor'];
-
-            // Add the user's icon to the left hand side of the box
-            // as well
-            this.user_image_container.pack_start(new RoundedImage({
-                visible: true,
-                pixbuf: this.display_image.scale_simple(28,
-                                                        28,
-                                                        GdkPixbuf.InterpType.BILINEAR),
-                halign: Gtk.Align.START,
-            }), true, true, 0);
-            this.bubble_detail_left.visible = true;
-            break;
-        case State.SentBy.USER:
-            [margin_prop, halign, containerStyle] = ['margin-end', Gtk.Align.END, 'by-user'];
-            this.bubble_detail_right.visible = true;
-            break;
-        case State.SentBy.INPUT:
-            [margin_prop, halign, containerStyle] = [null, Gtk.Align.FILL, 'input-bubble-container'];
-            break;
-        default:
-            throw new Error('Don\'t know how to handle sender type ' + params.sender);
-        }
-
-        if (margin_prop) {
-            this[margin_prop] = 10;
-        }
-
-        this.halign = halign;
-        this.get_style_context().add_class(containerStyle);
-
-        this.inner_box.pack_start(this.content, true, true, 0);
-        this.event_box.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
-                                  Gdk.EventMask.BUTTON_RELEASE_MASK);
-
-        this.event_box.connect('button-press-event', Lang.bind(this, function(btn, event) {
-            if (!this.content.supportsCopyPaste())
-                return;
-
-            if (event.get_button()[1] === Gdk.BUTTON_SECONDARY) {
-                // Secondary button pressed. Show popover with copy option
-                this._popover.show();
-            }
-        }));
-
-        this._showContentHandler = showContentHandler;
-    },
-
-    set content(val) {
-        this._content = val;
-
-        // Can't run this setter if we don't have an inner_box yet
-        if (!this.inner_box) {
-            return;
-        }
-
-        this.inner_box.get_children().forEach(Lang.bind(this, function(child) {
-            this.inner_box.remove(child);
-        }));
-        this.inner_box.pack_start(this._content, true, true, 0);
-    },
-
-    get content() {
-        return this._content;
-    },
-
-    focused: function() {
-        this._content.focused();
-    },
-
-    showContent: function() {
-        this._showContentHandler();
-    }
-});
-
-const _MILLISECONDS_TO_MINUTE = 1000 * 60;
-const _FIVE_MINUTES_IN_MS = _MILLISECONDS_TO_MINUTE * 5;
-const _MESSAGE_GROUP_LIMIT = 10;
-
-// isCloseEnoughInTime
-//
-// Return true if the given date of the income chat bubble is close enough
-// in time to the most recent one in this group
-function isCloseEnoughInTime(lastMessageDate, currentMessageDate) {
-    let delta = currentMessageDate.getTime() - lastMessageDate.getTime();
-    return delta < _FIVE_MINUTES_IN_MS;
-}
-
-const CodingChatboxMessageGroup = new Lang.Class({
-    Name: 'CodingChatboxMessageGroup',
-    Extends: Gtk.Box,
-    Template: 'resource:///com/endlessm/Coding/Chatbox/chatbox-message-group.ui',
-    Children: [
-        'message-received-date-container',
-        'message-received-date-label',
-        'chatbox-bubbles'
-    ],
-
-    _init: function(params) {
-        params.orientation = Gtk.Orientation.VERTICAL;
-        this.parent(params);
-
-        this._messageDates = [];
-        this._actorName = null;
-    },
-
-    addBubble: function(bubbleView, date, actorName) {
-        // Different actors don't have the same message group. Note that the
-        // convention here is that user bubbles have an actorName of 'user'
-        if (this._actorName && actorName !== this._actorName) {
-            return false;
-        }
-
-        // Limit of 10 bubbles per message group, just to add some
-        // distinction between bubbles.
-        if (this._messageDates.length > _MESSAGE_GROUP_LIMIT) {
-            return false;
-        }
-
-        // If the incoming message is too new, it does not belong in the
-        // same message group
-        if (this._messageDates.length !== 0 &&
-            !isCloseEnoughInTime(this._messageDates[this._messageDates.length - 1],
-                                 date)) {
-            return false;
-        }
-
-        if (!this._actorName && actorName === 'user') {
-            this.message_received_date_container.halign = Gtk.Align.END;
-            this.message_received_date_container.margin_end = 40;
-        }
-
-        this._messageDates.push(date);
-        this._actorName = actorName;
-        this.chatbox_bubbles.pack_start(bubbleView, true, true, 5);
-        this.updateMessageReceivedDate();
-
-        return true;
-    },
-
-    updateMessageReceivedDate: function() {
-        if (!this._messageDates.length) {
-            return;
-        }
-
-        let date = this._messageDates[this._messageDates.length - 1];
-        this.message_received_date_label.label = Timestamp.calculateMessageReceivedTextFromDate(date);
-    }
-});
-
-//
-// new_message_view_for_state
+// newMessageViewForState
 //
 // Creates a new message view container for a message state container, which
 // automatically updates when the underlying state changes.
 //
-function new_message_view_for_state(container,
-                                    actorObj,
-                                    styles,
-                                    onResponse,
-                                    timeout,
-                                    onVisible) {
+function newMessageViewForState(container,
+                                actorObj,
+                                styles,
+                                onResponse,
+                                timeout,
+                                onVisible) {
     styles = styles ? styles : [];
 
     let responseFunc = function(response) {
@@ -476,7 +56,7 @@ function new_message_view_for_state(container,
             onResponse(response, actorObj.name, container.location);
     };
 
-    let view = container.render_view(responseFunc);
+    let view = container.renderView(responseFunc);
     let pending = new Views.MessagePendingView({ visible: true });
 
     let renderRealContent = function() {
@@ -485,14 +65,14 @@ function new_message_view_for_state(container,
 
         // Update both the content and the styles to reflect that this
         // is now an actual bubble
-        view_container.content = view;
-        Views.removeStyles(view_container, ['message-pending']);
+        viewContainer.content = view;
+        Views.removeStyles(viewContainer, ['message-pending']);
         container.connect('message-changed', function() {
-            view_container.content = container.render_view(responseFunc);
+            viewContainer.content = container.renderView(responseFunc);
         });
     };
 
-    let view_container = new CodingChatboxChatBubbleContainer({
+    let viewContainer = new Containers.ChatBubble({
         // We only want to display the container if the underlying view
         // itself is visible. The assumption here is that the visibility
         // state never changes between renders.
@@ -512,14 +92,14 @@ function new_message_view_for_state(container,
         }
     });
 
-    return view_container;
+    return viewContainer;
 }
 
 const RenderableTextChatboxMessage = new Lang.Class({
     Name: 'RenderableTextChatboxMessage',
     Extends: State.TextChatboxMessage,
 
-    render_view: function() {
+    renderView: function() {
         return new Views.TextChatboxMessageView({
             state: this,
             visible: true
@@ -531,20 +111,20 @@ const RenderableChoiceChatboxMessage = new Lang.Class({
     Name: 'RenderableChoiceChatboxMessage',
     Extends: State.ChoiceChatboxMessage,
 
-    render_view: function(listener) {
+    renderView: function(listener) {
         let view = new Views.ChoiceChatboxMessageView({
             state: this,
             visible: true
         });
-        view.connect('clicked', Lang.bind(this, function(view, button_id, button_text) {
+        view.connect('clicked', Lang.bind(this, function(view, buttonId, buttonText) {
             listener({
                 response: {
-                    evaluate: button_id,
-                    text: button_text
+                    evaluate: buttonId,
+                    text: buttonText
                 },
                 amendment: {
                     type: 'scrolled',
-                    text: button_text
+                    text: buttonText
                 }
             });
         }));
@@ -556,7 +136,7 @@ const RenderableInputChatboxMessage = new Lang.Class({
     Name: 'RenderableInputChatboxMessage',
     Extends: State.InputChatboxMessage,
 
-    render_view: function(listener) {
+    renderView: function(listener) {
         let view = new Views.InputChatboxMessageView({
             state: this,
             visible: true
@@ -590,7 +170,7 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
     Name: 'RenderableAttachmentChatboxMessage',
     Extends: State.AttachmentChatboxMessage,
 
-    render_view: function(listener) {
+    renderView: function(listener) {
         let view = new Views.AttachmentChatboxMessageView({
             state: this,
             visible: true
@@ -640,213 +220,9 @@ const MessageClasses = {
     attachment: RenderableAttachmentChatboxMessage
 };
 
-const CodingChatboxChatScrollView = new Lang.Class({
-    Name: 'CodingChatboxChatScrollView',
-    Extends: Gtk.ScrolledWindow,
-
-    _init: function(chatContents) {
-        this.parent({
-            visible: true,
-            width_request: 500,
-            expand: true,
-            max_content_width: 750
-        });
-        this.add(chatContents);
-    }
-});
-
-
-// This class implements a queue of items which could be passed
-// to a consumer progressively according to the needs of the application.
-// The first item always gets added straight away, but is pushed to the back
-// of the queue. While the queue has items in it, queuing more items will just
-// cause them to be added to the queue. Calling the 'showNext' method will
-// cause the front of the queue to be popped and the widget at the
-// front of the queue to be added to the box.
-//
-// This class is used by the chatbox view to show pending animations
-// for already-received messages and otherwise show messages in the order
-// that they were received. When a message is done "showing", it can call
-// showNext on the queue to start the animation for the next message.
-const TriggerableEventQueue = new Lang.Class({
-    Name: 'TriggerableEventQueue',
-    Extends: GObject.Object,
-
-    _init: function(itemConsumer) {
-        this.parent({});
-        this._queue = [];
-        this._itemConsumer = itemConsumer;
-    },
-
-    showNext: function() {
-        this._queue.shift();
-        if (this._queue.length) {
-            let item = this._queue[0];
-            this._itemConsumer(item);
-        }
-    },
-
-    // push
-    //
-    // push accepts anything. If it would be the first item on the queue
-    // we immediately pass it to the consumer otherwise we keep it on the
-    // queue and pass it to the consumer when showNext is called.
-    push: function(item) {
-        let hadLength = this._queue.length > 0;
-        this._queue.push(item);
-
-        if (!hadLength) {
-            this._itemConsumer(item);
-        }
-    }
-});
 
 function notificationId(actor) {
     return actor + '-message';
-}
-
-const ChatboxStackChild = new Lang.Class({
-    Name: 'ChatboxStackChild',
-    Extends: Gtk.Box,
-    Properties: {
-        'chat-contents': GObject.ParamSpec.object('chat-contents',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  Gtk.Box),
-        'message-queue': GObject.ParamSpec.object('message-queue',
-                                                  '',
-                                                  '',
-                                                  GObject.ParamFlags.READWRITE |
-                                                  GObject.ParamFlags.CONSTRUCT_ONLY,
-                                                  TriggerableEventQueue.$gtype),
-        'input-area': GObject.ParamSpec.object('input-area',
-                                               '',
-                                               '',
-                                               GObject.ParamFlags.READWRITE |
-                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                               Gtk.Box)
-    },
-
-    _init: function(params) {
-        this.parent(params);
-
-        // XXX: Not sure why, but placing this widget in another box fixes
-        // a problem where the box shadow in the input area would be
-        // obscured by the scroll view
-        let scrollViewBox = new Gtk.Box({
-            visible: true,
-            vexpand: true,
-            valign: Gtk.Align.FILL
-        });
-        this._scrollView = new CodingChatboxChatScrollView(this.chat_contents);
-
-        let chatInputBoxWithShadow = new Gtk.Box({
-            visible: true,
-            orientation: Gtk.Orientation.VERTICAL
-        });
-        chatInputBoxWithShadow.get_style_context().add_class('chatbox-input-area-shadow');
-
-        this._chatInputRevealer = new Gtk.Revealer({
-            visible: true,
-            transition_duration: 200
-        });
-        this._chatInputRevealer.add(this.input_area);
-        this._chatInputRevealer.connect('notify::child-revealed', Lang.bind(this, function() {
-            if (!this._chatInputRevealer.child_revealed) {
-                this.input_area.get_children().forEach(function(child) {
-                    child.destroy();
-                });
-            } else {
-                // Scroll the view back down to the bottom once the animation
-                // completes. Unforatunately we get a brief moment where
-                // the scroll view is in the 'wrong place' but it appears
-                // there's not much we can do about this.
-                let vadjustment = this._scrollView.vadjustment;
-                vadjustment.set_value(vadjustment.upper - vadjustment.page_size);
-            }
-        }));
-
-        scrollViewBox.add(this._scrollView);
-        chatInputBoxWithShadow.pack_start(this._chatInputRevealer, false, false, 0);
-        this.pack_start(scrollViewBox, true, true, 0);
-        this.pack_start(chatInputBoxWithShadow, false, false, 0);
-    },
-
-    showInputArea: function() {
-        this._chatInputRevealer.transition_type = Gtk.RevealerTransitionType.SLIDE_UP;
-        this._chatInputRevealer.set_reveal_child(true);
-    },
-
-    hideInputArea: function() {
-        this._chatInputRevealer.transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN;
-        this._chatInputRevealer.set_reveal_child(false);
-    },
-
-    updateTimestamps: function(callback) {
-        this.chat_contents.get_children().forEach(function(group) {
-            group.updateMessageReceivedDate();
-        });
-    },
-
-    scrollToBottomOnUpdate: function() {
-        let vadjustment = this._scrollView.vadjustment;
-        let notifyId = vadjustment.connect('notify::upper', function() {
-            vadjustment.disconnect(notifyId);
-            vadjustment.set_value(vadjustment.upper - vadjustment.page_size);
-        });
-    }
-});
-
-// createChatContentsWidget
-//
-// Create a widget containing contents and an input box for this
-// part of the chatbox stack.
-function createChatContentsWidget() {
-    let chatContents = new Gtk.Box({
-        orientation: Gtk.Orientation.VERTICAL,
-        visible: true,
-        valign: Gtk.Align.START
-    });
-    chatContents.get_style_context().add_class('chatbox-chats');
-
-    let messageQueue = new TriggerableEventQueue(function(item) {
-        if (typeof(item) === 'function') {
-            item();
-        } else {
-            // Check to see if there are any groups that will accept
-            // this item to start with
-            let groups = chatContents.get_children();
-            if (!groups.length ||
-                !groups[groups.length - 1].addBubble(item.view,
-                                                     item.date,
-                                                     item.actor)) {
-                let newGroup = new CodingChatboxMessageGroup({
-                    visible: true,
-                    expand: true
-                });
-                newGroup.addBubble(item.view, item.date, item.actor);
-                chatContents.pack_start(newGroup, true, true, 15);
-            }
-
-            item.view.showContent();
-        }
-    });
-
-    let chatInputArea = new Gtk.Box({
-        visible: true,
-        expand: false
-    });
-    chatInputArea.get_style_context().add_class('chatbox-input-area');
-
-    return new ChatboxStackChild({
-        orientation: Gtk.Orientation.VERTICAL,
-        visible: true,
-        chat_contents: chatContents,
-        input_area: chatInputArea,
-        message_queue: messageQueue
-    });
 }
 
 // We'll send a reminder after 20 minutes if the user fails to read a message
@@ -876,7 +252,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                                               '',
                                               GObject.ParamFlags.READWRITE |
                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              ActorModel),
+                                              Actor.Model),
         service: GObject.ParamSpec.object('service',
                                           '',
                                           '',
@@ -959,7 +335,7 @@ const CodingChatboxMainWindow = new Lang.Class({
                 }
             }));
 
-            let contactListItem = new CodingChatboxContactListItem({
+            let contactListItem = new Contact.CodingChatboxContactListItem({
                 visible: true,
                 actor: actor
             });
@@ -1057,7 +433,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (chatboxStackChild)
             return chatboxStackChild;
 
-        chatboxStackChild = createChatContentsWidget();
+        chatboxStackChild = Containers.createChatContentsWidget();
         this.chatbox_stack.add_named(chatboxStackChild, actor);
         return chatboxStackChild;
     },
@@ -1084,9 +460,9 @@ const CodingChatboxMainWindow = new Lang.Class({
         // If we can amend the last message, great.
         // Though I'm not really sure if we want this. "amend" currently
         // means 'amend-or-replace'.
-        let [amended, container] = this._state.amend_last_message_for_actor(actor,
-                                                                            sentBy,
-                                                                            item);
+        let [amended, container] = this._state.amendLastMessageForActor(actor,
+                                                                        sentBy,
+                                                                        item);
 
         if (amended)
             return container;
@@ -1123,17 +499,17 @@ const CodingChatboxMainWindow = new Lang.Class({
             messageQueue.showNext();
         });
 
-        container = this._state.add_message_for_actor(actor,
-                                                      sentBy,
-                                                      item,
-                                                      location);
+        container = this._state.addMessageForActor(actor,
+                                                   sentBy,
+                                                   item,
+                                                   location);
         messageQueue.push({
-            view: new_message_view_for_state(container,
-                                             this.actor_model.getByName(actor),
-                                             style,
-                                             Lang.bind(this, this._handleResponse, style),
-                                             pendingTime,
-                                             messageBecameVisibleHandler),
+            view: newMessageViewForState(container,
+                                         this.actor_model.getByName(actor),
+                                         style,
+                                         Lang.bind(this, this._handleResponse, style),
+                                         pendingTime,
+                                         messageBecameVisibleHandler),
             date: new Date(timestamp),
             actor: sentBy == State.SentBy.USER ? 'user' : actor
         });
@@ -1159,12 +535,12 @@ const CodingChatboxMainWindow = new Lang.Class({
                 child.destroy();
             });
 
-            let view_container = new_message_view_for_state(container,
-                                                            this.actor_model.getByName(actor),
-                                                            style,
-                                                            Lang.bind(this, this._handleResponse, style),
-                                                            0,
-                                                            null);
+            let view_container = newMessageViewForState(container,
+                                                        this.actor_model.getByName(actor),
+                                                        style,
+                                                        Lang.bind(this, this._handleResponse, style),
+                                                        0,
+                                                        null);
             view_container.showContent();
             view_container.margin = 10;
             inputArea.pack_end(view_container, true, true, 0);
@@ -1185,7 +561,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             // We evaluate the text of the response here in order to get an 'evaluated'
             // piece of text to send back to the game service.
             this.service.evaluate(response.showmehow_id, response.text, Lang.bind(this, function(evaluated) {
-                this.game_service.respond_to_message(location, response.text, evaluated);
+                this.game_service.respondToMessage(location, response.text, evaluated);
             }));
 
             this.chatMessage(actor,
@@ -1213,7 +589,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             }
         } else if (response.evaluate) {
             // Nothing to evaluate, just send back the pre-determined evaluated response
-            this.game_service.respond_to_message(location, response.text, response.evaluate);
+            this.game_service.respondToMessage(location, response.text, response.evaluate);
             this.chatMessage(actor,
                              response.text,
                              location,
@@ -1258,7 +634,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (this._roundedImage)
             this._roundedImage.destroy();
 
-        this._roundedImage = new RoundedImage({
+        this._roundedImage = new Contact.RoundedImage({
             visible: true,
             pixbuf: actorIcon,
             halign: Gtk.Align.START,
@@ -1416,7 +792,7 @@ const CodingChatboxApplication = new Lang.Class({
 
         this._service = new Service.CodingChatboxTextService();
         this._gameService = new Service.CodingGameService();
-        this._actorModel = new ActorModel();
+        this._actorModel = new Actor.Model();
     },
 
     vfunc_activate: function() {
