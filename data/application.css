@@ -222,11 +222,11 @@ row:selected:backdrop.contact-row {
 }
 
 .chatbox-contact-list {
-  background-color: #232729;
+  background-color: #1a2c32;
 }
 
 .chatbox-contact-list:backdrop {
-  background-color: #252a2c;
+  background-color: #011319;
 }
 
 .contact-message-notification {
