@@ -186,6 +186,7 @@ image.contact-default-image {
 .message-received-date {
   font-size: 12px;
   text-shadow: none;
+  color: #e6e6e6;
 }
 
 .chatbox-input-area-shadow {
