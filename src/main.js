@@ -474,6 +474,8 @@ const CodingChatboxMainWindow = new Lang.Class({
             return container;
 
         let messageBecameVisibleHandler = Lang.bind(this, function() {
+            // Now that the pending message container is done showing
+            // the animation, show the next text message
             messageQueue.showNext();
 
             // If actorIsVisible is false here, then we should listen for
@@ -506,7 +508,8 @@ const CodingChatboxMainWindow = new Lang.Class({
                 visibleAction();
 
             // Now that we're done with this message, show the next one if
-            // it is pending
+            // it is pending (could be an input bubble or another pending
+            // message bubble).
             messageQueue.showNext();
         });
 
