@@ -16,7 +16,6 @@ pkg.require({
     GObject: '2.0'
 });
 
-const Cairo = imports.cairo;
 const Gdk = imports.gi.Gdk;
 const GdkPixbuf = imports.gi.GdkPixbuf;
 const Gio = imports.gi.Gio;
