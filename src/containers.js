@@ -5,7 +5,7 @@
 // Containers for chat bubbles.
 //
 // Due to the different interactions that can occurr, we separate out chat
-// bubbles into pairs containers and views, which actually display the content.
+// bubbles into paired containers and views, which actually display the content.
 //
 // There are a few different layers of containers. Each conversation has
 // its own container which is made up of many message groups. A message
