@@ -250,15 +250,12 @@ const PlaceholderOverlay = new Lang.Class({
 
         this._updatePlaceholderState();
 
-        this.text_view.connect('notify::has-focus',
-                               Lang.bind(this, this._updatePlaceholderState));
         this.text_view.buffer.connect('changed',
                                       Lang.bind(this, this._updatePlaceholderState));
     },
 
     _updatePlaceholderState: function() {
-        if (this.text_view.has_focus &&
-            this.text_view.buffer.get_char_count()) {
+        if (this.text_view.buffer.get_char_count()) {
             this.overlay_label.get_style_context().remove_class('show');
             return;
         }
