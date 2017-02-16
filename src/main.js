@@ -46,50 +46,56 @@ const CLOCK_FORMAT_KEY = 'clock-format';
 function newMessageViewForState(container,
                                 actorObj,
                                 styles,
-                                onResponse,
-                                timeout,
-                                onVisible) {
+                                onResponse) {
     styles = styles ? styles : [];
-
     let responseFunc = function(response) {
         if (onResponse)
             onResponse(response, actorObj.name, container.location);
     };
 
     let view = container.renderView(responseFunc);
-    let pending = new Views.MessagePendingView({ visible: true });
-
-    let renderRealContent = function() {
-        if (onVisible)
-            onVisible();
-
-        // Update both the content and the styles to reflect that this
-        // is now an actual bubble
-        viewContainer.content = view;
-        Views.removeStyles(viewContainer, ['message-pending']);
-        container.connect('message-changed', function() {
-            viewContainer.content = container.renderView(responseFunc);
-        });
-    };
-
     let viewContainer = new Containers.ChatBubble({
         // We only want to display the container if the underlying view
         // itself is visible. The assumption here is that the visibility
         // state never changes between renders.
         visible: view.visible,
-        content: pending,
+        content: view,
         sender: container.sender,
         expand: true,
         display_image: actorObj.avatar
-    }, styles.concat('message-pending'), function() {
+    }, styles, function() {
         // Re-render the view in case something changes
-        if (timeout > 0) {
-            GLib.timeout_add(GLib.PRIORITY_DEFAULT,
-                             timeout,
-                             renderRealContent);
-        } else {
-            renderRealContent();
-        }
+        container.connect('message-changed', function() {
+            viewContainer.content = container.renderView(responseFunc);
+        });
+    });
+
+    return viewContainer;
+}
+
+//
+// newMessagePendingView
+//
+// Creates a new message view container for a message state container, which
+// automatically updates when the underlying state changes.
+//
+function newMessagePendingView(actorObj, sender, styles, timeout, onVisible) {
+    styles = styles ? styles : [];
+    let pending = new Views.MessagePendingView({ visible: true });
+
+    let viewContainer = new Containers.ChatBubble({
+        // We only want to display the container if the underlying view
+        // itself is visible. The assumption here is that the visibility
+        // state never changes between renders.
+        visible: true,
+        content: pending,
+        sender: sender,
+        expand: true,
+        display_image: actorObj.avatar
+    }, styles.concat('message-pending'), function() {
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT,
+                         timeout,
+                         onVisible);
     });
 
     return viewContainer;
@@ -468,6 +474,10 @@ const CodingChatboxMainWindow = new Lang.Class({
             return container;
 
         let messageBecameVisibleHandler = Lang.bind(this, function() {
+            // Now that the pending message container is done showing
+            // the animation, show the next text message
+            messageQueue.showNext();
+
             // If actorIsVisible is false here, then we should listen for
             // notifications to show an unread-notification on this actor in a
             // given time period.
@@ -496,6 +506,10 @@ const CodingChatboxMainWindow = new Lang.Class({
 
             if (visibleAction)
                 visibleAction();
+
+            // Now that we're done with this message, show the next one if
+            // it is pending (could be an input bubble or another pending
+            // message bubble).
             messageQueue.showNext();
         });
 
@@ -503,16 +517,36 @@ const CodingChatboxMainWindow = new Lang.Class({
                                                    sentBy,
                                                    item,
                                                    location);
+
+        if (pendingTime) {
+            let pendingMessageContainer = newMessagePendingView(this.actor_model.getByName(actor),
+                                                                container.sender,
+                                                                style,
+                                                                pendingTime,
+                                                                function() {
+                                                                    pendingMessageContainer.destroy();
+                                                                    messageBecameVisibleHandler();
+                                                                });
+            messageQueue.push({
+                view: pendingMessageContainer,
+                date: new Date(timestamp),
+                actor: sentBy == State.SentBy.USER ? 'user' : actor
+            });
+        }
+
         messageQueue.push({
             view: newMessageViewForState(container,
                                          this.actor_model.getByName(actor),
                                          style,
-                                         Lang.bind(this, this._handleResponse, style),
-                                         pendingTime,
-                                         messageBecameVisibleHandler),
+                                         Lang.bind(this, this._handleResponse, style)),
             date: new Date(timestamp),
             actor: sentBy == State.SentBy.USER ? 'user' : actor
         });
+
+        if (!pendingTime) {
+            // We can immediately show this message
+            messageBecameVisibleHandler();
+        }
 
         return container;
     },
@@ -538,9 +572,7 @@ const CodingChatboxMainWindow = new Lang.Class({
             let view_container = newMessageViewForState(container,
                                                         this.actor_model.getByName(actor),
                                                         style,
-                                                        Lang.bind(this, this._handleResponse, style),
-                                                        0,
-                                                        null);
+                                                        Lang.bind(this, this._handleResponse, style));
             view_container.showContent();
             view_container.margin = 10;
             inputArea.pack_end(view_container, true, true, 0);
