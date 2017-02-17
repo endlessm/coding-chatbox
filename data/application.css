@@ -114,6 +114,7 @@ image.contact-default-image {
 
 .input-bubble-container .code .chatbox-bubble-contents.input text {
   background-color: #343736;
+  color: #5cae4b;
 }
 
 .input-bubble-container .code .chatbox-bubble-contents.input text:backdrop {
