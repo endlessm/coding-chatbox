@@ -7,6 +7,7 @@
 
 const ChatboxPrivate = imports.gi.ChatboxPrivate;
 const GnomeDesktop = imports.gi.GnomeDesktop;
+const Gdk = imports.gi.Gdk;
 const GdkPixbuf = imports.gi.GdkPixbuf;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
@@ -231,6 +232,11 @@ const PlaceholderOverlay = new Lang.Class({
                                             GObject.ParamFlags.CONSTRUCT_ONLY,
                                             Gtk.TextView)
     },
+    Signals: {
+        'activate': {
+            param_types: []
+        }
+    },
 
     _init: function(params) {
         this.parent(params);
@@ -252,6 +258,9 @@ const PlaceholderOverlay = new Lang.Class({
 
         this.text_view.buffer.connect('changed',
                                       Lang.bind(this, this._updatePlaceholderState));
+        this.text_view.connect('activate', Lang.bind(this, function() {
+            this.emit('activate');
+        }));
     },
 
     _updatePlaceholderState: function() {
@@ -261,6 +270,33 @@ const PlaceholderOverlay = new Lang.Class({
         }
 
         this.overlay_label.get_style_context().add_class('show');
+    }
+});
+
+const ActivatableTextView = new Lang.Class({
+    Name: 'ActivatableTextView',
+    Extends: Gtk.TextView,
+    Properties: {
+        multiline: GObject.ParamSpec.boolean('multiline',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             true)
+    },
+    Signals: {
+        'activate': {
+            param_types: []
+        }
+    },
+
+    vfunc_key_press_event: function(event) {
+        if (!this.multiline && event.keyval === Gdk.KEY_Return) {
+            this.emit('activate');
+            return true;
+        }
+
+        return this.parent(event);
     }
 });
 
@@ -289,11 +325,12 @@ const InputChatboxMessageView = new Lang.Class({
 
         this._textBuffer = new Gtk.TextBuffer();
         this._textView = new PlaceholderOverlay({
-            text_view: new Gtk.TextView({
+            text_view: new ActivatableTextView({
                 visible: true,
                 buffer: this._textBuffer,
                 expand: true,
                 halign: Gtk.Align.FILL,
+                multiline: false
             }),
             expand: true,
             halign: Gtk.Align.FILL,
@@ -308,12 +345,16 @@ const InputChatboxMessageView = new Lang.Class({
             valign: Gtk.Align.CENTER
         });
         this.pack_start(this._button, false, false, 10);
-        this._button.connect('clicked', Lang.bind(this, function() {
+
+        let sendMessage = Lang.bind(this, function() {
             let text = this._textBuffer.get_text(this._textBuffer.get_start_iter(),
                                                  this._textBuffer.get_end_iter(),
                                                  false);
             this.emit('activate', text);
-        }));
+        });
+
+        this._button.connect('clicked', sendMessage);
+        this._textView.connect('activate', sendMessage);
         this.get_style_context().add_class('chatbox-bubble-contents');
         this.get_style_context().add_class('input');
     },
