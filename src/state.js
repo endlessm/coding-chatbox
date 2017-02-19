@@ -143,12 +143,27 @@ const InputChatboxMessage = new Lang.Class({
                                                '',
                                                '',
                                                GObject.ParamFlags.READWRITE,
-                                               '')
+                                               ''),
+        placeholder: GObject.ParamSpec.string('placeholder',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE,
+                                              ''),
+        multiline: GObject.ParamSpec.boolean('multiline',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE,
+                                             false)
     },
 
     _init: function(params, spec) {
+        // Setting defaults above in Properties doesn't seem to work, so
+        // set them here
+        params.showmehow_id = spec.settings.showmehow_id || '';
+        params.placeholder = spec.settings.placeholder || 'Enter your message here';
+        params.multiline = spec.settings.multiline || false;
+
         this.parent(params);
-        this.showmehow_id = spec.settings.showmehow_id;
     },
 
     amend: function() {

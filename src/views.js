@@ -397,8 +397,8 @@ const InputChatboxMessageView = new Lang.Class({
         this.parent(params);
 
         let inputArea = new ChatTextInputArea({
-            placeholder: 'Enter your message here',
-            multiline: false,
+            placeholder: this.state.placeholder,
+            multiline: this.state.multiline,
             expand: true,
             halign: Gtk.Align.FILL,
             visible: true
