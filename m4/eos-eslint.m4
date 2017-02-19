@@ -70,7 +70,7 @@ AC_DEFUN_ONCE([EOS_ESLINT], [
 
     AS_IF([test "x$EOS_ESLINT_AVAILABLE" = "xyes"], [
         EOS_ESLINT_RULES_HEADER='
-eslint $(EOS_ESLINT_FILES):
+eslint: $(EOS_ESLINT_FILES)
 	$(ESLINT) $(EOS_ESLINT_FILES)
 '
     ], [
