@@ -224,13 +224,7 @@ const PlaceholderOverlay = new Lang.Class({
                                               '',
                                               GObject.ParamFlags.READWRITE |
                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              ''),
-        text_view: GObject.ParamSpec.object('text-view',
-                                            '',
-                                            '',
-                                            GObject.ParamFlags.READWRITE |
-                                            GObject.ParamFlags.CONSTRUCT_ONLY,
-                                            Gtk.TextView)
+                                              '')
     },
     Signals: {
         'activate': {
@@ -241,35 +235,25 @@ const PlaceholderOverlay = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
-        this.overlay_label = new Gtk.Label({
+        this._overlayLabel = new Gtk.Label({
             label: this.placeholder,
             use_markup: true,
             visible: true,
             halign: Gtk.Align.START,
             valign: Gtk.Align.START
         });
-        this.overlay_label.get_style_context().add_class('overlay-label');
+        this._overlayLabel.get_style_context().add_class('overlay-label');
 
-        this.add(this.text_view);
-        this.add_overlay(this.overlay_label);
-        this.set_overlay_pass_through(this.overlay_label, true);
-
-        this._updatePlaceholderState();
-
-        this.text_view.buffer.connect('changed',
-                                      Lang.bind(this, this._updatePlaceholderState));
-        this.text_view.connect('activate', Lang.bind(this, function() {
-            this.emit('activate');
-        }));
+        this.add_overlay(this._overlayLabel);
+        this.set_overlay_pass_through(this._overlayLabel, true);
     },
 
-    _updatePlaceholderState: function() {
-        if (this.text_view.buffer.get_char_count()) {
-            this.overlay_label.get_style_context().remove_class('show');
-            return;
-        }
+    show: function() {
+        this._overlayLabel.get_style_context().add_class('show');
+    },
 
-        this.overlay_label.get_style_context().add_class('show');
+    hide: function() {
+        this._overlayLabel.get_style_context().remove_class('show');
     }
 });
 
@@ -300,6 +284,95 @@ const ActivatableTextView = new Lang.Class({
     }
 });
 
+const ChatTextInputArea = new Lang.Class({
+    Name: 'ChatTextInputArea',
+    Extends: Gtk.Box,
+    Properties: {
+        multiline: GObject.ParamSpec.boolean('multiline',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT_ONLY,
+                                             true),
+        placeholder: GObject.ParamSpec.string('placeholder',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT_ONLY,
+                                              'Enter your message here'),
+    },
+    Signals: {
+        activate: {
+            param_types: [ GObject.TYPE_STRING ]
+        }
+    },
+
+    _init: function(params) {
+         this.parent(params);
+
+         // Set up text buffer
+         this._textBuffer = new Gtk.TextBuffer();
+         this._textView = new ActivatableTextView({
+            visible: true,
+            buffer: this._textBuffer,
+            expand: true,
+            halign: Gtk.Align.FILL,
+            multiline: this.multiline
+        });
+
+        // Overlay contains both text buffer and some placeholder
+        // text which is displayed on top
+        this._overlay = new PlaceholderOverlay({
+            expand: true,
+            halign: Gtk.Align.FILL,
+            visible: true,
+            placeholder: this.placeholder
+        });
+
+        // Show the overlay by default, since we don't have any text
+        this._overlay.show();
+        this._overlay.add(this._textView);
+
+        // Button is displayed to the side and only becomes sensitive
+        // when the user can actually send a message
+        this._button = new Gtk.Button({
+            visible: true,
+            label: 'Send',
+            halign: Gtk.Align.END,
+            valign: Gtk.Align.CENTER,
+            sensitive: false
+        });
+
+        this.pack_start(this._overlay, true, true, 0);
+        this.pack_start(this._button, false, false, 10);
+
+        // When the text buffer changes, we want to enable the 'Send'
+        // button and also hide the placeholder text.
+        this._textBuffer.connect('changed', Lang.bind(this, function() {
+            if (this._textBuffer.get_char_count()) {
+                this._overlay.hide();
+                this._button.sensitive = true;
+                return;
+            }
+
+            this._overlay.show();
+            this._button.sensitive = false;
+        }));
+
+        let sendMessage = Lang.bind(this, function() {
+            let text = this._textBuffer.get_text(this._textBuffer.get_start_iter(),
+                                                 this._textBuffer.get_end_iter(),
+                                                 false);
+            // Only send message if there is text to be sent
+            if (text.length)
+                this.emit('activate', text);
+        });
+
+        this._button.connect('clicked', sendMessage);
+        this._textView.connect('activate', sendMessage);
+    }
+});
+
 const InputChatboxMessageView = new Lang.Class({
     Name: 'InputChatboxMessageView',
     Extends: Gtk.Box,
@@ -323,38 +396,19 @@ const InputChatboxMessageView = new Lang.Class({
         params.expand = true;
         this.parent(params);
 
-        this._textBuffer = new Gtk.TextBuffer();
-        this._textView = new PlaceholderOverlay({
-            text_view: new ActivatableTextView({
-                visible: true,
-                buffer: this._textBuffer,
-                expand: true,
-                halign: Gtk.Align.FILL,
-                multiline: false
-            }),
+        let inputArea = new ChatTextInputArea({
+            placeholder: 'Enter your message here',
+            multiline: false,
             expand: true,
             halign: Gtk.Align.FILL,
-            visible: true,
-            placeholder: 'Enter your message here'
+            visible: true
         });
-        this.pack_start(this._textView, true, true, 0);
-        this._button = new Gtk.Button({
-            visible: true,
-            label: 'Send',
-            halign: Gtk.Align.END,
-            valign: Gtk.Align.CENTER
-        });
-        this.pack_start(this._button, false, false, 10);
 
-        let sendMessage = Lang.bind(this, function() {
-            let text = this._textBuffer.get_text(this._textBuffer.get_start_iter(),
-                                                 this._textBuffer.get_end_iter(),
-                                                 false);
+        inputArea.connect('activate', Lang.bind(this, function(area, text) {
             this.emit('activate', text);
-        });
+        }));
 
-        this._button.connect('clicked', sendMessage);
-        this._textView.connect('activate', sendMessage);
+        this.add(inputArea);
         this.get_style_context().add_class('chatbox-bubble-contents');
         this.get_style_context().add_class('input');
     },
