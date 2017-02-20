@@ -142,28 +142,32 @@ const InputChatboxMessage = new Lang.Class({
         showmehow_id: GObject.ParamSpec.string('showmehow-id',
                                                '',
                                                '',
-                                               GObject.ParamFlags.READWRITE,
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT,
                                                ''),
         placeholder: GObject.ParamSpec.string('placeholder',
                                               '',
                                               '',
-                                              GObject.ParamFlags.READWRITE,
-                                              ''),
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT,
+                                              'Enter your message here'),
         multiline: GObject.ParamSpec.boolean('multiline',
                                              '',
                                              '',
-                                             GObject.ParamFlags.READWRITE,
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT,
                                              false)
     },
 
     _init: function(params, spec) {
-        // Setting defaults above in Properties doesn't seem to work, so
-        // set them here
-        params.showmehow_id = spec.settings.showmehow_id || '';
-        params.placeholder = spec.settings.placeholder || 'Enter your message here';
-        params.multiline = spec.settings.multiline || false;
-
         this.parent(params);
+
+        // We do this here because explicitly setting a property to
+        // undefined in params will cause the key to be registered
+        // in the object, which will trip up the base constructor.
+        this.showmehow_id = spec.settings.showmehow_id || this.showmehow_id;
+        this.placeholder = spec.settings.placeholder || this.placeholder;
+        this.multiline = spec.settings.multiline || this.multiline;
     },
 
     amend: function() {
