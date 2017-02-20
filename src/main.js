@@ -231,15 +231,6 @@ function notificationId(actor) {
     return actor + '-message';
 }
 
-function createAccelGroupFor(desc, callback) {
-    let group = new Gtk.AccelGroup();
-    let [key, modifier] = Gtk.accelerator_parse(desc);
-
-    group.connect(key, modifier, Gtk.AccelFlags.VISIBLE, callback);
-
-    return group;
-}
-
 // We'll send a reminder after 20 minutes if the user fails to read a message
 const MINUTES_TO_SECONDS_SCALE = 60;
 const CHATBOX_MESSAGE_REMINDER_NOTIFICATION_SECONDS = 20 * MINUTES_TO_SECONDS_SCALE;
