@@ -160,14 +160,21 @@ const InputChatboxMessage = new Lang.Class({
     },
 
     _init: function(params, spec) {
-        this.parent(params);
+        // We have to check if each of these are set before adding them
+        // to params. Reading undefined from spec.settings will write
+        // undefined into params and define the key which then turns up
+        // in Object.keys . GObject will then treat the property as
+        // defined to be undefined which blows up.
+        if (spec.settings.showmehow_id)
+            params.showmehow_id = spec.settings.showmehow_id;
 
-        // We do this here because explicitly setting a property to
-        // undefined in params will cause the key to be registered
-        // in the object, which will trip up the base constructor.
-        this.showmehow_id = spec.settings.showmehow_id || this.showmehow_id;
-        this.placeholder = spec.settings.placeholder || this.placeholder;
-        this.multiline = spec.settings.multiline || this.multiline;
+        if (spec.settings.placeholder)
+            params.placeholder = spec.settings.placeholder;
+
+        if (spec.settings.multiline)
+            params.multiline = spec.settings.multiline;
+
+        this.parent(params);
     },
 
     amend: function() {
