@@ -186,6 +186,7 @@ image.contact-default-image {
 .message-received-date {
   font-size: 12px;
   text-shadow: none;
+  color: #e6e6e6;
 }
 
 .chatbox-input-area-shadow {
@@ -222,11 +223,11 @@ row:selected:backdrop.contact-row {
 }
 
 .chatbox-contact-list {
-  background-color: #232729;
+  background-color: #1a2c32;
 }
 
 .chatbox-contact-list:backdrop {
-  background-color: #252a2c;
+  background-color: #011319;
 }
 
 .contact-message-notification {
@@ -255,7 +256,7 @@ row:selected:backdrop.contact-row {
 
 .icon-container {
   background-color: #5c6868;
-  border-radius: 24px;
+  border-radius: 6px;
   padding: 7px;
 }
 
