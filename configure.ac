@@ -13,6 +13,16 @@ AM_SILENT_RULES([yes])
 # Custom macros
 AC_CONFIG_MACRO_DIRS([m4])
 
+# Gettext package name
+GETTEXT_PACKAGE=$PACKAGE
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, ["$GETTEXT_PACKAGE"],
+    [Package name for Gettext])
+
+# Gettext
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.18.1])
+
 # Set up libtool
 LT_INIT
 
@@ -60,9 +70,10 @@ EOS_ESLINT
 AC_SUBST(GLIB_COMPILE_RESOURCES)
 
 AC_CONFIG_FILES([
-Makefile
-lib/Makefile
-data/icons/Makefile
+    Makefile
+    lib/Makefile
+    data/icons/Makefile
+    po/Makefile.in
 ])
 
 AC_OUTPUT

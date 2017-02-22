@@ -1,0 +1,84 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: coding-chatbox \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-02-22 17:39+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/containers.js:38
+msgid "Copy"
+msgstr ""
+
+#: src/main.js:646
+msgid "Attachment from %s"
+msgstr ""
+
+#. Force the title of the window to be Coding Chatbox here so that it
+#. doesn't get overridden as 'Current Page' later.
+#: src/main.js:279 src/main.js:790
+msgid "ChatBox"
+msgstr ""
+
+#: src/main.js:643
+msgid "Message from %s"
+msgstr ""
+
+#: src/main.js:489
+msgid "Waiting on your input"
+msgstr ""
+
+#: src/main.js:490
+msgid "%s is still waiting on your response!"
+msgstr ""
+
+#: src/timestamp.js:33
+msgid "In the future"
+msgstr ""
+
+#: src/timestamp.js:71
+msgid "Last month"
+msgstr ""
+
+#: src/timestamp.js:85
+msgid "Last week"
+msgstr ""
+
+#: src/timestamp.js:64
+msgid "Last year"
+msgstr ""
+
+#: src/timestamp.js:92
+msgid "Yesterday"
+msgstr ""
+
+#: src/timestamp.js:94
+msgid "About %s days ago"
+msgstr ""
+
+#: src/timestamp.js:73
+msgid "About %s months ago"
+msgstr ""
+
+#: src/timestamp.js:87
+msgid "About %s weeks ago"
+msgstr ""
+
+#: src/timestamp.js:66
+msgid "About %s years ago"
+msgstr ""
+
+#: src/views.js:346
+msgid "Send"
+msgstr ""

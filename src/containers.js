@@ -34,9 +34,8 @@ const Queue = imports.queue;
 // callback when the button is clicked
 function createCopyPopover(forWidget, callback) {
     let popover = new Gtk.Popover({ relative_to: forWidget });
-    // TODO: make this translatable
     let button = new Gtk.Button({
-        label: 'Copy',
+        label: _('Copy'),
         visible: true
     });
     button.connect('clicked', callback);

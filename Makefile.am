@@ -1,4 +1,7 @@
-SUBDIRS = lib data/icons
+SUBDIRS = lib data/icons po
+
+# Our Autoconf macros are kept in the m4/ directory
+ACLOCAL_AMFLAGS = -I m4
 
 # Resources
 resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/src --sourcedir=$(builddir)/src --generate-dependencies $(srcdir)/src/com.endlessm.Coding.Chatbox.src.gresource.xml)
