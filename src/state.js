@@ -142,13 +142,39 @@ const InputChatboxMessage = new Lang.Class({
         showmehow_id: GObject.ParamSpec.string('showmehow-id',
                                                '',
                                                '',
-                                               GObject.ParamFlags.READWRITE,
-                                               '')
+                                               GObject.ParamFlags.READWRITE |
+                                               GObject.ParamFlags.CONSTRUCT,
+                                               ''),
+        placeholder: GObject.ParamSpec.string('placeholder',
+                                              '',
+                                              '',
+                                              GObject.ParamFlags.READWRITE |
+                                              GObject.ParamFlags.CONSTRUCT,
+                                              'Enter your message here'),
+        multiline: GObject.ParamSpec.boolean('multiline',
+                                             '',
+                                             '',
+                                             GObject.ParamFlags.READWRITE |
+                                             GObject.ParamFlags.CONSTRUCT,
+                                             false)
     },
 
     _init: function(params, spec) {
+        // We have to check if each of these are set before adding them
+        // to params. Reading undefined from spec.settings will write
+        // undefined into params and define the key which then turns up
+        // in Object.keys . GObject will then treat the property as
+        // defined to be undefined which blows up.
+        if (spec.settings.showmehow_id)
+            params.showmehow_id = spec.settings.showmehow_id;
+
+        if (spec.settings.placeholder)
+            params.placeholder = spec.settings.placeholder;
+
+        if (spec.settings.multiline)
+            params.multiline = spec.settings.multiline;
+
         this.parent(params);
-        this.showmehow_id = spec.settings.showmehow_id;
     },
 
     amend: function() {
