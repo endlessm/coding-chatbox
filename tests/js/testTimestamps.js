@@ -1,3 +1,4 @@
+/* eslint-env jasmine */
 // tests/js/testTimestamps.js
 //
 // Copyright (c) 2017 Endless Mobile Inc.

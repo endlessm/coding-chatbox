@@ -33,6 +33,7 @@ const RoundedImage = new Lang.Class({
     }
 });
 
+// eslint-disable-next-line no-unused-vars
 const CodingChatboxContactListItem = new Lang.Class({
     Name: 'CodingChatboxContactListItem',
     Extends: Gtk.ListBoxRow,

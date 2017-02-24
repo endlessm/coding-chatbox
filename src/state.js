@@ -71,6 +71,8 @@ const CodingChatboxMessageBase = new Lang.Class({
     }
 });
 
+
+// eslint-disable-next-line no-unused-vars
 const TextChatboxMessage = new Lang.Class({
     Name: 'TextChatboxMessage',
     Extends: CodingChatboxMessageBase,
@@ -102,6 +104,8 @@ const TextChatboxMessage = new Lang.Class({
     }
 });
 
+
+// eslint-disable-next-line no-unused-vars
 const ChoiceChatboxMessage = new Lang.Class({
     Name: 'ChoiceChatboxMessage',
     Extends: CodingChatboxMessageBase,
@@ -135,6 +139,8 @@ const ChoiceChatboxMessage = new Lang.Class({
     }
 });
 
+
+// eslint-disable-next-line no-unused-vars
 const InputChatboxMessage = new Lang.Class({
     Name: 'InputChatboxMessage',
     Extends: CodingChatboxMessageBase,
@@ -182,6 +188,7 @@ const InputChatboxMessage = new Lang.Class({
     }
 });
 
+// eslint-disable-next-line no-unused-vars
 const AttachmentChatboxMessage = new Lang.Class({
     Name: 'AttachmentChatboxMessage',
     Extends: CodingChatboxMessageBase,
@@ -482,6 +489,7 @@ const CodingChatboxConversationState = new Lang.Class({
 //
 // The overall "state" of the chatbox, which includes the individual converation
 //
+// eslint-disable-next-line no-unused-vars
 const CodingChatboxState = new Lang.Class({
     Name: 'CodingChatboxState',
 

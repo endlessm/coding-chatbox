@@ -16,9 +16,7 @@ pkg.require({
     GObject: '2.0'
 });
 
-const Cairo = imports.cairo;
 const Gdk = imports.gi.Gdk;
-const GdkPixbuf = imports.gi.GdkPixbuf;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
@@ -243,14 +241,14 @@ const CodingChatboxMainWindow = new Lang.Class({
     Extends: Gtk.ApplicationWindow,
     Template: 'resource:///com/endlessm/Coding/Chatbox/main.ui',
     Children: [
-      'chatbox-list-box',
-      'chatbox-stack',
-      'chatbox-view-stack',
-      'attachment-preview-actor-image-container',
-      'attachment-preview-close',
-      'attachment-preview-filename',
-      'attachment-preview-desc',
-      'attachment-preview-image'
+        'chatbox-list-box',
+        'chatbox-stack',
+        'chatbox-view-stack',
+        'attachment-preview-actor-image-container',
+        'attachment-preview-close',
+        'attachment-preview-filename',
+        'attachment-preview-desc',
+        'attachment-preview-image'
     ],
     Properties: {
         actor_model: GObject.ParamSpec.object('actor-model',
@@ -741,7 +739,7 @@ const CodingChatboxMainWindow = new Lang.Class({
     },
 
     hideUserInput: function(actor) {
-        let contents = this._contentsForActor(actor).hideInputArea();
+        this._contentsForActor(actor).hideInputArea();
     },
 
     switchToChatWith: function(actor) {

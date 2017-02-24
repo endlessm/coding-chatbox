@@ -26,6 +26,12 @@ javascript_tests = \
 	tests/js/testTimestamps.js \
 	$(NULL)
 
+# All javascript files (used for linter)
+all_js_files = \
+	$(resource_files) \
+	$(javascript_tests) \
+	$(NULL)
+
 # Set EXTRA_DIST and CLEANFILES initially
 EXTRA_DIST = \
 	$(resource_files) \
@@ -124,11 +130,12 @@ endif
 TESTS = \
 	$(javascript_tests) \
 	run_coverage.coverage \
+	run_eslint.eslint \
 	$(NULL)
 LOG_COMPILER = gtester
 AM_LOG_FLAGS = -k --verbose
 
-TEST_EXTENSIONS = .js .coverage
+TEST_EXTENSIONS = .js .coverage .eslint
 
 JS_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/tap-driver.sh
 JS_LOG_DRIVER_FLAGS = --comments
@@ -157,3 +164,10 @@ EOS_JS_COVERAGE_FILES := $(patsubst $(srcdir)/%,%,$(wildcard $(srcdir)/src/*.js)
 @EOS_COVERAGE_RULES@
 
 AM_JS_LOG_FLAGS += @EOS_JS_COVERAGE_LOG_FLAGS@
+
+
+# # # LINTING # # #
+EOS_ESLINT_FILES := $(all_js_files)
+
+@EOS_ESLINT_RULES@
+

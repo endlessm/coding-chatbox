@@ -19,6 +19,7 @@ const GObject = imports.gi.GObject;
 
 const Lang = imports.lang;
 
+// eslint-disable-next-line no-unused-vars
 const TriggerableEventQueue = new Lang.Class({
     Name: 'TriggerableEventQueue',
     Extends: GObject.Object,

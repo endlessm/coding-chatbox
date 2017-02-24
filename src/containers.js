@@ -44,6 +44,7 @@ function createCopyPopover(forWidget, callback) {
     return popover;
 }
 
+// eslint-disable-next-line no-unused-vars
 const ChatBubble = new Lang.Class({
     Name: 'ChatBubble',
     Extends: Gtk.Box,
@@ -335,7 +336,7 @@ const ChatStackChild = new Lang.Class({
         this._chatInputRevealer.set_reveal_child(false);
     },
 
-    updateTimestamps: function(callback) {
+    updateTimestamps: function() {
         this.chat_contents.get_children().forEach(function(group) {
             group.updateMessageReceivedDate();
         });
@@ -354,6 +355,8 @@ const ChatStackChild = new Lang.Class({
 //
 // Create a widget containing contents and an input box for this
 // part of the chatbox stack.
+//
+// eslint-disable-next-line no-unused-vars
 function createChatContentsWidget() {
     let chatContents = new Gtk.Box({
         orientation: Gtk.Orientation.VERTICAL,
