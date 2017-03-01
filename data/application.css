@@ -112,12 +112,12 @@ image.contact-default-image {
   background-color: #2a2d2c;
 }
 
-.input-bubble-container .code .chatbox-bubble-contents.input text {
+.input-bubble-container.code .chatbox-bubble-contents.input text {
   background-color: #343736;
   color: #5cae4b;
 }
 
-.input-bubble-container .code .chatbox-bubble-contents.input text:backdrop {
+.input-bubble-container.code .chatbox-bubble-contents.input text:backdrop {
   background-color: #2a2d2c;
   color: #659e51;
 }
