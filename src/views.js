@@ -323,7 +323,8 @@ const ChatTextInputArea = new Lang.Class({
             buffer: this._textBuffer,
             expand: true,
             halign: Gtk.Align.FILL,
-            multiline: this.multiline
+            multiline: this.multiline,
+            wrap_mode: Gtk.WrapMode.WORD
         });
 
         // Overlay contains both text buffer and some placeholder
