@@ -274,7 +274,7 @@ const CodingChatboxMainWindow = new Lang.Class({
     _init: function(params) {
         // Force the title of the window to be Coding Chatbox here so that it
         // doesn't get overridden as 'Current Page' later.
-        params.title = _('ChatBox');
+        params.title = _("ChatBox");
         this.parent(params);
 
         this._state = new State.CodingChatboxState(MessageClasses);
@@ -492,9 +492,8 @@ const CodingChatboxMainWindow = new Lang.Class({
                 if (!row)
                     throw new Error('Couldn\'t find row matching actor ' + actor);
 
-                // TODO: Translations
-                this.application.showNotification('Waiting on your input',
-                                                  actor + ' is still waiting on your response!',
+                this.application.showNotification(_("Waiting on your input"),
+                                                  _("%s is still waiting on your response").format(actor),
                                                   row.avatar,
                                                   actor);
             });
@@ -646,12 +645,11 @@ const CodingChatboxMainWindow = new Lang.Class({
         if (!row)
             throw new Error('Couldn\'t find row matching actor ' + actor);
 
-        // TODO: make these translatable
         if (item.type === 'scrolled') {
-            title = 'Message from ' + actor;
+            title = _("Message from %s").format(actor);
             body = Views.stripMarkup(item.text);
         } else if (item.type === 'attachment') {
-            title = 'Attachment from ' + actor;
+            title = _("Attachment from %s").format(actor);
             body = Views.stripMarkup(item.attachment.desc);
         } else {
             return;

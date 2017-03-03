@@ -2,6 +2,8 @@
 # Bootstrap script for Endless OS showmehow-service
 # Run this script on a clean source checkout to get ready for building.
 
+POT_FILE=po/coding-chatbox.pot
+
 test -n "$srcdir" || srcdir=`dirname "$0"`
 test -n "$srcdir" || srcdir=.
 olddir=`pwd`
@@ -22,6 +24,7 @@ fi
 
 # Run the actual tools to prepare the clean checkout
 autoreconf -fi || exit $?
+rm -f po/Makevars.template
 
 cd "$olddir"
 test -n "$NOCONFIGURE" || "./configure" "$@"

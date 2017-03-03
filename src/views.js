@@ -344,7 +344,7 @@ const ChatTextInputArea = new Lang.Class({
         // when the user can actually send a message
         this._button = new Gtk.Button({
             visible: true,
-            label: 'Send',
+            label: _("Send"),
             halign: Gtk.Align.END,
             valign: Gtk.Align.CENTER,
             sensitive: false

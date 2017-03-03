@@ -32,7 +32,7 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
     current = current || new Date();
 
     if (date.getTime() > current.getTime()) {
-        return 'In the future';
+        return _("In the future");
     }
 
     // Convert to GDateTime and use that API consistently throuhgout
@@ -63,16 +63,16 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
     // string to show
     let yearDelta = beginningOfYear.get_year() - datetime.get_year();
     if (yearDelta === 1) {
-        return 'Last year';
+        return _("Last year");
     } else if (yearDelta > 0) {
-        return ['About', yearDelta, 'years ago'].join(' ');
+        return _("About %d years ago").format(yearDelta);
     }
 
     let monthDelta = beginningOfMonth.get_month() - datetime.get_month();
     if (monthDelta === 1) {
-        return 'Last month';
+        return _("Last month");
     } else if (monthDelta > 0) {
-        return ['About', monthDelta, 'months ago'].join(' ');
+        return _("About %d months ago").format(monthDelta);
     }
 
     let weekDelta = beginningOfWeek.get_week_of_year() - datetime.get_week_of_year();
@@ -84,16 +84,16 @@ function calculateMessageReceivedTextFromDate(date, current=null) {
     }
 
     if (weekDelta === 1) {
-        return 'Last week';
+        return _("Last week");
     } else if (weekDelta > 0) {
-        return ['About', weekDelta, 'weeks ago'].join(' ');
+        return _("About %d weeks ago").format(weekDelta);
     }
 
     let dayDelta = todayMidnight.get_day_of_year() - datetime.get_day_of_year();
     if (dayDelta === 1) {
-        return 'Yesterday';
+        return _("Yesterday");
     } else if (dayDelta > 0) {
-        return ['About', dayDelta, 'days ago'].join(' ');
+        return _("About %d days ago").format(dayDelta);
     }
 
 
