@@ -653,6 +653,9 @@ const AttachmentChatboxMessageView = new Lang.Class({
             attachment_icon_context.add_class(class_name);
             attachment_icon_context.add_class('image');
 
+            // No need to show the attachment name in this case
+            this.attachment_name.visible = false;
+
             // Now set some classes to indicate that this is a thumbnail.
             // Because we set the background image through CSS, we will
             // get corner rounding too
