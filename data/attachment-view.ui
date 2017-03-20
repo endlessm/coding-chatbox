@@ -27,7 +27,7 @@
                       <object class="GtkOverlay">
                         <property name="visible">True</property>
                         <property name="hexpand">True</property>
-                        <property name="halign">fill</propety>
+                        <property name="halign">fill</property>
                         <child>
                           <object class="GtkImage" id="attachment-icon">
                             <property name="visible">True</property>

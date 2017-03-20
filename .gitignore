@@ -7,11 +7,14 @@
 .libs
 Makefile
 Makefile.in
+
+/ABOUT-NLS
 /aclocal.m4
 /autom4te.cache
 /compile
 /config.guess
 /config.log
+/config.rpath
 /config.status
 /config.sub
 /configure
@@ -19,7 +22,11 @@ Makefile.in
 /install-sh
 /libtool
 /ltmain.sh
+/m4
 /missing
+/po
+/tap-driver.sh
+/test-driver
 
 /ChatboxService-1.0.gir
 /ChatboxService-1.0.typelib
