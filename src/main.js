@@ -35,6 +35,9 @@ const CHAT_WITH_ACTION = 'chat-with';
 const CLOCK_SCHEMA = 'org.gnome.desktop.interface';
 const CLOCK_FORMAT_KEY = 'clock-format';
 
+const Gettext = imports.gettext;
+window._ = Gettext.gettext;
+
 //
 // newMessageViewForState
 //
