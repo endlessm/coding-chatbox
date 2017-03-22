@@ -7,6 +7,8 @@
 
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
+const Gettext = imports.gettext;
+window._ = Gettext.gettext;
 
 const GnomeInterfacePreferences = new Gio.Settings({
     schema: 'org.gnome.desktop.interface'
