@@ -156,7 +156,7 @@ const InputChatboxMessage = new Lang.Class({
                                               '',
                                               GObject.ParamFlags.READWRITE |
                                               GObject.ParamFlags.CONSTRUCT,
-                                              'Enter your message here'),
+                                              _('Enter your message here')),
         multiline: GObject.ParamSpec.boolean('multiline',
                                              '',
                                              '',
@@ -194,20 +194,20 @@ const AttachmentChatboxMessage = new Lang.Class({
     Extends: CodingChatboxMessageBase,
     Properties: {
         path: GObject.ParamSpec.object('path',
-                                       'Path',
-                                       'Path to the Attachment',
+                                       _('Path'),
+                                       _('Path to the Attachment'),
                                        GObject.ParamFlags.READWRITE |
                                        GObject.ParamFlags.CONSTRUCT_ONLY,
                                        Gio.File),
         desc: GObject.ParamSpec.string('desc',
-                                       'Description',
-                                       'Description of the Attachment',
+                                       _('Description'),
+                                       _('Description of the Attachment'),
                                        GObject.ParamFlags.READWRITE |
                                        GObject.ParamFlags.CONSTRUCT_ONLY,
                                        ''),
         open_event: GObject.ParamSpec.string('open-event',
-                                             'Optional event to trigger on open',
-                                             'Optional event to trigger on open',
+                                             _('Optional event to trigger on open'),
+                                             _('Optional event to trigger on open'),
                                              GObject.ParamFlags.READWRITE |
                                              GObject.ParamFlags.CONSTRUCT_ONLY,
                                              '')

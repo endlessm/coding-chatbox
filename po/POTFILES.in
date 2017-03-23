@@ -1,4 +1,5 @@
 src/containers.js
 src/main.js
+src/state.js
 src/timestamp.js
 src/views.js
