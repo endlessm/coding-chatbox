@@ -350,6 +350,66 @@ const ChatStackChild = new Lang.Class({
     }
 });
 
+function findLastChatboxBubbleGroupInChildren(children) {
+    // Go backwards and find the last chatbox bubble group in children,
+    // returning null if one wasn't found
+    let index = children.length;
+    while (index--) {
+        if (children[index].chatbox_bubbles) {
+            return children[index];
+        }
+    }
+
+    return null;
+}
+
+const ChatContents = new Lang.Class({
+    Name: 'ChatContents',
+    Extends: Gtk.Box,
+
+    _init: function(params) {
+        this.parent(params);
+    },
+
+    focusLastChatBubble: function() {
+        let groups = this.get_children();
+        let lastGroup = findLastChatboxBubbleGroupInChildren(groups);
+        if (lastGroup) {
+            let children = lastGroup.chatbox_bubbles.get_children();
+            children[children.length - 1].focused();
+        }
+    },
+
+    _insertNewGroupForBubble: function(view, date, actor) {
+        let newGroup = new MessageGroup({
+            visible: true,
+            expand: true
+        });
+        newGroup.addBubble(view, date, actor);
+        this.pack_start(newGroup, true, true, 15);
+    },
+
+    // Add a new message bubble to this ChatContents. If it makes sense,
+    // add it to the last group, otherwise add a new group. We add a new
+    // group if the last element in the box was a separator or not a message
+    // group
+    addNewBubble: function(view, date, actor) {
+        let children = this.get_children();
+
+        // If we satsify the conditions, add the new bubble, otherwise
+        // insert a new group
+        if (children.length) {
+            let lastElement = children[children.length - 1];
+            if (lastElement.chatbox_bubbles &&
+                lastElement.addBubble(view, date, actor)) {
+                return;
+            }
+        }
+
+        this._insertNewGroupForBubble(view, date, actor);
+    }
+});
+
 // createChatContentsWidget
 //
 // Create a widget containing contents and an input box for this
@@ -357,7 +417,7 @@ const ChatStackChild = new Lang.Class({
 //
 // eslint-disable-next-line no-unused-vars
 function createChatContentsWidget() {
-    let chatContents = new Gtk.Box({
+    let chatContents = new ChatContents({
         orientation: Gtk.Orientation.VERTICAL,
         visible: true,
         valign: Gtk.Align.START
@@ -370,19 +430,7 @@ function createChatContentsWidget() {
         } else {
             // Check to see if there are any groups that will accept
             // this item to start with
-            let groups = chatContents.get_children();
-            if (!groups.length ||
-                !groups[groups.length - 1].addBubble(item.view,
-                                                     item.date,
-                                                     item.actor)) {
-                let newGroup = new MessageGroup({
-                    visible: true,
-                    expand: true
-                });
-                newGroup.addBubble(item.view, item.date, item.actor);
-                chatContents.pack_start(newGroup, true, true, 15);
-            }
-
+            chatContents.addNewBubble(item.view, item.date, item.actor);
             item.view.showContent();
         }
     });

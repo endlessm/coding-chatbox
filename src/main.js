@@ -415,11 +415,7 @@ const CodingChatboxMainWindow = new Lang.Class({
         // a page on the GtkStack and vice versa.
         let row = this._rowForActor(actor);
         let chatContents = this._contentsForActor(actor).chat_contents;
-        let groups = chatContents.get_children();
-        if (groups.length) {
-            let children = groups[groups.length - 1].chatbox_bubbles.get_children();
-            children[children.length - 1].focused();
-        }
+        chatContents.focusLastChatBubble();
 
         row.highlight = false;
         this._state.markAllMessagesByActorAsRead(actor);
