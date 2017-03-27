@@ -407,6 +407,15 @@ const CodingChatboxConversationState = new Lang.Class({
     },
 
     //
+    // deactivateUserInput
+    //
+    // Deactivate any currently active user input containers
+    //
+    deactivateUserInput: function() {
+        this._userInput = null;
+    },
+
+    //
     // amendLastMessage
     //
     // Amend the last message in the model with a message specification. This might completely
@@ -526,6 +535,16 @@ const CodingChatboxState = new Lang.Class({
     replaceUserInputWithForActor: function(actor, spec, location) {
         this.loadConversationsForActor(actor);
         return this.conversations[actor].replaceUserInputWith(spec, location);
+    },
+
+    //
+    // deactivateUserInputForActor
+    //
+    // Deactivate the currently active user input box on this actor
+    //
+    deactivateUserInputForActor: function(actor) {
+        this.loadConversationsForActor(actor);
+        return this.conversations[actor].deactivateUserInput(actor);
     },
 
     amendLastMessageForActor: function(actor, sender, spec) {
