@@ -319,6 +319,9 @@ const CodingChatboxMainWindow = new Lang.Class({
                                       0, null);
                         this._notifyItem(spec, actor.name, false);
                         break;
+                    case 'chat-separator':
+                        this._addSeparator(actor.name);
+                        break;
                     default:
                         throw new Error('Don\'t know how to handle logged message type ' + item.type);
                     }
@@ -556,6 +559,33 @@ const CodingChatboxMainWindow = new Lang.Class({
         return container;
     },
 
+    _addSeparator: function(actor) {
+        let stackChild = this._contentsForActor(actor);
+        let messageQueue = stackChild.message_queue;
+        let chatContents = stackChild.chat_contents;
+        let inputArea = stackChild.input_area;
+
+        // Push a function to messageQueue which gets called when it becomes
+        // the first item on the queue. Add a separator to the chat
+        // contents and remove any currently active user input bubbles
+        messageQueue.push(Lang.bind(this, function() {
+            this._state.deactivateUserInputForActor(actor);
+            inputArea.get_children().forEach(function(child) {
+                child.destroy();
+            });
+            stackChild.hideInputArea();
+            stackChild.scrollToBottomOnUpdate();
+
+            chatContents.pack_start(new Gtk.Separator({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                visible: true,
+                hexpand: true,
+                halign: Gtk.Align.FILL
+            }), true, true, 0);
+            messageQueue.showNext();
+        }));
+    },
+
     _replaceUserInput: function(item, actor, style, location) {
         let stackChild = this._contentsForActor(actor);
         let messageQueue = stackChild.message_queue;
@@ -732,6 +762,10 @@ const CodingChatboxMainWindow = new Lang.Class({
                       }));
     },
 
+    chatSeparator: function(actor) {
+        this._addSeparator(actor);
+    },
+
     chatUserInput: function(actor, spec, location, style) {
         this._replaceUserInput(spec, actor, style, location);
     },
@@ -876,6 +910,12 @@ const CodingChatboxApplication = new Lang.Class({
                 let title = 'Attachment from ' + actor;
                 let actorObj = this._actorModel.getByName(actor);
                 this.showNotification(title, Views.stripMarkup(attachment.desc), actorObj.avatar, actor);
+            }
+        }));
+
+        this._skeleton.connect('chat-separator', Lang.bind(this, function(service, actor) {
+            if (this._mainWindow) {
+                this._mainWindow.chatSeparator(actor);
             }
         }));
 
