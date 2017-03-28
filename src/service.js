@@ -124,6 +124,9 @@ const ChatboxReceiverService = new Lang.Class({
                           decodedMessage.name,
                           decodedMessage.timestamp,
                           decodedMessage.styles);
+            } else if (decodedMessage.separator) {
+                this.emit('chat-separator',
+                          decodedMessage.actor);
             }
             this.complete_receive_message(method);
         } catch (e) {
