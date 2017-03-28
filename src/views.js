@@ -305,7 +305,7 @@ const ChatTextInputArea = new Lang.Class({
                                               '',
                                               GObject.ParamFlags.READWRITE |
                                               GObject.ParamFlags.CONSTRUCT_ONLY,
-                                              'Enter your message here'),
+                                              _('Enter your message here')),
     },
     Signals: {
         activate: {
