@@ -5,6 +5,7 @@
     <file>contact.js</file>
     <file>containers.js</file>
     <file>main.js</file>
+    <file>promiseHelpers.js</file>
     <file>service.js</file>
     <file>views.js</file>
     <file>state.js</file>
