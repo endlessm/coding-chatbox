@@ -168,7 +168,7 @@ const RenderableInputChatboxMessage = new Lang.Class({
 //
 // Helper function that returns content type of a GFile.
 function contentType(file) {
-    let fileInfo = file.query_info('standard::content-type', 0, null, null);
+    let fileInfo = file.query_info('standard::content-type', 0, null);
     let type = fileInfo.get_content_type();
     return type;
 }
