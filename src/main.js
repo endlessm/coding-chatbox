@@ -26,6 +26,7 @@ const Actor = imports.actor;
 const Contact = imports.contact;
 const Containers = imports.containers;
 const Lang = imports.lang;
+const PromiseHelpers = imports.promiseHelpers;
 const Service = imports.service;
 const State = imports.state;
 const Views = imports.views;
@@ -175,6 +176,42 @@ function contentType(file) {
     return type;
 }
 
+function launchDesktopFileThroughShell(desktopFilePath, cancellable) {
+    return PromiseHelpers.promisifyGIO(Gio,
+                                       'bus_get',
+                                       'bus_get_finish',
+                                       Gio.BusType.SESSION,
+                                       null)
+    .then(conn =>
+        PromiseHelpers.promisifyGIO(conn,
+                                   'call',
+                                   'call_finish',
+                                   'org.gnome.Shell',
+                                   '/org/gnome/Shell',
+                                   'org.gnome.Shell.AppLauncher',
+                                   'Launch',
+                                   new GLib.Variant('(su)', [
+                                       desktopFilePath,
+                                       Gtk.get_current_event_time()
+                                   ]),
+                                   null,
+                                   Gio.DBusCallFlags.NONE,
+                                   -1,
+                                   cancellable)
+    );
+}
+
+function openFilenameWithMimetypeHandler(path, cancellable) {
+    let subprocess = Gio.Subprocess.new(['xdg-open', path],
+                                        Gio.SubprocessFlags.NONE);
+
+
+    return PromiseHelpers.promisifyGIO(subprocess,
+                                       'wait_async',
+                                       'wait_finish',
+                                       cancellable);
+}
+
 const RenderableAttachmentChatboxMessage = new Lang.Class({
     Name: 'RenderableAttachmentChatboxMessage',
     Extends: State.AttachmentChatboxMessage,
@@ -196,17 +233,16 @@ const RenderableAttachmentChatboxMessage = new Lang.Class({
             // If we're going to show an attachment preview, don't
             // launch the application
             if (!attachmentPreview) {
+                const attachmentPath = this.path.get_path();
                 if (contentType(this.path) == 'application/x-desktop') {
-                    appInfo = Gio.DesktopAppInfo.new_from_filename(this.path.get_path());
+                    launchDesktopFileThroughShell(attachmentPath, null).catch(e =>
+                        logError(e, `Error calling AppLauncher for ${attachmentPath}`)
+                    );
                 } else {
-                    appInfo = this.path.query_default_handler(null);
-                    files.push(this.path);
+                    openFilenameWithMimetypeHandler(attachmentPath, null).catch(e =>
+                        logError(e, `Error calling default handler for ${attachmentPath}`)
+                    );
                 }
-
-                if (appInfo)
-                    appInfo.launch(files, null);
-                else
-                    log('Couldn\'t find appInfo for ' + this.path.get_path() + ' ' + contentType(this.path));
             }
 
             listener({
