@@ -426,7 +426,7 @@ const InputChatboxMessageView = new Lang.Class({
 const MessagePendingView = new Lang.Class({
     Name: 'MessagePendingView',
     Extends: Gtk.Box,
-    Template: 'resource:///com/endlessm/Coding/Chatbox/message-pending-view.ui',
+    Template: 'resource:///com/endlessm/CodingChatbox/message-pending-view.ui',
     Children: ['animation'],
     Implements: [ ChatboxMessageView ],
 
@@ -591,7 +591,7 @@ const CSSAllocator = (function() {
 const AttachmentChatboxMessageView = new Lang.Class({
     Name: 'AttachmentChatboxMessageView',
     Extends: Gtk.Button,
-    Template: 'resource:///com/endlessm/Coding/Chatbox/attachment-view.ui',
+    Template: 'resource:///com/endlessm/CodingChatbox/attachment-view.ui',
     Children: [
         'attachment-icon',
         'attachment-icon-container',

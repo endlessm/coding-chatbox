@@ -37,7 +37,7 @@ const RoundedImage = new Lang.Class({
 const CodingChatboxContactListItem = new Lang.Class({
     Name: 'CodingChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
-    Template: 'resource:///com/endlessm/Coding/Chatbox/contact.ui',
+    Template: 'resource:///com/endlessm/CodingChatbox/contact.ui',
     Children: ['content-grid', 'contact-name-label', 'contact-message-notification'],
     Properties: {
         'actor': GObject.ParamSpec.object('actor',

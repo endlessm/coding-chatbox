@@ -1,5 +1,5 @@
 #!@GJS@
-/* com.endlessm.Coding.Chatbox
+/* com.endlessm.CodingChatbox
  *
  * Copyright (c) 2016 Endless Mobile Inc.
  * All Rights Reserved.
@@ -8,7 +8,7 @@
  * project. It communicates with another service called "showmehow" to obtain
  * lesson content and provides a chat-like experience for the user.
  */
-imports.package.init({ name: "com.endlessm.Coding.Chatbox",
+imports.package.init({ name: "com.endlessm.CodingChatbox",
                        version: "@PACKAGE_VERSION@",
                        prefix: "@prefix@",
                        libdir: "@libdir@" });

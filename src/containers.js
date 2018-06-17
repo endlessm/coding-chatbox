@@ -47,7 +47,7 @@ function createCopyPopover(forWidget, callback) {
 const ChatBubble = new Lang.Class({
     Name: 'ChatBubble',
     Extends: Gtk.Box,
-    Template: 'resource:///com/endlessm/Coding/Chatbox/chat-bubble-container.ui',
+    Template: 'resource:///com/endlessm/CodingChatbox/chat-bubble-container.ui',
     Children: [
         'inner-box',
         'event-box',
@@ -180,7 +180,7 @@ function isCloseEnoughInTime(lastMessageDate, currentMessageDate) {
 const MessageGroup = new Lang.Class({
     Name: 'MessageGroup',
     Extends: Gtk.Box,
-    Template: 'resource:///com/endlessm/Coding/Chatbox/chatbox-message-group.ui',
+    Template: 'resource:///com/endlessm/CodingChatbox/chatbox-message-group.ui',
     Children: [
         'message-received-date-container',
         'message-received-date-label',

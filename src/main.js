@@ -242,7 +242,7 @@ const CHATBOX_MESSAGE_RECEIVED_LABELS_UPDATE_PERIOD_SECONDS = 3600;
 const CodingChatboxMainWindow = new Lang.Class({
     Name: 'CodingChatboxMainWindow',
     Extends: Gtk.ApplicationWindow,
-    Template: 'resource:///com/endlessm/Coding/Chatbox/main.ui',
+    Template: 'resource:///com/endlessm/CodingChatbox/main.ui',
     Children: [
         'chatbox-list-box',
         'chatbox-stack',
@@ -857,7 +857,7 @@ const CodingChatboxApplication = new Lang.Class({
         // no sense. (T15186)
         settings.gtk_label_select_on_focus = false;
 
-        load_style_sheet('/com/endlessm/Coding/Chatbox/application.css');
+        load_style_sheet('/com/endlessm/CodingChatbox/application.css');
 
         this._service = new Service.CodingChatboxTextService();
         this._gameService = new Service.CodingGameService();

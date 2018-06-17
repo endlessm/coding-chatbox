@@ -4,24 +4,24 @@ SUBDIRS = lib data/icons po
 ACLOCAL_AMFLAGS = -I m4
 
 # Resources
-resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/src --sourcedir=$(builddir)/src --generate-dependencies $(srcdir)/src/com.endlessm.Coding.Chatbox.src.gresource.xml)
-app_resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/data --sourcedir=$(builddir)/data --generate-dependencies $(srcdir)/data/com.endlessm.Coding.Chatbox.data.gresource.xml)
+resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/src --sourcedir=$(builddir)/src --generate-dependencies $(srcdir)/src/com.endlessm.CodingChatbox.src.gresource.xml)
+app_resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/data --sourcedir=$(builddir)/data --generate-dependencies $(srcdir)/data/com.endlessm.CodingChatbox.data.gresource.xml)
 
 gdbus_codegen_built_sources = ChatboxService.c ChatboxService.h
 
 resourcedir = $(pkgdatadir)
 resource_DATA = \
-	data/com.endlessm.Coding.Chatbox.data.gresource \
-	src/com.endlessm.Coding.Chatbox.src.gresource \
+	data/com.endlessm.CodingChatbox.data.gresource \
+	src/com.endlessm.CodingChatbox.src.gresource \
 	$(NULL)
 
 applicationsdir = $(datadir)/applications
-applications_DATA = data/com.endlessm.Coding.Chatbox.desktop
+applications_DATA = data/com.endlessm.CodingChatbox.desktop
 
 servicedir = $(datadir)/dbus-1/services
 service_DATA = $(service_in_files:.service.in=.service)
 service_in_files = \
-	data/com.endlessm.Coding.Chatbox.service.in \
+	data/com.endlessm.CodingChatbox.service.in \
 	$(NULL)
 
 # Tests
@@ -41,26 +41,26 @@ EXTRA_DIST = \
 	$(javascript_tests) \
 	$(app_resource_files) \
 	$(service_in_files) \
-	com.endlessm.Coding.Chatbox.xml \
-	src/com.endlessm.Coding.Chatbox.in \
-	src/com.endlessm.Coding.Chatbox.src.gresource.xml \
-	data/com.endlessm.Coding.Chatbox.data.gresource.xml \
-	data/com.endlessm.Coding.Chatbox.desktop \
+	com.endlessm.CodingChatbox.xml \
+	src/com.endlessm.CodingChatbox.in \
+	src/com.endlessm.CodingChatbox.src.gresource.xml \
+	data/com.endlessm.CodingChatbox.data.gresource.xml \
+	data/com.endlessm.CodingChatbox.desktop \
 	$(NULL)
 
-data/com.endlessm.Coding.Chatbox.service: $(srcdir)/data/com.endlessm.Coding.Chatbox.service.in
+data/com.endlessm.CodingChatbox.service: $(srcdir)/data/com.endlessm.CodingChatbox.service.in
 	$(AM_V_GEN) mkdir -p data
 	$(AM_V_GEN) sed -e "s|\@bindir\@|$(bindir)|" $< > $@
 
-data/com.endlessm.Coding.Chatbox.data.gresource: $(srcdir)/data/com.endlessm.Coding.Chatbox.data.gresource.xml $(app_resource_files)
+data/com.endlessm.CodingChatbox.data.gresource: $(srcdir)/data/com.endlessm.CodingChatbox.data.gresource.xml $(app_resource_files)
 	$(AM_V_GEN) mkdir -p data
 	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(srcdir)/data $<
 
-src/com.endlessm.Coding.Chatbox.src.gresource: $(srcdir)/src/com.endlessm.Coding.Chatbox.src.gresource.xml $(resource_files)
+src/com.endlessm.CodingChatbox.src.gresource: $(srcdir)/src/com.endlessm.CodingChatbox.src.gresource.xml $(resource_files)
 	$(AM_V_GEN) mkdir -p src
 	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(srcdir)/src $<
 
-src/com.endlessm.Coding.Chatbox: $(srcdir)/src/com.endlessm.Coding.Chatbox.in $(chatbox_resources)
+src/com.endlessm.CodingChatbox: $(srcdir)/src/com.endlessm.CodingChatbox.in $(chatbox_resources)
 	$(AM_V_GEN) mkdir -p src
 	$(AM_V_GEN) sed \
 		-e "s|[@]GJS@|$(GJS)|g" \
@@ -73,7 +73,7 @@ src/com.endlessm.Coding.Chatbox: $(srcdir)/src/com.endlessm.Coding.Chatbox.in $(
 	echo $(app_resource_files)
 
 # GDBus-Codegen for Chatbox
-ChatboxService.c: $(srcdir)/com.endlessm.Coding.Chatbox.xml
+ChatboxService.c: $(srcdir)/com.endlessm.CodingChatbox.xml
 	gdbus-codegen --generate-c-code ChatboxService --c-namespace ChatboxService --c-generate-object-manager --interface-prefix com.endlessm. $<
 
 ChatboxService.h: ChatboxService.c
@@ -95,13 +95,13 @@ nobase_coding_chatboxinclude_HEADERS = \
 	ChatboxService.h
 
 # Scripts to install
-bin_SCRIPTS = src/com.endlessm.Coding.Chatbox
+bin_SCRIPTS = src/com.endlessm.CodingChatbox
 
 # Distclean
 CLEANFILES = \
 	$(resource_DATA) \
 	$(service_DATA) \
-	src/com.endlessm.Coding.Chatbox \
+	src/com.endlessm.CodingChatbox \
 	$(NULL)
 
 # GObject-Introspection support

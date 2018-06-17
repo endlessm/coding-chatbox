@@ -2,10 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([com.endlessm.Coding.Chatbox],
+AC_INIT([com.endlessm.CodingChatbox],
         [0.0.0],
         [bugs@endlessm.com],
-        [com.endlessm.Coding.Chatbox],
+        [com.endlessm.CodingChatbox],
         [http://www.endlessm.com])
 AM_INIT_AUTOMAKE([1.12 dist-xz no-dist-gzip foreign tar-ustar parallel-tests subdir-objects no-define -Wno-portability])
 AM_SILENT_RULES([yes])

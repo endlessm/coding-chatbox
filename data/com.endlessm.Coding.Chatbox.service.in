@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=com.endlessm.Coding.Chatbox
-Exec=@bindir@/com.endlessm.Coding.Chatbox --gapplication-service

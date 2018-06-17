@@ -291,7 +291,7 @@ row:selected:backdrop.contact-row {
 }
 
 .thumbnail .magnifying-glass-overlay {
-  background-image: url('resource:////com/endlessm/Coding/Chatbox/img/normal_zoom.png');
+  background-image: url('resource:////com/endlessm/CodingChatbox/img/normal_zoom.png');
   background-size: 22px;
   background-repeat: no-repeat;
   background-position: 100% 25%;
@@ -299,11 +299,11 @@ row:selected:backdrop.contact-row {
 }
 
 .thumbnail:hover .magnifying-glass-overlay {
-  background-image: url('resource:////com/endlessm/Coding/Chatbox/img/over_zoom.png');
+  background-image: url('resource:////com/endlessm/CodingChatbox/img/over_zoom.png');
 }
 
 .close-button {
-  background-image: url('resource:///com/endlessm/Coding/Chatbox/img/close_button.svg');
+  background-image: url('resource:///com/endlessm/CodingChatbox/img/close_button.svg');
   background-size: 24px;
   background-position: 50%;
   background-repeat: no-repeat;

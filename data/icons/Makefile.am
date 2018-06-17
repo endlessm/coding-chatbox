@@ -1,7 +1,7 @@
 icondir = $(datadir)/icons
 
 nobase_icon_DATA = \
-	hicolor/64x64/apps/coding-chatbox.png
+	hicolor/64x64/apps/com.endlessm.CodingChatbox.png
 
 EXTRA_DIST = \
 	$(nobase_icon_DATA)

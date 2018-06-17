@@ -1,5 +1,5 @@
 <node>
-  <interface name="com.endlessm.Coding.Chatbox">
+  <interface name="com.endlessm.CodingChatbox">
     <method name="ReceiveMessage">
       <arg name="message" direction="in" type="s"/>
     </method>

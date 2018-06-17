@@ -50,7 +50,7 @@ const Actor = new Lang.Class({
         if (!this.image)
             return null;
 
-        let resourcePath = '/com/endlessm/Coding/Chatbox/img/' + this.image;
+        let resourcePath = '/com/endlessm/CodingChatbox/img/' + this.image;
         try {
             return GdkPixbuf.Pixbuf.new_from_resource_at_scale(
                 resourcePath, CONTACT_IMAGE_SIZE, CONTACT_IMAGE_SIZE, true);
@@ -113,7 +113,7 @@ const Model = new Lang.Class({
     _init: function() {
         this.parent({ item_type: Actor.$gtype });
 
-        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/Coding/Chatbox/chatbox-data.json');
+        let actorsFile = Gio.File.new_for_uri('resource:///com/endlessm/CodingChatbox/chatbox-data.json');
         let contents;
         try {
             contents = actorsFile.load_contents(null)[1];
