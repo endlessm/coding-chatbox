@@ -21,7 +21,8 @@ function initials_from_name(name) {
     })).toUpperCase();
 }
 
-const Actor = new Lang.Class({
+// eslint-disable-next-line no-unused-vars
+var Actor = new Lang.Class({
     Name: 'Actor',
     Extends: GObject.Object,
     Properties: {
@@ -106,7 +107,7 @@ const Actor = new Lang.Class({
 });
 
 // eslint-disable-next-line no-unused-vars
-const Model = new Lang.Class({
+var Model = new Lang.Class({
     Name: 'Model',
     Extends: Gio.ListStore,
 

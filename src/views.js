@@ -18,8 +18,8 @@ const Pango = imports.gi.Pango;
 const Lang = imports.lang;
 const State = imports.state;
 
-const MAX_WIDTH_CHARS = 30;
-const CODE_MAX_WIDTH_CHARS = 65;  // eslint-disable-line no-unused-vars
+var MAX_WIDTH_CHARS = 30;
+var CODE_MAX_WIDTH_CHARS = 65;  // eslint-disable-line no-unused-vars
 
 // An immediately invoked function expression that
 // allows views to get a cached GnomeDesktopThumbnailFactory
@@ -100,7 +100,7 @@ function removeStyles(widget, styles) {
 }
 
 // eslint-disable-next-line no-unused-vars
-const TextChatboxMessageView = new Lang.Class({
+var TextChatboxMessageView = new Lang.Class({
     Name: 'TextChatboxMessageView',
     Extends: Gtk.Label,
     Implements: [ ChatboxMessageView ],
@@ -150,7 +150,7 @@ const TextChatboxMessageView = new Lang.Class({
 const _HORIZONTAL_TEXT_SIZE_LIMIT_CHARS = 15;
 
 // eslint-disable-next-line no-unused-vars
-const ChoiceChatboxMessageView = new Lang.Class({
+var ChoiceChatboxMessageView = new Lang.Class({
     Name: 'ChoiceChatboxMessageView',
     Extends: Gtk.Box,
     Implements: [ ChatboxMessageView ],
@@ -381,7 +381,7 @@ const ChatTextInputArea = new Lang.Class({
 });
 
 // eslint-disable-next-line no-unused-vars
-const InputChatboxMessageView = new Lang.Class({
+var InputChatboxMessageView = new Lang.Class({
     Name: 'InputChatboxMessageView',
     Extends: Gtk.Box,
     Implements: [ ChatboxMessageView ],
@@ -423,7 +423,7 @@ const InputChatboxMessageView = new Lang.Class({
 });
 
 // eslint-disable-next-line no-unused-vars
-const MessagePendingView = new Lang.Class({
+var MessagePendingView = new Lang.Class({
     Name: 'MessagePendingView',
     Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/CodingChatbox/message-pending-view.ui',
@@ -588,7 +588,7 @@ const CSSAllocator = (function() {
 
 
 // eslint-disable-next-line no-unused-vars
-const AttachmentChatboxMessageView = new Lang.Class({
+var AttachmentChatboxMessageView = new Lang.Class({
     Name: 'AttachmentChatboxMessageView',
     Extends: Gtk.Button,
     Template: 'resource:///com/endlessm/CodingChatbox/attachment-view.ui',

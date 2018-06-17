@@ -10,7 +10,7 @@ const Gtk = imports.gi.Gtk;
 const Actor = imports.actor;
 const Lang = imports.lang;
 
-const RoundedImage = new Lang.Class({
+var RoundedImage = new Lang.Class({
     Name: 'RoundedImage',
     Extends: Gtk.Image,
 
@@ -34,7 +34,7 @@ const RoundedImage = new Lang.Class({
 });
 
 // eslint-disable-next-line no-unused-vars
-const CodingChatboxContactListItem = new Lang.Class({
+var CodingChatboxContactListItem = new Lang.Class({
     Name: 'CodingChatboxContactListItem',
     Extends: Gtk.ListBoxRow,
     Template: 'resource:///com/endlessm/CodingChatbox/contact.ui',

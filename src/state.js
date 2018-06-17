@@ -49,7 +49,7 @@ const CodingChatboxMessage = new Lang.Interface({
     renderView: Lang.UNIMPLEMENTED
 });
 
-const SentBy = {
+var SentBy = {
     USER: 0,
     ACTOR: 1,
     INPUT: 2
@@ -73,7 +73,7 @@ const CodingChatboxMessageBase = new Lang.Class({
 
 
 // eslint-disable-next-line no-unused-vars
-const TextChatboxMessage = new Lang.Class({
+var TextChatboxMessage = new Lang.Class({
     Name: 'TextChatboxMessage',
     Extends: CodingChatboxMessageBase,
     Properties: {
@@ -106,7 +106,7 @@ const TextChatboxMessage = new Lang.Class({
 
 
 // eslint-disable-next-line no-unused-vars
-const ChoiceChatboxMessage = new Lang.Class({
+var ChoiceChatboxMessage = new Lang.Class({
     Name: 'ChoiceChatboxMessage',
     Extends: CodingChatboxMessageBase,
     Properties: {
@@ -141,7 +141,7 @@ const ChoiceChatboxMessage = new Lang.Class({
 
 
 // eslint-disable-next-line no-unused-vars
-const InputChatboxMessage = new Lang.Class({
+var InputChatboxMessage = new Lang.Class({
     Name: 'InputChatboxMessage',
     Extends: CodingChatboxMessageBase,
     Properties: {
@@ -189,7 +189,7 @@ const InputChatboxMessage = new Lang.Class({
 });
 
 // eslint-disable-next-line no-unused-vars
-const AttachmentChatboxMessage = new Lang.Class({
+var AttachmentChatboxMessage = new Lang.Class({
     Name: 'AttachmentChatboxMessage',
     Extends: CodingChatboxMessageBase,
     Properties: {
@@ -499,7 +499,7 @@ const CodingChatboxConversationState = new Lang.Class({
 // The overall "state" of the chatbox, which includes the individual converation
 //
 // eslint-disable-next-line no-unused-vars
-const CodingChatboxState = new Lang.Class({
+var CodingChatboxState = new Lang.Class({
     Name: 'CodingChatboxState',
 
     _init: function(message_factories) {

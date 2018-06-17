@@ -44,7 +44,7 @@ function createCopyPopover(forWidget, callback) {
 }
 
 // eslint-disable-next-line no-unused-vars
-const ChatBubble = new Lang.Class({
+var ChatBubble = new Lang.Class({
     Name: 'ChatBubble',
     Extends: Gtk.Box,
     Template: 'resource:///com/endlessm/CodingChatbox/chat-bubble-container.ui',
