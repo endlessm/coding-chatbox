@@ -881,46 +881,48 @@ const CodingChatboxApplication = new Lang.Class({
         this._skeleton = new Service.ChatboxReceiverService();
         this._skeleton.export(conn, object_path);
 
-        this._skeleton.connect('chat-message', Lang.bind(this, function(service, actor, message, location, timestamp, styles) {
-            if (this._mainWindow) {
-                this._mainWindow.chatMessage(actor,
-                                             message,
-                                             location,
-                                             timestamp,
-                                             styles,
-                                             State.SentBy.ACTOR,
-                                             determineMessagePendingTime('chat-actor', message));
-            } else {
-                let title = 'Message from ' + actor;
-                let actorObj = this._actorModel.getByName(actor);
-                this.showNotification(title, Views.stripMarkup(message), actorObj.avatar, actor);
-            }
-        }));
+        this._skeleton.connect('message', Lang.bind(this, function(service, m) {
+            let message = JSON.parse(m);
 
-        this._skeleton.connect('chat-attachment', Lang.bind(this, function(service, actor, attachment, location, timestamp, styles) {
-            if (this._mainWindow) {
-                this._mainWindow.chatAttachment(actor,
-                                                attachment,
-                                                location,
-                                                timestamp,
-                                                styles,
-                                                determineMessagePendingTime('chat-actor-attachment', attachment));
-            } else {
-                let title = 'Attachment from ' + actor;
-                let actorObj = this._actorModel.getByName(actor);
-                this.showNotification(title, Views.stripMarkup(attachment.desc), actorObj.avatar, actor);
+            if (message.message) {
+                if (this._mainWindow) {
+                    this._mainWindow.chatMessage(message.actor,
+                                                 message.message,
+                                                 message.name,
+                                                 message.timestamp,
+                                                 message.styles,
+                                                 State.SentBy.ACTOR,
+                                                 determineMessagePendingTime('chat-actor', message.message));
+                } else {
+                    let title = 'Message from ' + message.actor;
+                    let actorObj = this._actorModel.getByName(message.actor);
+                    this.showNotification(title, Views.stripMarkup(message.message), actorObj.avatar, message.actor);
+                }
+            } else if (message.input) {
+                if (this._mainWindow)
+                    this._mainWindow.chatUserInput(message.actor,
+                                                   message.input,
+                                                   message.name,
+                                                   message.styles,
+                                                   1);
+            } else if (message.attachment) {
+                if (this._mainWindow) {
+                    this._mainWindow.chatAttachment(message.actor,
+                                                    message.attachment,
+                                                    message.name,
+                                                    message.timestamp,
+                                                    message.styles,
+                                                    determineMessagePendingTime('chat-actor-attachment',
+                                                                                message.attachment));
+                } else {
+                    let title = 'Attachment from ' + message.actor;
+                    let actorObj = this._actorModel.getByName(message.actor);
+                    this.showNotification(title, Views.stripMarkup(message.attachment.desc), actorObj.avatar, message.actor);
+                }
+            } else if (message.separator) {
+                if (this._mainWindow)
+                    this._mainWindow.chatSeparator(message.actor);
             }
-        }));
-
-        this._skeleton.connect('chat-separator', Lang.bind(this, function(service, actor) {
-            if (this._mainWindow) {
-                this._mainWindow.chatSeparator(actor);
-            }
-        }));
-
-        this._skeleton.connect('user-input-bubble', Lang.bind(this, function(service, actor, spec, location, styles) {
-            if (this._mainWindow)
-                this._mainWindow.chatUserInput(actor, spec, location, styles, 1);
         }));
 
         this._skeleton.connect('reset', Lang.bind(this, function() {

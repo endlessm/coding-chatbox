@@ -99,35 +99,18 @@ const ChatboxReceiverErrors = {
 var ChatboxReceiverService = new Lang.Class({
     Name: 'ChatboxReceiverService',
     Extends: ChatboxService.CodingChatboxSkeleton,
+    Signals: {
+        'message': {
+            param_types: [
+                GObject.TYPE_STRING
+            ]
+        },
+        'reset': { param_types: [] }
+    },
 
     vfunc_handle_receive_message: function(method, message) {
         try {
-            let decodedMessage = JSON.parse(message);
-
-            if (decodedMessage.message) {
-                this.emit('chat-message',
-                          decodedMessage.actor,
-                          decodedMessage.message,
-                          decodedMessage.name,
-                          decodedMessage.timestamp,
-                          decodedMessage.styles);
-            } else if (decodedMessage.input) {
-                this.emit('user-input-bubble',
-                          decodedMessage.actor,
-                          decodedMessage.input,
-                          decodedMessage.name,
-                          decodedMessage.styles);
-            } else if (decodedMessage.attachment) {
-                this.emit('chat-attachment',
-                          decodedMessage.actor,
-                          decodedMessage.attachment,
-                          decodedMessage.name,
-                          decodedMessage.timestamp,
-                          decodedMessage.styles);
-            } else if (decodedMessage.separator) {
-                this.emit('chat-separator',
-                          decodedMessage.actor);
-            }
+            this.emit('message', message);
             this.complete_receive_message(method);
         } catch (e) {
             method.return_error_literal(ChatboxReceiverErrorDomain,
