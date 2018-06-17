@@ -421,15 +421,15 @@ const CodingChatboxConversationState = new Lang.Class({
     // Amend the last message in the model with a message specification. This might completely
     // change the message type (eg, from user input to just text).
     //
-    // Returns false if it wasn't possible to change this message (for instance, the sender
-    // was different).
+    // Returns [false, null] if it wasn't possible to change this message (for
+    // instance, the sender was different).
     //
     // This function will return both a reference to the relevant container and also
     // whether the amendment was successful.
     //
     amendLastMessage: function(spec) {
         if (!this._conversation.length) {
-            return false;
+            return [false, null];
         }
 
         let container = this._conversation[this._conversation.length - 1];
