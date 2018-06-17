@@ -151,7 +151,6 @@ var ChatboxReceiverService = new Lang.Class({
         return true;
     }
 });
-Signals.addSignalMethods(ChatboxReceiverService.prototype);
 
 // eslint-disable-next-line no-unused-vars
 var CodingChatboxTextService = new Lang.Class({
