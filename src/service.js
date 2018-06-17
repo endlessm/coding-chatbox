@@ -30,8 +30,8 @@ var CodingGameService = new Lang.Class({
         this._service = CodingGameDBUSService.CodingGameServiceProxy.new_for_bus_sync(
             Gio.BusType.SESSION,
             Gio.DBusProxyFlags.DO_NOT_AUTO_START_AT_CONSTRUCTION,
-            'com.endlessm.CodingGameService.Service',
-            '/com/endlessm/CodingGameService/Service',
+            'com.endlessm.CodingGameService',
+            '/com/endlessm/CodingGameService',
             null);
     },
 
@@ -161,8 +161,8 @@ var CodingChatboxTextService = new Lang.Class({
     _init: function() {
         this.parent();
 
-        let name = 'com.endlessm.Showmehow.Service';
-        let path = '/com/endlessm/Showmehow/Service';
+        let name = 'com.endlessm.ShowmehowService';
+        let path = '/com/endlessm/ShowmehowService';
 
         // Connect to the service and refresh the content once we have a connection
         this._service = Showmehow.ServiceProxy.new_for_bus_sync(Gio.BusType.SESSION, 0, name, path, null);
