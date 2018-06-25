@@ -1,0 +1,119 @@
+{
+    "app-id": "com.endlessm.CodingChatbox",
+    "build-options": {
+        "cflags": "-O2 -g",
+        "cxxflags": "-O2 -g",
+        "env": {
+            "V": "1"
+        }
+    },
+    "command": "com.endlessm.CodingChatbox",
+    "finish-args": [
+        "--socket=x11",
+        "--share=ipc",
+        "--system-talk-name=com.endlessm.Metrics",
+        "--filesystem=xdg-run/dconf",
+        "--filesystem=~/.config/dconf:ro",
+        "--filesystem=~/.var/app/com.endlessm.CodingGameService/config/com.endlessm.CodingGameService:ro",
+        "--filesystem=xdg-config",
+        "--filesystem=host:ro",
+        "--talk-name=com.endlessm.ShowmehowService",
+        "--talk-name=com.endlessm.CodingGameService",
+        "--talk-name=org.gnome.Shell",
+        "--env=DCONF_USER_CONFIG_DIR=.config/dconf"
+    ],
+    "modules": [
+        {
+            "name": "libgnome-desktop",
+            "config-opts": [
+                "--disable-desktop-docs",
+                "--disable-debug-tools"
+            ],
+            "cleanup": [
+                "/bin",
+                "/include",
+                "/libexec",
+                "/lib/pkgconfig",
+                "/share",
+                "*.a"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "http://download.gnome.org/sources/gnome-desktop/3.28/gnome-desktop-3.28.2.tar.xz",
+                    "sha256": "605087bff17c61bc167ccb5a61ed4d06eab922fcce384576ed2a3577214c8330"
+                }
+            ]
+        },
+        {
+            "name": "coding-game-service",
+            "config-opts": [
+                "--disable-integration",
+                "--disable-service"
+            ],
+            "cleanup": [
+                "/bin",
+                "/include",
+                "/lib/pkgconfig",
+                "/share",
+                "*.a"
+            ],
+            "sources": [
+                {
+                    "type": "git",
+                    "branch": "master",
+                    "url": "git://github.com/endlessm/coding-game-service"
+                }
+            ]
+        },
+        {
+            "name": "showmehow-service",
+            "config-opts": [
+                "--disable-service"
+            ],
+            "cleanup": [
+                "/bin",
+                "/include",
+                "/lib/pkgconfig",
+                "/share",
+                "*.a"
+            ],
+            "sources": [
+                {
+                    "branch": "master",
+                    "type": "git",
+                    "url": "git://github.com/endlessm/showmehow-service"
+                }
+            ]
+        },
+        {
+            "name": "jasmine-gjs",
+            "cleanup": ["*"],
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "git://github.com/ptomato/jasmine-gjs"
+                }
+            ]
+        },
+        {
+            "name": "coding-chatbox",
+            "run-tests": "@RUN_TESTS@",
+            "cleanup": [
+                "/include",
+                "/lib/pkgconfig",
+                "*.a"
+            ],
+            "sources": [
+                {
+                    "type": "git",
+                    "branch": "@GIT_CLONE_BRANCH@",
+                    "url": "."
+                }
+            ]
+        }
+    ],
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "3.28",
+    "sdk": "org.gnome.Sdk"
+}
