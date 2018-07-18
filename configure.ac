@@ -42,6 +42,14 @@ AC_PATH_PROG([GJS],[gjs])
 PKG_CHECK_MODULES(CODING_CHATBOX, [glib-2.0 gio-2.0 gobject-2.0 gio-unix-2.0 gtk+-3.0])
 PKG_CHECK_MODULES(CODING_CHATBOX_PRIVATE, [glib-2.0 gio-2.0 gtk+-3.0 gdk-3.0])
 
+# Build options
+AC_ARG_ENABLE([program], [Chatbox program], [
+  CODING_CHATBOX_PROGRAM_ENABLED=$enableval
+], [
+  CODING_CHATBOX_PROGRAM_ENABLED=yes
+])
+AM_CONDITIONAL([CODING_CHATBOX_PROGRAM_ENABLED], [test "x$CODING_CHATBOX_PROGRAM_ENABLED" = "xyes"])
+
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -77,3 +85,8 @@ AC_CONFIG_FILES([
 ])
 
 AC_OUTPUT
+
+echo "
+        Build Chatbox program:    ${CODING_CHATBOX_PROGRAM_ENABLED}
+
+"

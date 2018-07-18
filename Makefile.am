@@ -1,28 +1,9 @@
-SUBDIRS = lib data/icons po
-
 # Our Autoconf macros are kept in the m4/ directory
 ACLOCAL_AMFLAGS = -I m4
+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-program
 
 # Resources
 resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/src --sourcedir=$(builddir)/src --generate-dependencies $(srcdir)/src/com.endlessm.CodingChatbox.src.gresource.xml)
-app_resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/data --sourcedir=$(builddir)/data --generate-dependencies $(srcdir)/data/com.endlessm.CodingChatbox.data.gresource.xml)
-
-gdbus_codegen_built_sources = ChatboxService.c ChatboxService.h
-
-resourcedir = $(pkgdatadir)
-resource_DATA = \
-	data/com.endlessm.CodingChatbox.data.gresource \
-	src/com.endlessm.CodingChatbox.src.gresource \
-	$(NULL)
-
-applicationsdir = $(datadir)/applications
-applications_DATA = data/com.endlessm.CodingChatbox.desktop
-
-servicedir = $(datadir)/dbus-1/services
-service_DATA = $(service_in_files:.service.in=.service)
-service_in_files = \
-	data/com.endlessm.CodingChatbox.service.in \
-	$(NULL)
 
 # Tests
 javascript_tests = \
@@ -39,9 +20,32 @@ all_js_files = \
 EXTRA_DIST = \
 	$(resource_files) \
 	$(javascript_tests) \
+	$(NULL)
+CLEANFILES =
+
+if CODING_CHATBOX_PROGRAM_ENABLED
+SUBDIRS = lib data/icons po
+
+app_resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir)/data --sourcedir=$(builddir)/data --generate-dependencies $(srcdir)/data/com.endlessm.CodingChatbox.data.gresource.xml)
+
+resourcedir = $(pkgdatadir)
+resource_DATA = \
+	data/com.endlessm.CodingChatbox.data.gresource \
+	src/com.endlessm.CodingChatbox.src.gresource \
+	$(NULL)
+
+applicationsdir = $(datadir)/applications
+applications_DATA = data/com.endlessm.CodingChatbox.desktop
+
+servicedir = $(datadir)/dbus-1/services
+service_DATA = $(service_in_files:.service.in=.service)
+service_in_files = \
+	data/com.endlessm.CodingChatbox.service.in \
+	$(NULL)
+
+EXTRA_DIST += \
 	$(app_resource_files) \
 	$(service_in_files) \
-	com.endlessm.CodingChatbox.xml \
 	src/com.endlessm.CodingChatbox.in \
 	src/com.endlessm.CodingChatbox.src.gresource.xml \
 	data/com.endlessm.CodingChatbox.data.gresource.xml \
@@ -72,6 +76,19 @@ src/com.endlessm.CodingChatbox: $(srcdir)/src/com.endlessm.CodingChatbox.in $(ch
 	chmod +x $@
 	echo $(app_resource_files)
 
+# Scripts to install
+bin_SCRIPTS = src/com.endlessm.CodingChatbox
+
+# Distclean
+CLEANFILES += \
+	$(resource_DATA) \
+	$(service_DATA) \
+	src/com.endlessm.CodingChatbox \
+	$(NULL)
+endif CODING_CHATBOX_PROGRAM_ENABLED
+
+gdbus_codegen_built_sources = ChatboxService.c ChatboxService.h
+
 # GDBus-Codegen for Chatbox
 ChatboxService.c: $(srcdir)/com.endlessm.CodingChatbox.xml
 	gdbus-codegen --generate-c-code ChatboxService --c-namespace ChatboxService --c-generate-object-manager --interface-prefix com.endlessm. $<
@@ -80,7 +97,6 @@ ChatboxService.h: ChatboxService.c
 
 # Generate the ChatboxService GDBus Skeleton library
 libcoding_chatbox_1_0_la_SOURCES = \
-	$(resources_built_sources) \
 	$(gdbus_codegen_built_sources) \
 	$(NULL)
 libcoding_chatbox_1_0_la_CFLAGS = $(CODING_CHATBOX_CFLAGS)
@@ -94,14 +110,8 @@ coding_chatboxincludedir = $(includedir)/coding-chatbox
 nobase_coding_chatboxinclude_HEADERS = \
 	ChatboxService.h
 
-# Scripts to install
-bin_SCRIPTS = src/com.endlessm.CodingChatbox
-
-# Distclean
-CLEANFILES = \
-	$(resource_DATA) \
-	$(service_DATA) \
-	src/com.endlessm.CodingChatbox \
+EXTRA_DIST += \
+	com.endlessm.CodingChatbox.xml \
 	$(NULL)
 
 # GObject-Introspection support
